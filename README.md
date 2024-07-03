@@ -9,6 +9,12 @@ Include the library in your project:
 <script src="https://raw.githubusercontent.com/BlazeInferno64/blazed/main/lib/blazed.js"></script>
 ```
 
+Or you can include it like this too
+
+```html
+<script src="https://blazeinferno64.github.io/blazed/lib/blazed.js"></script>
+```
+
 # Info
 
 Using blazed.js you can perform advanced HTTP Requests from your browser directly with custom error handling like network error, timeout,etc. and automatic JSON Parsing
