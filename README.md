@@ -15,6 +15,12 @@ Or you can include it like this too
 <script src="https://blazeinferno64.github.io/blazed/lib/blazed.js"></script>
 ```
 
+Or there's another alternative way to load, i.e, using <a href="https://jsdeliver.com/">jsDeliver</a>
+
+```html
+<script src="https://cdn.jsdelivr.net/gh/blazeinferno64/blazed/lib/blazed.js"></script>
+```
+
 # Info
 
 Using blazed.js you can perform advanced HTTP Requests from your browser directly with custom error handling like network error, timeout,etc. and automatic JSON Parsing
