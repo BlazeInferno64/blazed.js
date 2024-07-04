@@ -25,7 +25,7 @@ Or there's another alternative way to load, i.e, using <a href="https://jsdelivr
 
 Using blazed.js you can perform advanced HTTP Requests from your browser directly with custom error handling like network error, timeout,etc. and automatic JSON Parsing
 
-Its based on <a href="https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest">XMLHttpRequest</a> Library which is built-in any web browser!
+Its based on <a href="https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest">XMLHttpRequest</a> Library which is already built-in almost all the modern web browsers!
 
 # Blazed()
 
@@ -127,7 +127,7 @@ Let me show you an advanced example
 
 ```js
 
-// Example usage:
+// Note that I have included blazed() here in this example 
 
 const blazed = new Blazed('https://api.example.com');
 
