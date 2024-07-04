@@ -1,5 +1,5 @@
 # blazed
-High Performance All in one HTTP requests library
+Blazing Fast, High Performance All in one HTTP requests library
 
 # Setup and installation
 
