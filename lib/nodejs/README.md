@@ -75,6 +75,7 @@ const blazed = require("blazed.js");
 // Wrapping it in a try catch block for code safety
 try{
     const result = blazed.parseURL("https://www.google.com");
+    console.log(result);
 }catch(err) {
     console.error(err);
 }
