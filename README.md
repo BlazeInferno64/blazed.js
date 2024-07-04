@@ -12,13 +12,13 @@ Include the library in your project:
 Or you can include it like this too
 
 ```html
-<script src="https://blazeinferno64.github.io/blazed/lib/blazed.js"></script>
+<script src="https://blazeinferno64.github.io/blazed/lib/client/blazed.js"></script>
 ```
 
 Or there's another alternative way to load, i.e, using <a href="https://jsdelivr.com/">jsDelivr</a>
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/blazeinferno64/blazed/lib/blazed.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/blazeinferno64/blazed/lib/client/blazed.js"></script>
 ```
 
 # Info
