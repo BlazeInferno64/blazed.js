@@ -6,7 +6,7 @@ Blazing Fast, High Performance All in one HTTP requests library
 Include the library in your project:
 
 ```html
-<script src="https://raw.githubusercontent.com/BlazeInferno64/blazed/main/lib/blazed.js"></script>
+<script src="https://raw.githubusercontent.com/BlazeInferno64/blazed/main/lib/client/blazed.js"></script>
 ```
 
 Or you can include it like this too
