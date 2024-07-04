@@ -1,6 +1,9 @@
 # blazed
 Blazing Fast, High Performance All in one HTTP requests library
 
+# Npm Package
+For the npm package check here at https://npmjs.com/package/blazed.js
+
 # Setup and installation
 
 Include the library in your project:
