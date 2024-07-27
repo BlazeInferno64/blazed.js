@@ -72,13 +72,12 @@ Here's an simple example with `try catch` block
 ```js
 const blazed = require("blazed.js");
 
-// Wrapping it in a try catch block for code safety
-try{
-    const result = blazed.parseURL("https://www.google.com");
-    console.log(result);
-}catch(err) {
-    console.error(err);
-}
+// It will return a Promise, which will get resolved if the URL parsing has been successfull!
+// It will get rejected if the URL parsing isn't successfull!
+
+blazed.parseURL("https://www.google.com")
+.then((res) => console.log(res))
+.catch((err) => console.error(err))
 ```
 
 After running this, it will log all the parsed URL values to the console, and if any error occurs the `catch` block will catch it and print it to the console
