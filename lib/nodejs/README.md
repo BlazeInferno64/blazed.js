@@ -67,7 +67,7 @@ blazed.del("https://jsonplacholder.typicode.com/posts/1")
 
 Also you can perform URL Performing using the `blazed.parseURL()` function where you have to pass in an URL
 
-Here's an simple example with `try catch` block
+Here's an simple example with `.then() and .catch()` statements
 
 ```js
 const blazed = require("blazed.js");
