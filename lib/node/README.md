@@ -60,7 +60,7 @@ To perform POST Requests, you need to have some data for posting.
 Here's how you can achieve this
 
 ```js
-blazed.post("https://jsonplaceholder.typicode.com/posts", { title: 'foo', body: 'bar', userId: 1 }) // Popsting with some dummy data
+blazed.post("https://jsonplaceholder.typicode.com/posts", { title: 'foo', body: 'bar', userId: 1 }) // Posting with some dummy data
     .then(data => console.log(data)) // Logging the data to the console, Note that it will return an object which will contain the data, headers and statuscode
     .catch(err => console.error(err)); // Again catching any errors
 
@@ -80,6 +80,15 @@ blazed.delete("https://jsonplacholder.typicode.com/posts/1")
 # Other HTTP methods 
 
 Other http methods like PATCH, TRACE, CONNECT, ect,etc. are also available which are not available in the older versions
+
+Put request:
+
+```js
+blazed.put("https://jsonplaceholder.typicode.com/posts", { title: 'foo', body: 'bar', userId: 1 }) // Posting with some dummy data
+    .then(data => console.log(data)) // Logging the data to the console, Note that it will return an object which will contain the data, headers and statuscode
+    .catch(err => console.error(err)); // Again catching any errors
+
+```
 
 Patch request:
 
