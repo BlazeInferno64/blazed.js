@@ -202,7 +202,7 @@ Using the `blazed.methods()` function, it will display all the valid HTTP reques
 console.log(blazed.methods())
 ```
 
-# version
+# about
 
 `blazed.about()` will return some info regarding this package as an object
 
