@@ -79,7 +79,8 @@ blazed.delete("https://jsonplacholder.typicode.com/posts/1")
 ```
 # Other HTTP methods 
 
-Other http methods like PATCH, TRACE, CONNECT, ect,etc. are also available which are not available in the older versions
+Other http methods like PATCH, TRACE, CONNECT,etc. are also available which were not supported in the older versions of blazed.js
+Some examples regarding them are as belows -
 
 Put request:
 
@@ -203,10 +204,10 @@ console.log(blazed.methods())
 
 # version
 
-`blazed.version()` will display the current version of the package to the console
+`blazed.about()` will return some info regarding this package as an object
 
 ```js
-blazed.version()
+console.log(blazed.about())
 ```
 
 # Bugs & Issues
