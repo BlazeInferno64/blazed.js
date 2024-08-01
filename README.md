@@ -3,7 +3,7 @@ Blazing Fast, High Performance All in one HTTP requests library
 
 # Npm Package
 For the npm package check
-<a href="https://npmjs.com/package/blazed.js">here </a> or <a href="./lib/nodejs/">here for the source code</a>
+<a href="https://npmjs.com/package/blazed.js">here </a> or <a href="./lib/node/">here for the source code</a>
 
 # Setup and installation
 
