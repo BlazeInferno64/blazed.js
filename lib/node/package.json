@@ -1,6 +1,6 @@
 {
   "name": "blazed.js",
-  "version": "1.0.7",
+  "version": "1.0.10",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

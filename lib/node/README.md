@@ -33,7 +33,7 @@ Here's is a simple example
 
 ```js
 blazed.get("https://jsonplaceholder.typicode.com/posts/1")
-    .then(data => console.log(data)) // Logging the data to the console, Note that it will return an object which will contain the data, headers and statuscode
+    .then(data => console.log(data)) // Logging the data to the console, Note that it will return an object which will contain the data, headers, statuscode and the request headers
     .catch(err => console.error(err)); // For error handling
 ```
 
@@ -41,7 +41,7 @@ It's actually quite similar to the native fetch api or node-fetch
 
 # Point to be noted
 
-For any request regardless of the http method used, whenever you do `console.log(res)`, it will actually return the response object from where you can extract the server response data by doing `res.data`,and the response headers by doing `res.headers`, and the statuscode by doing `res.status`
+For any request regardless of the http method used, whenever you do `console.log(res)`, it will actually return the response object from where you can extract the server response data by doing `res.data`,and the response headers by doing `res.headers`, and the statuscode by doing `res.status` and the request headers by doing `res.requestHeaders`
 
 The response object structre is as belows-
 
@@ -49,7 +49,8 @@ The response object structre is as belows-
 {
     "data": "The response of the url goes here",
     "status": "The status code of the response goes here",
-    "headers": "The response headers goes here"
+    "headers": "The response headers goes here",
+    "requestHeaders": "All the request headers goes here"
 }
 ```
 
@@ -61,7 +62,7 @@ Here's how you can achieve this
 
 ```js
 blazed.post("https://jsonplaceholder.typicode.com/posts", { title: 'foo', body: 'bar', userId: 1 }) // Posting with some dummy data
-    .then(data => console.log(data)) // Logging the data to the console, Note that it will return an object which will contain the data, headers and statuscode
+    .then(data => console.log(data)) // Logging the data to the console, Note that it will return an object which will contain the data, headers, statuscode and the request headers
     .catch(err => console.error(err)); // Again catching any errors
 
 ```
@@ -74,7 +75,7 @@ Here's a simple example
 
 ```js
 blazed.delete("https://jsonplacholder.typicode.com/posts/1")
-.then(res => console.log(`DELETE Successfull: ${res}`)) // Logging the data to the console, Note that it will return an object which will contain the data, headers and statuscode
+.then(res => console.log(`DELETE Successfull: ${res}`)) // Logging the data to the console, Note that it will return an object which will contain the data, headers, statuscode and the request headers
 .catch(err => console.error(`DELETE Request failed:${err}`)); // Catching errors if any
 ```
 # Other HTTP methods 
@@ -86,7 +87,7 @@ Put request:
 
 ```js
 blazed.put("https://jsonplaceholder.typicode.com/posts", { title: 'foo', body: 'bar', userId: 1 }) // Posting with some dummy data
-    .then(data => console.log(data)) // Logging the data to the console, Note that it will return an object which will contain the data, headers and statuscode
+    .then(data => console.log(data)) // Logging the data to the console, Note that it will return an object which will contain the data, headers, statuscode and the request headers
     .catch(err => console.error(err)); // Again catching any errors
 
 ```
