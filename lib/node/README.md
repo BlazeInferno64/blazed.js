@@ -1,6 +1,6 @@
 # blazed
 
-Blazing Fast, All in one HTTP Requests library
+Blazing Fast, Light Weight, High Performance, All in one HTTP requests client
 
 # Setup/Installations
 
