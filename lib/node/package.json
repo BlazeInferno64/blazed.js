@@ -1,6 +1,6 @@
 {
   "name": "blazed.js",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "main": "index.js",
   "types": "lib/index.d.ts",
   "scripts": {
@@ -20,7 +20,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/blazeinferno64/blazed.git"
+    "url": "git+https://github.com/blazeinferno64/blazed.js.git"
   },
   "description": "Blazing Fast, Light Weight, High Performance, All in one HTTP requests client"
 }

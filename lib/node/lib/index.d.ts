@@ -35,6 +35,9 @@ interface blazed {
    * @param {Object} headers Optional headers to include in the request.
    * @param {number} redirectCount Optional parameter to limit the number of redirects (default: 5).
    * @returns {Promise<ResponseObject>} A promise that resolves with the response data.
+   * @example blazed.get("https://jsonplaceholder.typicode.com/posts/1")
+     .then(data => console.log(data))
+     .catch(err => console.error(err)); 
    */
   get(url: string, headers?: Object, redirectCount?: number): Promise<ResponseObject>;
 
@@ -44,6 +47,9 @@ interface blazed {
    * @param {Object} headers Optional headers to include in the request.
    * @param {number} redirectCount Optional parameter to limit the number of redirects (default: 5).
    * @returns {Promise<ResponseObject>} A promise that resolves with the response data.
+   * @example blazed.head("https://example.com/api")
+     .then(data => console.log(data))
+     .catch(err => console.error(err));
    */
   head(url: string, headers?: Object, redirectCount?: number): Promise<ResponseObject>;
 
@@ -53,6 +59,9 @@ interface blazed {
    * @param {Object} data The data to send in the request body (should be JSON-serializable).
    * @param {Object} headers Optional headers to include in the request.
    * @returns {Promise<ResponseObject>} A promise that resolves with the response data.
+   * @example blazed.post("https://jsonplaceholder.typicode.com/posts/1", { title: 'foo', body: 'bar', userId: 1 }))
+     .then(data => console.log(data))
+     .catch(err => console.error(err));
    */
   post(url: string, data: Object, headers?: Object): Promise<ResponseObject>;
 
@@ -62,6 +71,9 @@ interface blazed {
    * @param {Object} data The data to send in the request body (should be JSON-serializable).
    * @param {Object} headers Optional headers to include in the request.
    * @returns {Promise<ResponseObject>} A promise that resolves with the response data.
+   * @example blazed.put("https://jsonplaceholder.typicode.com/posts/1", { title: 'foo', body: 'bar', userId: 1 }))
+    .then(data => console.log(data))
+    .catch(err => console.error(err)); 
    */
   put(url: string, data: Object, headers?: Object): Promise<ResponseObject>;
 
@@ -70,6 +82,9 @@ interface blazed {
    * @param {string} url The URL to send the DELETE request to.
    * @param {Object} headers Optional headers to include in the request.
    * @returns {Promise<ResponseObject>} A promise that resolves with the response data.
+   * @example blazed.delete("https://jsonplaceholder.typicode.com/posts/1")
+    .then(data => console.log(data))
+    .catch(err => console.error(err)); 
    */
   delete(url: string, headers?: Object): Promise<ResponseObject>;
 
@@ -79,6 +94,9 @@ interface blazed {
    * @param {Object} headers Optional headers to include in the request.
    * @param {number} redirectCount Optional parameter to limit the number of redirects (default: 5).
    * @returns {Promise<ResponseObject>} A promise that resolves with the response data.
+   * @example blazed.connect("https://example.com/api")
+    .then(data => console.log(data))
+    .catch(err => console.error(err));
    */
   connect(url: string, headers?: Object, redirectCount?: number): Promise<ResponseObject>;
 
@@ -88,6 +106,9 @@ interface blazed {
    * @param {Object} headers Optional headers to include in the request.
    * @param {number} redirectCount Optional parameter to limit the number of redirects (default: 5).
    * @returns {Promise<ResponseObject>} A promise that resolves with the response data.
+   * @example blazed.options("https://example.com/api")
+    .then(data => console.log(data))
+    .catch(err => console.error(err));
    */
   options(url: string, headers?: Object, redirectCount?: number): Promise<ResponseObject>;
 
@@ -97,6 +118,9 @@ interface blazed {
    * @param {Object} headers Optional headers to include in the request.
    * @param {number} redirectCount Optional parameter to limit the number of redirects (default: 5).
    * @returns {Promise<ResponseObject>} A promise that resolves with the response data.
+   * @example blazed.trace("https://example.com/api")
+    .then(data => console.log(data))
+    .catch(err => console.error(err));
    */
   trace(url: string, headers?: Object, redirectCount?: number): Promise<ResponseObject>;
 
@@ -106,6 +130,9 @@ interface blazed {
    * @param {Object} data The data to send in the request body (should be JSON-serializable).
    * @param {Object} headers Optional headers to include in the request.
    * @returns {Promise<ResponseObject>} A promise that resolves with the response data.
+   * @example blazed.patch("https://example.com/api")
+    .then(data => console.log(data))
+    .catch(err => console.error(err));
    */
   patch(url: string, data: Object, headers?: Object): Promise<ResponseObject>;
 
@@ -113,28 +140,47 @@ interface blazed {
    * Checks return whether a provided URL is valid or not.
    * @param {string} url The URL to check.
    * @returns {Promise<URLParser>} A promise that resolves with the parsed URL as a JSON Object.
+    * @example
+ * const url = 'https://example.com/path?a=1&b=2';
+ * blazed.parseURL(url)
+ * .then(parsedData => console.log(data))
+ * .catch(err => console.error(err));
+ *   Output:
+ *    {
+ *      hash: '',
+ *      host: 'example.com',
+ *      hostname: 'example.com',
+ *      href: 'https://example.com/path?a=1&b=2',
+ *      origin: 'https://example.com',
+ *      password: '',
+ *      pathname: '/path',
+ *      protocol: 'https:',
+ *      search: '?a=1&b=2',
+ *      searchParams: URLSearchParams { 'a' => '1', 'b' => '2' }
+ *   }
+ * });
+
    */
   parseURL(url: string): Promise<URLParser>;
 
   /**
-   * Displays all the valid HTTP status codes as an array.
+   * Returns all the valid HTTP status codes as an array.
    * @returns {Array<string>} An array of valid HTTP status codes.
    */
   status_codes(): Array<string>;
 
   /**
-   * Displays the valid HTTP Methods as an array.
+   * Returns all the valid HTTP Methods as an array supported by Node
    * @returns {Array<string>} An array of valid HTTP methods.
+   * Almost all methods are supported in blazed.js's newer versions
    */
   methods(): Array<string>;
 
   /**
-   * Displays some info regarding blazed.js in the console.
-   * @returns {AboutObject} An object containing information about blazed.js.
+   * @returns {AboutObject<Object>} Returns a JSON which contains some info regarding blazed.js.
    */
   about(): AboutObject;
 }
 
-declare module 'blazed.js' {
-  export = blazed;
-}
+declare const blazed: blazed;
+export = blazed

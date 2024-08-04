@@ -214,7 +214,7 @@ console.log(blazed.about())
 # Bugs & Issues
 
 If you encounter any bugs/issues in your code or want a feature request
-Feel free to open up an issue [here](https://github.com/blazeinferno64/blazed)
+Feel free to open up an issue [here](https://github.com/blazeinferno64/blazed.js)
 
 `Thanks for reading :)`
 `Have a great day ahead :D`
