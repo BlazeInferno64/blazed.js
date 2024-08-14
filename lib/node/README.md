@@ -41,15 +41,15 @@ It's actually quite similar to the native fetch api or node-fetch
 
 # Point to be noted
 
-For any request regardless of the http method used, whenever you do `console.log(res)`, it will actually return the response object from where you can extract the server response data by doing `res.data`,and the response headers by doing `res.headers`, and the statuscode by doing `res.status` and the request headers by doing `res.requestHeaders`
+For any request regardless of the http method used, whenever you log the response, it will actually return the response object from where you can extract the server response data by doing `res.data`,and the response headers by doing `res.responseHeaders`, and the statuscode by doing `res.status` and the request headers by doing `res.requestHeaders`
 
 The response object structre is as belows-
 
 ```js
 {
-    "data": "The response of the url goes here",
+    "data": "The response of the domain goes here",
     "status": "The status code of the response goes here",
-    "headers": "The response headers goes here",
+    "responseHeaders": "All the response headers goes here",
     "requestHeaders": "All the request headers goes here"
 }
 ```
@@ -170,7 +170,7 @@ blazed.trace(url, headers)
 
 # URL Parsing
 
-Also you can perform URL Performing using the `blazed.parseURL()` function where you have to pass in an URL
+Also you can perform URL Performing using the `blazed.parse()` function where you have to pass in an URL
 
 Here's an simple example with `.then() and .catch()` statements
 
@@ -180,12 +180,12 @@ const blazed = require("blazed.js");
 // It will return a Promise, which will get resolved if the URL parsing has been successfull!
 // It will get rejected if the URL parsing isn't successfull!
 
-blazed.parseURL("https://www.google.com")
+blazed.parse("https://www.google.com")
 .then((url) => console.log(url)) // It will print all the values of the url object to the console
 .catch((err) => console.error(err))
 ```
 
-After running this, it will log all the parsed URL values to the console, and if any error occurs the `catch` block will catch it and print it to the console
+After running this, it will log all the parsed URL values to the console, and if any error occurs the `catch` block will catch it and print it to the console, also you can use it with `async` and `await` statements too
 
 # status_codes()
 

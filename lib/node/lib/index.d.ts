@@ -24,7 +24,7 @@ interface AboutObject {
 interface ResponseObject {
   data: any;
   status: number;
-  headers: { [key: string]: string };
+  responseHeaders: { [key: string]: string };
   requestHeaders: { [key: string]: string };
 }
 
@@ -142,8 +142,8 @@ interface blazed {
    * @returns {Promise<URLParser>} A promise that resolves with the parsed URL as a JSON Object.
     * @example
  * const url = 'https://example.com/path?a=1&b=2';
- * blazed.parseURL(url)
- * .then(parsedData => console.log(data))
+ * blazed.parse(url)
+ * .then(parsedData => console.log(parsedData))
  * .catch(err => console.error(err));
  *   Output:
  *    {
@@ -161,7 +161,7 @@ interface blazed {
  * });
 
    */
-  parseURL(url: string): Promise<URLParser>;
+  parse(url: string): Promise<URLParser>;
 
   /**
    * Returns all the valid HTTP status codes as an array.
