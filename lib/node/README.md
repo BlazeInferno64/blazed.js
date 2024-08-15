@@ -37,7 +37,7 @@ You're ready to perform your first GET Request!
 
 Here's is a simple example
 
-We will be using `try-catch` block for these examples. Note you can you use `async-await` also in place of `try-catch`
+We will be using `try-catch` block for these examples. Note you can use `async-await` also in place of `try-catch`
 
 ```js
 blazed.get("https://jsonplaceholder.typicode.com/posts/1")
