@@ -1,5 +1,5 @@
 # blazed.js
-Blazing Fast, Light Weight, High Performance, All in one HTTP requests client
+Blazing Fast, Light Weight, High Performance, Promised based HTTP Client
 
 # Npm Package
 For the npm package check
