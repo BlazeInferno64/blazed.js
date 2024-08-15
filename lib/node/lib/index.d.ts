@@ -1,3 +1,25 @@
+// Copyright (c)2024 BlazeInferno64 --> https://github.com/blazeinferno64.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
 // Type definitions for blazed.js
 
 interface URLParser {
@@ -36,7 +58,7 @@ interface blazed {
    * @param {number} redirectCount Optional parameter to limit the number of redirects (default: 5).
    * @returns {Promise<ResponseObject>} A promise that resolves with the response data.
    * @example blazed.get("https://jsonplaceholder.typicode.com/posts/1")
-     .then(data => console.log(data))
+     .then(res => console.log(res))
      .catch(err => console.error(err)); 
    */
   get(url: string, headers?: Object, redirectCount?: number): Promise<ResponseObject>;
@@ -48,7 +70,7 @@ interface blazed {
    * @param {number} redirectCount Optional parameter to limit the number of redirects (default: 5).
    * @returns {Promise<ResponseObject>} A promise that resolves with the response data.
    * @example blazed.head("https://example.com/api")
-     .then(data => console.log(data))
+     .then(res => console.log(res))
      .catch(err => console.error(err));
    */
   head(url: string, headers?: Object, redirectCount?: number): Promise<ResponseObject>;
@@ -59,9 +81,10 @@ interface blazed {
    * @param {Object} data The data to send in the request body (should be JSON-serializable).
    * @param {Object} headers Optional headers to include in the request.
    * @returns {Promise<ResponseObject>} A promise that resolves with the response data.
-   * @example blazed.post("https://jsonplaceholder.typicode.com/posts/1", { title: 'foo', body: 'bar', userId: 1 }))
-     .then(data => console.log(data))
-     .catch(err => console.error(err));
+   * @example const data = { title: 'foo', body: 'bar', userId: 1 }
+   * blazed.post("https://jsonplaceholder.typicode.com/posts/1", data))
+      .then(res => console.log(res))
+      .catch(err => console.error(err));
    */
   post(url: string, data: Object, headers?: Object): Promise<ResponseObject>;
 
@@ -71,9 +94,10 @@ interface blazed {
    * @param {Object} data The data to send in the request body (should be JSON-serializable).
    * @param {Object} headers Optional headers to include in the request.
    * @returns {Promise<ResponseObject>} A promise that resolves with the response data.
-   * @example blazed.put("https://jsonplaceholder.typicode.com/posts/1", { title: 'foo', body: 'bar', userId: 1 }))
-    .then(data => console.log(data))
-    .catch(err => console.error(err)); 
+   * @example const data = { title: 'foo', body: 'bar', userId: 1 }
+   * blazed.put("https://jsonplaceholder.typicode.com/posts/1", data))
+      .then(res => console.log(res))
+      .catch(err => console.error(err));
    */
   put(url: string, data: Object, headers?: Object): Promise<ResponseObject>;
 
@@ -83,7 +107,7 @@ interface blazed {
    * @param {Object} headers Optional headers to include in the request.
    * @returns {Promise<ResponseObject>} A promise that resolves with the response data.
    * @example blazed.delete("https://jsonplaceholder.typicode.com/posts/1")
-    .then(data => console.log(data))
+    .then(res => console.log(res))
     .catch(err => console.error(err)); 
    */
   delete(url: string, headers?: Object): Promise<ResponseObject>;
@@ -95,7 +119,7 @@ interface blazed {
    * @param {number} redirectCount Optional parameter to limit the number of redirects (default: 5).
    * @returns {Promise<ResponseObject>} A promise that resolves with the response data.
    * @example blazed.connect("https://example.com/api")
-    .then(data => console.log(data))
+    .then(res => console.log(res))
     .catch(err => console.error(err));
    */
   connect(url: string, headers?: Object, redirectCount?: number): Promise<ResponseObject>;
@@ -107,7 +131,7 @@ interface blazed {
    * @param {number} redirectCount Optional parameter to limit the number of redirects (default: 5).
    * @returns {Promise<ResponseObject>} A promise that resolves with the response data.
    * @example blazed.options("https://example.com/api")
-    .then(data => console.log(data))
+    .then(res => console.log(res))
     .catch(err => console.error(err));
    */
   options(url: string, headers?: Object, redirectCount?: number): Promise<ResponseObject>;
@@ -119,7 +143,7 @@ interface blazed {
    * @param {number} redirectCount Optional parameter to limit the number of redirects (default: 5).
    * @returns {Promise<ResponseObject>} A promise that resolves with the response data.
    * @example blazed.trace("https://example.com/api")
-    .then(data => console.log(data))
+    .then(res => console.log(res))
     .catch(err => console.error(err));
    */
   trace(url: string, headers?: Object, redirectCount?: number): Promise<ResponseObject>;
@@ -131,7 +155,7 @@ interface blazed {
    * @param {Object} headers Optional headers to include in the request.
    * @returns {Promise<ResponseObject>} A promise that resolves with the response data.
    * @example blazed.patch("https://example.com/api")
-    .then(data => console.log(data))
+    .then(res => console.log(res))
     .catch(err => console.error(err));
    */
   patch(url: string, data: Object, headers?: Object): Promise<ResponseObject>;
@@ -181,6 +205,17 @@ interface blazed {
    */
   about(): AboutObject;
 }
-
+/**
+ * blazed.js, is a Blazing Fast, High performance, light-weight HTTP's Requests library
+ * 
+ * HTTP requests done right
+ * 
+ * Learn more about it from [here](https://github.com/blazeinferno64/blazed)
+ * @example 
+ * // Require it in your project by doing -
+ * const blazed = require("blazed.js");
+ * // Or import it to your project if its an ES module by doing -
+ * import blazed from "blazed.js";
+ */
 declare const blazed: blazed;
-export = blazed
+export = blazed;

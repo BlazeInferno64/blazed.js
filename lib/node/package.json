@@ -1,6 +1,6 @@
 {
   "name": "blazed.js",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "main": "index.js",
   "types": "lib/index.d.ts",
   "scripts": {
@@ -20,7 +20,11 @@
     "node",
     "https",
     "http",
-    "json"
+    "json",
+    "automatic-json-parser",
+    "json-server",
+    "http/2",
+    "ws"
   ],
   "author": "BlazeInferno64 -> https://github.com/blazeinferno64 <-",
   "license": "MIT",

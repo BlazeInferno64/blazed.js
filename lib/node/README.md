@@ -14,7 +14,7 @@ $ npm i blazed.js
 
 Using blazed.js you can perform advanced HTTP Requests from your node app directly with features like automatic JSON Parsing
 
-Its based on Http libary which is built-in in nodejs by default!
+It is based on <a href="https://nodejs.org/api/http.html">HTTP</a> libary which is built-in <a href="https://nodejs.org/">Nodejs</a> by default!
 
 # Getting started
 
@@ -24,33 +24,39 @@ First require this library to your script file
 const blazed = require("blazed.js");
 ```
 
+If its an ES Module then import it to your script
+
+```js
+import blazed from "blazed.js";
+```
+
 # GET Request
 
-After you have required it for your project,
+After you have required/imported it for your project,
 You're ready to perform your first GET Request!
 
 Here's is a simple example
 
 ```js
 blazed.get("https://jsonplaceholder.typicode.com/posts/1")
-    .then(data => console.log(data)) // Logging the data to the console, Note that it will return an object which will contain the data, headers, statuscode and the request headers
+    .then(data => console.log(data)) // Logging the response to the console, Note that it will return an object which will contain the data, responseHeaders, statuscode and the requestHeaders
     .catch(err => console.error(err)); // For error handling
 ```
 
-It's actually quite similar to the native fetch api or node-fetch
+It's actually quite similar to the native fetch api, node-fetch and axios
 
 # Point to be noted
 
-For any request regardless of the http method used, whenever you log the response, it will actually return the response object from where you can extract the server response data by doing `res.data`,and the response headers by doing `res.responseHeaders`, and the statuscode by doing `res.status` and the request headers by doing `res.requestHeaders`
+For any request regardless of the http method used, whenever you log the response, it will actually return the response object from where you can extract the server response data by doing `response.data`,and the response headers by doing `response.responseHeaders`, and the statuscode by doing `response.status` and the requestHeaders by doing `response.requestHeaders`
 
 The response object structre is as belows-
 
 ```js
 {
-    "data": "The response of the domain goes here",
+    "data": "The response of the server(or url) goes here",
     "status": "The status code of the response goes here",
     "responseHeaders": "All the response headers goes here",
-    "requestHeaders": "All the request headers goes here"
+    "requestHeaders": "All the requestHeaders goes here"
 }
 ```
 
@@ -61,21 +67,22 @@ To perform POST Requests, you need to have some data for posting.
 Here's how you can achieve this
 
 ```js
-blazed.post("https://jsonplaceholder.typicode.com/posts", { title: 'foo', body: 'bar', userId: 1 }) // Posting with some dummy data
-    .then(data => console.log(data)) // Logging the data to the console, Note that it will return an object which will contain the data, headers, statuscode and the request headers
+const data = { title: 'foo', body: 'bar', userId: 1 }
+blazed.post("https://jsonplaceholder.typicode.com/posts", data) // Posting with some dummy data
+    .then(res => console.log(res)) // Logging the response to the console, Note that it will return an object which will contain the data, responseHeaders, statuscode and the requestHeaders
     .catch(err => console.error(err)); // Again catching any errors
 
 ```
 
 # DELETE Request
 
-DELETE Request is actually quite similar to the GET Request except you need to call `blazed.delete()` for this!
+DELETE Request is actually quite similar to the `GET` Request except you need to call `blazed.delete()` for this!
 
 Here's a simple example
 
 ```js
 blazed.delete("https://jsonplacholder.typicode.com/posts/1")
-.then(res => console.log(`DELETE Successfull: ${res}`)) // Logging the data to the console, Note that it will return an object which will contain the data, headers, statuscode and the request headers
+.then(res => console.log(`DELETE Successfull: ${res}`)) // Logging the response to the console, Note that it will return an object which will contain the data, responseHeaders, statuscode and the requestHeaders
 .catch(err => console.error(`DELETE Request failed:${err}`)); // Catching errors if any
 ```
 # Other HTTP methods 
@@ -86,8 +93,9 @@ Some examples regarding them are as belows -
 Put request:
 
 ```js
-blazed.put("https://jsonplaceholder.typicode.com/posts", { title: 'foo', body: 'bar', userId: 1 }) // Posting with some dummy data
-    .then(data => console.log(data)) // Logging the data to the console, Note that it will return an object which will contain the data, headers, statuscode and the request headers
+const data = { title: 'foo', body: 'bar', userId: 1 }
+blazed.put("https://jsonplaceholder.typicode.com/posts", data) // Put request with some dummy data
+    .then(res => console.log(res)) // Logging the response to the console, Note that it will return an object which will contain the data, responseHeaders, statuscode and the requestHeaders
     .catch(err => console.error(err)); // Again catching any errors
 
 ```
@@ -176,6 +184,7 @@ Here's an simple example with `.then() and .catch()` statements
 
 ```js
 const blazed = require("blazed.js");
+//import blazed from "blazed.js"; for ES Module
 
 // It will return a Promise, which will get resolved if the URL parsing has been successfull!
 // It will get rejected if the URL parsing isn't successfull!
@@ -186,6 +195,10 @@ blazed.parse("https://www.google.com")
 ```
 
 After running this, it will log all the parsed URL values to the console, and if any error occurs the `catch` block will catch it and print it to the console, also you can use it with `async` and `await` statements too
+
+# Error Handling
+
+`blazed.js` has more robust error handling feature. It can detect a wide range of errors like - timeout, abort, network down, host unreachable, host down,etc. Also there's a point to be noted that if the response received from the server (or url) is null, i.e, empty then it reject the promise and will throw an error with statuscode - `ERESNULL` indicating null response with a custom error message.
 
 # status_codes()
 
