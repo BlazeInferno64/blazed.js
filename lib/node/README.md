@@ -1,6 +1,6 @@
-# blazed
+# blazed.js
 
-Blazing Fast, Light Weight, High Performance, All in one HTTP requests client
+Blazing Fast, Light Weight, High Performance, Promised based HTTP Client
 
 # Setup/Installations
 
@@ -36,6 +36,8 @@ After you have required/imported it for your project,
 You're ready to perform your first GET Request!
 
 Here's is a simple example
+
+We will be using `try-catch` block for these examples. Note you can you use `async-await` also in place of `try-catch`
 
 ```js
 blazed.get("https://jsonplaceholder.typicode.com/posts/1")
@@ -194,11 +196,11 @@ blazed.parse("https://www.google.com")
 .catch((err) => console.error(err))
 ```
 
-After running this, it will log all the parsed URL values to the console, and if any error occurs the `catch` block will catch it and print it to the console, also you can use it with `async` and `await` statements too
+After running this, it will log all the parsed URL values to the console, and if any error occurs the `catch` block will catch it and print it to the console, alternatively you can use it with `async` and `await` statements too
 
 # Error Handling
 
-`blazed.js` has more robust error handling feature. It can detect a wide range of errors like - timeout, abort, network down, host unreachable, host down,etc. Also there's a point to be noted that if the response received from the server (or url) is null, i.e, empty then it reject the promise and will throw an error with statuscode - `ERESNULL` indicating null response with a custom error message.
+`blazed.js` has more robust error handling feature. It can detect a wide range of errors like - timeout, abort, network down, host unreachable, host down,etc. Also there's a point to be noted that if the response received from the server (or url) is null, i.e, empty then it rejects the promise and will throw an error with error code - `ERESNULL` indicating null response with an error message. You can use `try-catch` block to catch and handle the error
 
 # status_codes()
 

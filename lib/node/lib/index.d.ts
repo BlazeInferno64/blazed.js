@@ -1,4 +1,4 @@
-// Copyright (c)2024 BlazeInferno64 --> https://github.com/blazeinferno64.
+// Copyright (c) 2024 BlazeInferno64 --> https://github.com/blazeinferno64.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the
@@ -206,7 +206,7 @@ interface blazed {
   about(): AboutObject;
 }
 /**
- * blazed.js, is a Blazing Fast, High performance, light-weight HTTP's Requests library
+ * blazed.js, is a Blazing Fast, Light Weight, High Performance, Promised based HTTP Client
  * 
  * HTTP requests done right
  * 
