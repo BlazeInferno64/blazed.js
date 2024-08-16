@@ -136,6 +136,7 @@ blazed.delete('https://jsonplaceholder.typicode.com/posts/1', headers)
 # Other HTTP methods 
 
 Other http methods like PATCH, TRACE, CONNECT,etc. are also available which were not supported in the older versions of blazed.js
+
 Some examples regarding them are as follows:-
 
 PUT request:
