@@ -50,6 +50,11 @@ interface ResponseObject {
   requestHeaders: { [key: string]: string };
 }
 
+interface HeaderObject {
+  name: string;
+  value: string;
+}
+
 interface blazed {
   /**
    * Performs an HTTP GET request.
@@ -204,6 +209,52 @@ interface blazed {
    * @returns {AboutObject<Object>} Returns a JSON which contains some info regarding blazed.js.
    */
   about(): AboutObject;
+
+  /**
+   * Validates header name.
+   * @param header The Header name to check.
+   * @returns {Promise<any>} A promise that resolves with true if the Header name parsing is successfull, else it will reject it with the error.
+   * @example const headerName = "x-my-header";
+   * blazed.validateHeaderName(headerName)
+     .then(data => console.log(data)) // It will print true
+     .catch(err => console.error(err)) // Handling the error
+    * //Output: true
+   */
+  validateHeaderName(header: string): Promise<any>
+
+ /**
+   * Validates header name and values
+   * @param {*} name The Header name to check
+   * @param {*} value The Header value to check
+   * @return {Promise<HeaderObject>}  A promise that resolves with the header name and value as an JSON object if the Header parsing is successfull, else it will reject it with the error.
+   * @example 
+   *
+   * // Some dummy header name
+   * const headerName = "x-my-header";
+   * // Some dummy header value
+   * const headerValue = "blazed.js";
+   *
+   * // Asynchronouse headerChecker() function for checking and parsing header name and values
+   * async function headerChecker() {
+   *   try {
+   *     const result = await blazed.validateHeaderName(headerName);  
+   *    // awaiting for the promise
+        // Checking if the result exists
+   *     if (result) {
+          // Awaiting for the header parsing
+   *       const header = await blazed.validateHeaderValue(headerName, headerValue);
+   *     // Finally logging the header object to the console
+   *       console.log(header);
+   *     }
+   *   } catch (error) {
+   *     console.error(error);
+   *   }
+   * }
+   *
+   * // Call the function
+   * headerChecker();
+  */
+  validateHeaderValue(name: string, value: string): Promise<HeaderObject>
 }
 /**
  * blazed.js, is a Blazing Fast, Light Weight, High Performance, Promised based HTTP Client

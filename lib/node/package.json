@@ -1,6 +1,6 @@
 {
   "name": "blazed.js",
-  "version": "1.0.17",
+  "version": "1.0.18",
   "main": "index.js",
   "types": "lib/index.d.ts",
   "scripts": {
@@ -32,5 +32,5 @@
     "type": "git",
     "url": "git+https://github.com/blazeinferno64/blazed.js.git"
   },
-  "description": "Blazing Fast, Light Weight, High Performance, Promised based HTTP Client"
+  "description": "Blazing-fast, light weight, high-performance, promise-based HTTP client"
 }
