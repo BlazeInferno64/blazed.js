@@ -412,7 +412,7 @@ To catch and handle errors as needed, use a `try-catch` block.
 
 # status_codes()
 
-Get an object contaning all valid HTTP status codes with `blazed.methods()`.
+Get an object contaning all valid HTTP status codes with `blazed.status_codes()`.
 
 ```js
 console.log(blazed.status_codes())

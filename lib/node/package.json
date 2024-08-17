@@ -1,6 +1,6 @@
 {
   "name": "blazed.js",
-  "version": "1.0.21",
+  "version": "1.0.22",
   "main": "index.js",
   "types": "lib/index.d.ts",
   "scripts": {
@@ -24,10 +24,15 @@
     "automatic-json-parser",
     "json-server",
     "http/2",
-    "ws"
+    "ws",
+    "node-blazed.js",
+    "node-http/2",
+    "node-https",
+    "express"
   ],
   "author": "BlazeInferno64 -> https://github.com/blazeinferno64 <-",
   "license": "MIT",
+  "homepage": "https://blazeinferno64.github.io/blazed.js/lib/node",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/blazeinferno64/blazed.js.git"
