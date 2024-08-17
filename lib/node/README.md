@@ -2,9 +2,9 @@
 
 Blazing-fast, light weight, high-performance, promise-based HTTP client
 
-# Setup/Installations
+# Setup/Installation
 
-To install this library paste this command in your terminal
+To get started with `blazed.js`, simply run the following command in your terminal:
 
 ```bash
 $ npm i blazed.js
@@ -12,11 +12,17 @@ $ npm i blazed.js
 
 # Info
 
-If you aren't familiar with promises, you can learn about it from <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">here</a>
+New to Promises?
 
-Using blazed.js you can perform advanced HTTP Requests from your node app directly with features like automatic JSON Parsing
+If you're not familiar with promises, check out the [MDN documentation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) to learn more.
 
-It is based on the <a href="https://nodejs.org/api/http.html">HTTP</a> library, which is built into <a href="https://nodejs.org/">Node.js</a> by default!
+Advanced HTTP Requests Made Easy
+
+With `blazed.js`, you can send advanced HTTP requests directly from your Node.js app, featuring automatic JSON parsing and more.
+
+Built on Top of Node.js HTTP
+
+Under the hood, `blazed.js` leverages the built-in [HTTP library](https://nodejs.org/api/http.html) in Node.js, ensuring a seamless and efficient experience.
 
 # Getting started
 
@@ -34,12 +40,11 @@ import blazed from "blazed.js";
 
 # GET Request
 
-After you have required/imported it for your project,
-You're ready to perform your first GET Request!
+Once you've imported `blazed.js` into your project, you're ready to send your first GET request.
 
-Here's a simple example
+Here's a simple example to get you started:
 
-We will be using `.then` and `.catch` blocks for these examples. Note that you can also use `async-await` instead of .then and .catch blocks
+Note that our examples will mostly use `.then` and `.catch` blocks, but you can also use `async-await` syntax as an alternative.
 
 ```js
 const headers = { /* your headers */}
@@ -84,8 +89,9 @@ When logging the response, you can access these properties as follows:
 
 # POST Request
 
-To perform POST Requests, you need to have some data for posting.
-Here's how you can achieve this
+To send a POST request with `blazed.js`, you need to provide data to be sent in the request body.
+
+Here's how you can achieve this:
 
 ```js
 const postData = {
@@ -113,9 +119,9 @@ blazed.post('https://jsonplaceholder.typicode.com/posts', postData, headers)
 
 # DELETE Request
 
-DELETE Request is actually quite similar to the `GET` Request except you need to call `blazed.delete()` for this!
+The DELETE request is similar to the GET request, but instead, you'll use the `blazed.delete()` method to send a DELETE request to the server.
 
-Here's a simple example
+Here's a simple example:
 
 ```js
 const headers = { /* your headers */}
@@ -133,9 +139,9 @@ blazed.delete('https://jsonplaceholder.typicode.com/posts/1', headers)
     console.error(error);
   });
 ```
-# Other HTTP methods 
+# HTTP Method Support
 
-Other http methods like PATCH, TRACE, CONNECT,etc. are also available which were not supported in the older versions of blazed.js
+`blazed.js` supports a range of HTTP methods, including `TRACE`, `OPTIONS`, `HEAD`, `PATCH`, and more.
 
 Some examples regarding them are as follows:-
 
@@ -243,7 +249,9 @@ blazed.trace(url, headers)
 
 # URL Parsing
 
-Also, you can perform URL parsing using the `blazed.parse()` function where you have to pass in thr utl as the parameter
+The `blazed.parse()` function can be used to parse a URL. 
+
+Simply pass the URL as a parameter to this function.
 
 Here's an simple example with `.then() and .catch()` statements
 
@@ -259,13 +267,22 @@ blazed.parse('https://www.google.com')
   });
 ```
 
-After running this, it will log all the parsed URL values to the console, and if any error occurs the `catch` block will catch it and print it to the console, alternatively you can use it with `async` and `await` statements too
+After running this code, the parsed URL values will be logged to the console. 
 
-# Headers validation
+If any errors occur, the `catch` block will catch and print them to the console. 
 
-You can also perform header name and value validation using `blazed.validateHeaderName()` and `blazed.validateHeaderValue()` function.
+Alternatively, you can use `async/await` syntax for more concise and readable code.
 
-1. Using `blazed.validateHeaderName()`, it will return a promise that resolves with true if the header name parsing is successful, otherwise it will reject with an error if it fails parsing
+# Validating Header Names and Values
+
+In addition to sending requests, you can also validate header names and values using the `blazed.validateHeaderName()` and `blazed.validateHeaderValue()` functions.
+
+1. Header Name Validation
+
+Use `blazed.validateHeaderName()` to validate a header name. This method returns a promise that:
+
+* Resolves with `true` if the header name is valid.
+* Rejects with an error if the header name is invalid.
 
 Here's a simple example with `.then` and `.catch` statements -
 
@@ -305,7 +322,12 @@ TypeError: Header name must be a valid HTTP token! Recieved token: ["abc xyz"]
 ```
 
 
-2. Using `blazed.validateHeaderValue()`, it will return a promise which would get resolved with  a object containing `name` and `value` of the header provided if the header name parsing is successful, else it will get rejected with an error if it fails parsing.
+2. Header Value Validation
+
+Use `blazed.validateHeaderValue()` to validate a header value. This method returns a promise that:
+
+* Resolves with an object containing the `name` and `value` of the header if parsing is successful.
+* Rejects with an error if parsing fails.
 
 Here's a simple example with `async` and `await` statements for cleaner code and readability -
 
@@ -340,27 +362,45 @@ headerChecker();
 
 ```
 
-Now run `node your-script.js` and you should be able to see the following output in your console:
+Run your script using `node your-script.js`. 
+
+If everything is set up correctly, you should see the following output in your console:
 
 ```js
 { name: 'x-my-header', value: 'blazed.js' }
 ```
 
-Remember to add `.then` and `.catch` block after this function or else you will see the following in your console:
+`Important`: Don't forget to properly handle the promise returned by the function. 
+
+If you don't, you'll see a pending promise in your console instead:
 
 ```js
 Promise { <pending> }
 ```
 
-Which indicates that the promise is in pending state
+This indicates that the promise is still in a pending state, meaning it hasn't been resolved or rejected, and its result hasn't been handled or processed.
+
+This is a common gotcha, so make sure to handle the promise correctly to get the expected output.
 
 # Error Handling
 
-`blazed.js` has more robust error handling feature. It can detect a wide range of errors, such as timeout, abort, network down, host unreachable, host down, etc. Also there's a point to be noted that if the response received from the server (or url) is null, i.e, empty then it rejects the promise and will throw an error with error code - `ERESNULL` indicating null response with an error message. You can use `try-catch` block to catch and handle the error as your desire
+Robust Error Handling in `blazed.js`
+
+`blazed.js` boasts advanced error handling capabilities, detecting a wide range of errors, including:
+
+* Timeout
+* Abort
+* Network down
+* Host unreachable
+* Host down
+
+Notably, if the response from the server or URL is null (i.e., empty), the promise is rejected, and an error is thrown with the code `ERESNULL`, accompanied by a descriptive error message.
+
+To catch and handle errors as needed, use a `try-catch` block.
 
 # status_codes()
 
-Using `blazed.status_codes()`, it will display all the valid HTTP status codes in an array
+Get an array of all valid HTTP request methods with `blazed.methods()`.
 
 ```js
 console.log(blazed.status_codes())
@@ -368,7 +408,7 @@ console.log(blazed.status_codes())
 
 # methods()
 
-Using the `blazed.methods()` function, it will display all the valid HTTP request methods in an array
+The `blazed.methods()` function returns an array of all supported HTTP request methods, providing a convenient way to access the full range of valid methods.
 
 ```js
 console.log(blazed.methods())
@@ -376,16 +416,23 @@ console.log(blazed.methods())
 
 # about
 
-`blazed.about()` will return some info regarding this package as an object
+Get package information as an object with `blazed.about()`.
 
 ```js
 console.log(blazed.about())
 ```
 
+# LICENSE
+
+`blazed.js` is released under the MIT License.
+
+View the full license terms <a href="./LICENSE">here</a>.
+
 # Bugs & Issues
 
-If you encounter any bugs/issues in your code or want a feature request
-Feel free to open an issue [here](https://github.com/blazeinferno64/blazed.js)
+Found a bug or want a new feature?
+
+Report issues and request features on the [blazed.js issue tracker](https://github.com/blazeinferno64/blazed.js/issues).
 
 `Thanks for reading!`
 `Have a great day ahead :D`
