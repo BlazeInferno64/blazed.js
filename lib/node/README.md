@@ -16,23 +16,23 @@ New to Promises?
 
 If you're not familiar with promises, check out the [MDN documentation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) to learn more.
 
-Advanced HTTP Requests Made Easy
+## Advanced HTTP Requests Made Easy
 
 With `blazed.js`, you can send advanced HTTP requests directly from your Node.js app, featuring automatic JSON parsing and more.
 
-Built on Top of Node.js HTTP
+## Built on Top of Node.js HTTP
 
 Under the hood, `blazed.js` leverages the built-in [HTTP library](https://nodejs.org/api/http.html) in Node.js, ensuring a seamless and efficient experience.
 
 # Getting started
 
-First, require this library to your script file -
+First, require this library to your project as follows:
 
 ```js
 const blazed = require("blazed.js");
 ```
 
-If it's an ES Module then import it to your script -
+If it's an ES Module then import it to project as follows:
 
 ```js
 import blazed from "blazed.js";
@@ -145,7 +145,9 @@ blazed.delete('https://jsonplaceholder.typicode.com/posts/1', headers)
 
 Some examples regarding them are as follows:-
 
-PUT request:
+## PUT request
+
+Example demonstrating PUT request:
 
 ```js
 const putData = {
@@ -171,7 +173,9 @@ blazed.put('https://jsonplaceholder.typicode.com/posts', putData, headers)
 
 ```
 
-PATCH request:
+## PATCH request
+
+Example demonstrating PATCH request:
 
 ```js
 const patchData = { /* your patch data */ };
@@ -187,7 +191,9 @@ blazed.patch(url, patchData, headers)
   });
 ```
 
-HEAD Request:
+## HEAD Request
+
+Example demonstrating HEAD request:
 
 ```js
 const headers = { /* your headers */ };
@@ -202,7 +208,9 @@ blazed.head(url, headers)
   });
 ```
 
-OPTIONS request:
+# OPTIONS request
+
+Example demonstrating OPTIONS request:
 
 ```js
 const headers = { /* your headers */ };
@@ -217,7 +225,9 @@ blazed.options(url, headers)
   });
 ```
 
-CONNECT Request:
+## CONNECT Request
+
+Example demonstrating CONNECT request:
 
 ```js
 const headers = { /* your headers */ };
@@ -232,7 +242,9 @@ blazed.connect(url, headers)
   });
 ```
 
-TRACE request:
+## TRACE request
+
+Example demonstrating TRACE request:
 
 ```js
 const headers = { /* your headers */ };
@@ -400,7 +412,7 @@ To catch and handle errors as needed, use a `try-catch` block.
 
 # status_codes()
 
-Get an array of all valid HTTP request methods with `blazed.methods()`.
+Get an object contaning all valid HTTP status codes with `blazed.methods()`.
 
 ```js
 console.log(blazed.status_codes())

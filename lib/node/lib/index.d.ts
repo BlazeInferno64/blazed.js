@@ -174,6 +174,8 @@ interface blazed {
  * blazed.parse(url)
  * .then(parsedData => console.log(parsedData))
  * .catch(err => console.error(err));
+ *
+ * // The output will be as below
  *   Output:
  *    {
  *      hash: '',
@@ -193,26 +195,29 @@ interface blazed {
   parse(url: string): Promise<URLParser>;
 
   /**
-   * Returns all the valid HTTP status codes as an array.
-   * @returns {Array<string>} An array of valid HTTP status codes.
+   * Returns all the valid HTTP status codes as an object.
+   * @returns {Object} A object containing all the valid HTTP status codes.
+   * @example console.log(blazed.status_codes()) // Logging the object to the console.
    */
-  status_codes(): Array<string>;
+  status_codes(): Object;
 
   /**
    * Returns all the valid HTTP Methods as an array supported by Node
    * @returns {Array<string>} An array of valid HTTP methods.
    * Almost all methods are supported in blazed.js's newer versions
+   * @example console.log(blazed.methods()) // Logging the methods array to the console.
    */
   methods(): Array<string>;
 
   /**
-   * @returns {AboutObject<Object>} Returns a JSON which contains some info regarding blazed.js.
+   * @returns {AboutObject<Object>} Returns a object which contains some info regarding blazed.js.
+   * @example console.log(blazed.about()); // Logging the object to the console
    */
   about(): AboutObject;
 
   /**
    * Validates header name.
-   * @param header The Header name to check.
+   * @param {string} header The Header name to check.
    * @returns {Promise<any>} A promise that resolves with true if the Header name parsing is successfull, else it will reject it with the error.
    * @example const headerName = "x-my-header";
    * blazed.validateHeaderName(headerName)
@@ -224,8 +229,8 @@ interface blazed {
 
  /**
    * Validates header name and values
-   * @param {*} name The Header name to check
-   * @param {*} value The Header value to check
+   * @param {string} name The Header name to check
+   * @param {string} value The Header value to check
    * @return {Promise<HeaderObject>}  A promise that resolves with the header name and value as an JSON object if the Header parsing is successfull, else it will reject it with the error.
    * @example 
    *

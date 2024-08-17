@@ -1,6 +1,6 @@
 {
   "name": "blazed.js",
-  "version": "1.0.20",
+  "version": "1.0.21",
   "main": "index.js",
   "types": "lib/index.d.ts",
   "scripts": {
