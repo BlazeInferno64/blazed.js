@@ -10,7 +10,7 @@ For the npm package check
 Include the library in your project:
 
 ```html
-<script src="https://raw.githubusercontent.com/BlazeInferno64/blazed.jsmain/lib/client/blazed.js"></script>
+<script src="https://raw.githubusercontent.com/BlazeInferno64/blazed.js/main/lib/client/blazed.js"></script>
 ```
 
 Or you can include it like this too
