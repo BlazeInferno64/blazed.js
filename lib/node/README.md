@@ -32,7 +32,7 @@ First, require this library to your project as follows:
 const blazed = require("blazed.js");
 ```
 
-If it's an ES Module then import it to project as follows:
+If it's an ES Module then import it to your project as follows:
 
 ```js
 import blazed from "blazed.js";
@@ -47,9 +47,10 @@ Here's a simple example to get you started:
 Note that our examples will mostly use `.then` and `.catch` blocks, but you can also use `async-await` syntax as an alternative.
 
 ```js
-const headers = { /* your headers */}
+const headers = { /* your headers */};
+const url = 'https://jsonplaceholder.typicode.com/posts/1';
 
-blazed.get('https://jsonplaceholder.typicode.com/posts/1', headers)
+blazed.get(url, headers)
   .then(response => {
     console.log(response);
     // Response object contains:
@@ -101,8 +102,9 @@ const postData = {
 };
 
 const headers = { /* your headers */}
+const url = 'https://jsonplaceholder.typicode.com/posts';
 
-blazed.post('https://jsonplaceholder.typicode.com/posts', postData, headers)
+blazed.post(url, postData, headers)
   .then(response => {
     console.log(response);
     // Response object contains:
@@ -124,9 +126,10 @@ The DELETE request is similar to the GET request, but instead, you'll use the `b
 Here's a simple example:
 
 ```js
-const headers = { /* your headers */}
+const headers = { /* your headers */};
+const url = 'https://jsonplaceholder.typicode.com/posts/1';
 
-blazed.delete('https://jsonplaceholder.typicode.com/posts/1', headers)
+blazed.delete(url, headers)
   .then(response => {
     console.log(response);
     // Response object contains:
@@ -157,8 +160,9 @@ const putData = {
 };
 
 const headers = { /* your headers */}
+const url = 'https://jsonplaceholder.typicode.com/posts';
 
-blazed.put('https://jsonplaceholder.typicode.com/posts', putData, headers)
+blazed.put(url, putData, headers)
   .then(response => {
     console.log(response);
     // Response object contains:
@@ -185,6 +189,11 @@ const url = 'https://example.com/api/resource'; // Replace with your desired url
 blazed.patch(url, patchData, headers)
  .then(response => {
     console.log(response);
+    // Response object contains:
+    // - data
+    // - responseHeaders
+    // - status
+    // - requestHeaders
   })
  .catch(error => {
     console.error(error);
@@ -202,6 +211,11 @@ const url = 'https://example.com/api/resource'; // Replace with your desired url
 blazed.head(url, headers)
  .then(response => {
     console.log(response);
+    // Response object contains:
+    // - data
+    // - responseHeaders
+    // - status
+    // - requestHeaders
   })
  .catch(error => {
     console.error(error);
@@ -219,6 +233,11 @@ const url = 'https://example.com/api/resource'; // Replace with your desired url
 blazed.options(url, headers)
  .then(response => {
     console.log(response);
+    // Response object contains:
+    // - data
+    // - responseHeaders
+    // - status
+    // - requestHeaders
   })
  .catch(error => {
     console.error(error);
@@ -236,11 +255,41 @@ const url = 'https://example.com/api/resource'; // Replace with your desired url
 blazed.connect(url, headers)
  .then(response => {
     console.log(response);
+    // Response object contains:
+    // - data (ccontains the connection info object)
+    // - responseHeaders
+    // - status
+    // - requestHeaders
   })
  .catch(error => {
     console.error(error);
   });
 ```
+
+Important Note: The `CONNECT` request behaves differently than standard HTTP requests like `GET`, `POST`, etc. 
+
+Its primary purpose is to establish a tunnel to the server.
+
+When logging the `response.data` property of a `CONNECT request`, you'll receive a connection info object instead of the typical response data
+
+The object has the following structure:
+
+```js
+{
+  message: string,
+  protocol: string,
+  remoteAddress: string,
+  remotePort: number
+};
+
+```
+
+When logging the connection info object, you can access these properties as follows:
+
+- `response.data.message`: A success message indicating that the connection has been established.
+- `response.data.protocol`: The protocol used in the server's URL (e.g., http, https, etc.).
+- `response.remoteAddress`: The server's remote IP address.
+- `response.remotePort`: The remote port number used by the server.
 
 ## TRACE request
 
@@ -253,6 +302,11 @@ const url = 'https://example.com/api/resource'; // Replace with your desired url
 blazed.trace(url, headers)
  .then(response => {
     console.log(response);
+    // Response object contains:
+    // - data
+    // - responseHeaders
+    // - status
+    // - requestHeaders
   })
  .catch(error => {
     console.error(error);
@@ -438,7 +492,7 @@ console.log(blazed.about())
 
 `blazed.js` is released under the MIT License.
 
-View the full license terms <a href="./LICENSE">here</a>.
+View the full license terms <a href="https://github.com/blazeinferno64/blazed.js/blob/main/lib/node/LICENSE">here</a>.
 
 # Bugs & Issues
 
@@ -447,4 +501,5 @@ Found a bug or want a new feature?
 Report issues and request features on the [blazed.js issue tracker](https://github.com/blazeinferno64/blazed.js/issues).
 
 `Thanks for reading!`
+
 `Have a great day ahead :D`
