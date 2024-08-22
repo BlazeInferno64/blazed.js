@@ -1,11 +1,15 @@
 {
   "name": "blazed.js",
-  "version": "1.0.23",
+  "version": "1.0.24",
   "main": "index.js",
   "types": "lib/index.d.ts",
   "scripts": {
     "test": "node test/blazed-test.js"
   },
+  "contributors": [
+    "BlazeInferno64",
+    "blazeinferno"
+  ],
   "keywords": [
     "blazed",
     "blazed.js",

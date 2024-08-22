@@ -222,7 +222,7 @@ blazed.head(url, headers)
   });
 ```
 
-# OPTIONS request
+## OPTIONS request
 
 Example demonstrating OPTIONS request:
 
@@ -339,6 +339,89 @@ If any errors occur, the `catch` block will catch and print them to the console.
 
 Alternatively, you can use `async/await` syntax for more concise and readable code.
 
+# Events
+`blazed.js` provides a range of events that are triggered regardless of the HTTP method used, allowing you to tap into the request lifecycle.
+
+There are three key events that occur at different stages of the request process:
+
+* **`beforeRequest`**: Fired before sending an HTTP request, this event returns a callback with two parameters: `url` and `options`.
+* **`afterRequest`**: Triggered after the HTTP request's response has finished, this event returns a callback with two parameters: `url` and `response`.
+* **`redirect`**: Fired when `blazed.js` encounters a redirect, this event returns a callback with a single parameter `object`, which contains information about the redirect event.
+
+You can listen to these events using the `blazed.on()` function.
+
+Here are some few examples:
+
+1. `beforeRequest` event:
+
+```js
+// Listen for the "beforeRequest" event
+blazed.on("beforeRequest", (url, options) => {
+  console.log(`Before request event fired for ${url}`);
+  console.log("Request options:");
+  console.log(options);
+});
+
+// Make a GET request to the GitHub API
+blazed.get("https://api.github.com/users")
+  .then((res) => {
+    console.log("GET request successful:");
+    console.log(res);
+  })
+  .catch((err) => {
+    console.error("Error making GET request:");
+    console.error(err);
+  });
+```
+
+2. `afterRequest` event:
+
+```js
+// Listen for the "afterRequest" event
+blazed.on("afterRequest", (url, response) => {
+  console.log(`After request event fired for ${url}`);
+  console.log(response);
+  //Properties of the response object is similar to the response object returned by standard promise based HTTP methods like blazed.get(), blazed.post(), etc.
+});
+
+// Make a GET request to the GitHub API
+blazed.get("https://api.github.com/users")
+  .then((res) => {
+    console.log("GET request successful:");
+    console.log(res);
+  })
+  .catch((err) => {
+    console.error("Error making GET request:");
+    console.error(err);
+  });
+```
+
+3. `redirect` event:
+
+```js
+// Listen for the "redirect" event
+blazed.on("redirect", (redirectInfo) => {
+  console.log(`Redirect event fired from ${redirectInfo.OriginalURL} to ${redirectInfo.RedirectURL}`);
+  console.log("Redirect details:");
+  console.log(redirectInfo);
+});
+
+// Make a GET request to the GitHub API (using HTTP to trigger a redirect)
+blazed.get("http://api.github.com/users")
+  .then((res) => {
+    console.log("GET request successful:");
+    console.log(res);
+  })
+  .catch((err) => {
+    console.error("Error making GET request:");
+    console.error(err);
+  });
+// Output will be
+// { OriginalURL: 'http://api.github.com/users/', RedirectURL: 'https://api.github.com/users/' }
+```
+
+Stay up-to-date with our project for upcoming features and enhancements, including additional events that will be introduced in future releases.
+
 # Validating Header Names and Values
 
 In addition to sending requests, you can also validate header names and values using the `blazed.validateHeaderName()` and `blazed.validateHeaderValue()` functions.
@@ -373,11 +456,15 @@ Let's rename the `headerName` to something like `abc xyz`
 const headerName = "abc xyz";
 
 blazed.validateHeaderName(headerName)
-  .then((data) => {
-    console.log(data); // It will skip this part since its an invalid HTTP header format
+  .then((validHeader) => {
+    if (!validHeader) {
+      console.log(`Header name '${headerName}' is invalid`);
+    } else {
+      console.log(`Header name '${headerName}' is valid`);
+    }
   })
-  .catch((err) => {
-    console.error(err); // The error will be logged in the console
+  .catch((error) => {
+    console.error(`Error validating header name: ${error.message}`);// The error message will be logged in the console
   });
 ```
 
@@ -398,34 +485,35 @@ Use `blazed.validateHeaderValue()` to validate a header value. This method retur
 Here's a simple example with `async` and `await` statements for cleaner code and readability -
 
 ```js
-// Some dummy header name
-const headerName = "x-my-header";
+// Define a constant for the dummy header name
+const HEADER_NAME = "x-my-header";
 
-// Some dummy header value
-const headerValue = "blazed.js";
+// Define a constant for the dummy header value
+const HEADER_VALUE = "blazed.js";
 
 // Asynchronous headerChecker() function for checking and parsing header name and values
 async function headerChecker() {
   try {
-    // Here we're validating the header name before the validateHeaderValue() function
-    const result = await blazed.validateHeaderName(headerName); // awaiting for the promise
+    // Validate the header name before parsing the value
+    const isValidHeader = await blazed.validateHeaderName(HEADER_NAME);
 
-    // Checking if the result exists
-    if (result) {
-      // Awaiting for the header parsing
-      const header = await blazed.validateHeaderValue(headerName, headerValue);
+    // Check if the header name is valid
+    if (isValidHeader) {
+      // Parse the header value
+      const parsedHeader = await blazed.validateHeaderValue(HEADER_NAME, HEADER_VALUE);
 
-      // Finally logging the header object to the console
-      console.log(header);
+      // Log the parsed header object to the console
+      console.log(parsedHeader);
+    } else {
+      console.log(`Invalid header name: ${HEADER_NAME}`);
     }
   } catch (error) {
-    console.error(error);
+    console.error(`Error processing header: ${error}`);
   }
 }
 
-// Call the function
+// Call the headerChecker function
 headerChecker();
-
 ```
 
 Run your script using `node your-script.js`. 

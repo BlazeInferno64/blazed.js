@@ -260,6 +260,31 @@ interface blazed {
    * headerChecker();
   */
   validateHeaderValue(name: string, value: string): Promise<HeaderObject>
+  /**
+   * Attaches a listener to the on event
+   * Fires up whenever the event is triggered 
+   * @memberof Blazed
+   * @param {"beforeRequest" | "redirect"} event - The event to listen to.
+   * @param {(url: string) => void | (object: { OriginalURL: string, RedirectURL: string }) => void} callback - The callback function
+   */
+  /**
+   * 
+   * @param event (beforeRequest) Fires up before firing a HTTP request
+   * @param callback returns two parameters for the callback function named url and the options(headers)
+   */
+  on(event: "beforeRequest", callback: (url: string, options: object) => void): void;
+  /**
+   * 
+   * @param event (afterRequest) Fires up when the HTTP request ends
+   * @param callback returns two parameters which is the url and the response object
+   */
+  on(event: "afterRequest", callback: (url: string, response: object) => void): void;
+  /**
+   * 
+   * @param event (redirect) Fires up when a redirect occurs
+   * @param callback returns an object as the parameter for the callback function which contains the original url and the redirect url
+   */
+  on(event: "redirect", callback: (object: { OriginalURL: string, RedirectURL: string }) => void): void;
 }
 /**
  *  blazed.js is a blazing-fast, light weight, high-performance, promise-based HTTP client
