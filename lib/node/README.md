@@ -69,7 +69,7 @@ It's actually quite similar to the native fetch api, node-fetch and axios
 
 # Point to be noted
 
-The response object returned by any request, regardless of the HTTP method, has the following structure:
+**The response object returned by any request, regardless of the HTTP method, has the following structure:**
 
 ```js
 {
@@ -266,9 +266,9 @@ blazed.connect(url, headers)
   });
 ```
 
-Important Note: The `CONNECT` request behaves differently than standard HTTP requests like `GET`, `POST`, etc. 
+**Important Note: The `CONNECT` request behaves differently than standard HTTP requests like `GET`, `POST`, etc.** 
 
-Its primary purpose is to establish a tunnel to the server.
+**Its primary purpose is to establish a tunnel to the server.**
 
 When logging the `response.data` property of a `CONNECT request`, you'll receive a connection info object instead of the typical response data
 
@@ -346,7 +346,7 @@ If any errors occur, the `catch` block will catch and print them to the console.
 Alternatively, you can use `async/await` syntax for more concise and readable code.
 
 # Events
-`blazed.js` provides a range of events that are triggered regardless of the HTTP method used, allowing you to tap into the request lifecycle.
+**`blazed.js` provides a range of events that are triggered regardless of the HTTP method used, allowing you to tap into the request lifecycle.**
 
 There are three key events that occur at different stages of the request process:
 
@@ -548,13 +548,13 @@ Robust Error Handling in `blazed.js`
 
 `blazed.js` boasts advanced error handling capabilities, detecting a wide range of errors, including:
 
-* Timeout
-* Abort
-* Network down
-* Host unreachable
-* Host down
+* **Timeout**
+* **Abort**
+* **Network down**
+* **Host unreachable**
+* **Host down**
 
-Notably, if the response from the server or URL is null (i.e., empty), the promise is rejected, and an error is thrown with the code `ERESNULL`, accompanied by a descriptive error message.
+**Notably, if the response from the server or URL is null (i.e., empty), the promise is rejected, and an error is thrown with the code `ERESNULL`, accompanied by a descriptive error message.**
 
 To catch and handle errors as needed, use a `try-catch` block.
 

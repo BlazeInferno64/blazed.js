@@ -119,12 +119,16 @@ interface blazed {
 
   /**
    * Performs an HTTP CONNECT request.
+   * 
+   * **CONNECT request behaves differently than standard HTTP request!** 
+   * 
+   * **Please check the [here](https://github.com/BlazeInferno64/blazed.js/tree/main/lib/node#connect-request) or [in the README.md file](./README.md) for more info!**
    * @param {string} url The URL to request.
    * @param {Object} headers Optional headers to include in the request.
    * @param {number} redirectCount Optional parameter to limit the number of redirects (default: 5).
-   * @returns {Promise<ResponseObject>} A promise that resolves with the response data.
+   * @returns {Promise<ResponseObject>} A promise that resolves with the response data with a connection object.
    * @example blazed.connect("https://example.com/api")
-    .then(res => console.log(res))
+    .then(res => console.log(res)) // Logs the connection info object to the console
     .catch(err => console.error(err));
    */
   connect(url: string, headers?: Object, redirectCount?: number): Promise<ResponseObject>;
@@ -271,6 +275,27 @@ interface blazed {
    * 
    * @param event (beforeRequest) Fires up before firing a HTTP request
    * @param callback returns two parameters for the callback function named url and the options(headers)
+   * @example 
+   * // beforeRequest event example usage
+   * blazed.on("beforeRequest", (url, options) => {
+   * console.log(`beforeRequest event fired!`); // Logging for the beforeRequest event
+   *  console.log(`HTTP Request URL: ${url}`); // Logs the HTTP request url
+   * return console.log(options) // Logs the request options(including headers and data(if any)) to the console.
+   * });
+   * 
+   * 
+   * // afterRequest event example usage
+   * blazed.on("afterRequest", (url, response) => {
+   * console.log(`afterRequest event fired!`); // Logging for the afterRequest event
+   *  console.log(`HTTP Request URL: ${url}`); // Logs the HTTP request url
+   * return console.log(response) // Logs the request response object to the console
+   * });
+   * 
+   * // redirect event example usage
+   * blazed.on("beforeRequest", (redirectObject) => {
+   *  console.log(`Redirect event fired!`); // Logging for the redirect event
+   * return console.log(redirectObject) // Logs the redirect object to the console
+   * });
    */
   on(event: "beforeRequest", callback: (url: string, options: object) => void): void;
   /**
