@@ -256,7 +256,7 @@ blazed.connect(url, headers)
  .then(response => {
     console.log(response);
     // Response object contains:
-    // - data (ccontains the connection info object)
+    // - data (contains the connection info object)
     // - responseHeaders
     // - status
     // - requestHeaders
@@ -276,11 +276,14 @@ The object has the following structure:
 
 ```js
 {
-  message: string,
-  protocol: string,
-  remoteAddress: string,
-  remotePort: number
-};
+  message: string, // A success message indicating the status of the connection (e.g. "Successfully established a connection to...")
+  protocol: string, // The protocol used for the connection (e.g. "http" or "https")
+  remoteAddress: string, // The IP address of the remote server
+  remotePort: number, // The port number used by the remote server
+  localAddress: string, // The IP address of the local machine
+  localFamily: string, // The address family of the local machine (e.g. "IPv4" or "IPv6")
+  localPort: number // The port number used by the local machine
+}
 
 ```
 
@@ -288,8 +291,11 @@ When logging the connection info object, you can access these properties as foll
 
 - `response.data.message`: A success message indicating that the connection has been established.
 - `response.data.protocol`: The protocol used in the server's URL (e.g., http, https, etc.).
-- `response.remoteAddress`: The server's remote IP address.
-- `response.remotePort`: The remote port number used by the server.
+- `response.data.remoteAddress`: The server's remote IP address.
+- `response.data.remotePort`: The remote port number used by the server.
+- `response.data.localAddress`: The IP address of the local machine.
+- `response.data.localFamily`: The address family of the local machine (e.g. "IPv4" or "IPv6").
+- `response.data.localPort`: The port number used by the local machine.
 
 ## TRACE request
 
