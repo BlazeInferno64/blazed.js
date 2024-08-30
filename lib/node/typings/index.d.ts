@@ -314,7 +314,7 @@ interface blazed {
 /**
  *  blazed.js is a blazing-fast, light weight, high-performance, promise-based HTTP client
  * 
- * HTTP requests done right
+ * HTTP requests done right!
  * 
  * Learn more about it from [here](https://github.com/blazeinferno64/blazed.js)
  * @example 
