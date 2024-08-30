@@ -170,6 +170,27 @@ interface blazed {
   patch(url: string, data: Object, headers?: Object): Promise<ResponseObject>;
 
   /**
+ * Performs a HTTP request with a custom method.
+ * @param {string} url The URL to request.
+ * @param {string} method The HTTP method to use (e.g. GET, POST, PUT, DELETE, etc.).
+ * @param {Object} headers Optional headers to include in the request.
+ * @param {Object} data Optional data to send in the request body.
+ * @returns {Promise<ResponseObject>} A promise that resolves with the response data.
+ * @example 
+ * const headers = {} // Provide your custom headers here
+ * const url = "https://api.github.com/users"; // URL to send the HTTP request
+ * const method = "GET" // HTTP method
+ * const data = null; // Optional data to include in the request body
+
+  // Starting the request
+  blazed.request(url, method, headers, data)
+  .then(res => console.log(res.data))
+  .catch(err => console.error(err));
+  // Since this example is based on GET request therefore the data is set to null
+ */
+  request(url: string, method: string, headers?: Object, data?: Object): Promise<ResponseObject>;
+
+  /**
    * Checks return whether a provided URL is valid or not.
    * @param {string} url The URL to check.
    * @returns {Promise<URLParser>} A promise that resolves with the parsed URL as a JSON Object.
@@ -231,38 +252,38 @@ interface blazed {
    */
   validateHeaderName(header: string): Promise<any>
 
- /**
-   * Validates header name and values
-   * @param {string} name The Header name to check
-   * @param {string} value The Header value to check
-   * @return {Promise<HeaderObject>}  A promise that resolves with the header name and value as an JSON object if the Header parsing is successfull, else it will reject it with the error.
-   * @example 
-   *
-   * // Some dummy header name
-   * const headerName = "x-my-header";
-   * // Some dummy header value
-   * const headerValue = "blazed.js";
-   *
-   * // Asynchronouse headerChecker() function for checking and parsing header name and values
-   * async function headerChecker() {
-   *   try {
-   *     const result = await blazed.validateHeaderName(headerName);  
-   *    // awaiting for the promise
-        // Checking if the result exists
-   *     if (result) {
-          // Awaiting for the header parsing
-   *       const header = await blazed.validateHeaderValue(headerName, headerValue);
-   *     // Finally logging the header object to the console
-   *       console.log(header);
-   *     }
-   *   } catch (error) {
-   *     console.error(error);
-   *   }
-   * }
-   *
-   * // Call the function
-   * headerChecker();
-  */
+  /**
+    * Validates header name and values
+    * @param {string} name The Header name to check
+    * @param {string} value The Header value to check
+    * @return {Promise<HeaderObject>}  A promise that resolves with the header name and value as an JSON object if the Header parsing is successfull, else it will reject it with the error.
+    * @example 
+    *
+    * // Some dummy header name
+    * const headerName = "x-my-header";
+    * // Some dummy header value
+    * const headerValue = "blazed.js";
+    *
+    * // Asynchronouse headerChecker() function for checking and parsing header name and values
+    * async function headerChecker() {
+    *   try {
+    *     const result = await blazed.validateHeaderName(headerName);  
+    *    // awaiting for the promise
+         // Checking if the result exists
+    *     if (result) {
+           // Awaiting for the header parsing
+    *       const header = await blazed.validateHeaderValue(headerName, headerValue);
+    *     // Finally logging the header object to the console
+    *       console.log(header);
+    *     }
+    *   } catch (error) {
+    *     console.error(error);
+    *   }
+    * }
+    *
+    * // Call the function
+    * headerChecker();
+   */
   validateHeaderValue(name: string, value: string): Promise<HeaderObject>
   /**
    * Attaches a listener to the on event

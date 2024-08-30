@@ -319,6 +319,27 @@ blazed.trace(url, headers)
   });
 ```
 
+## Other custom HTTP methods
+
+`blazed.js` also provides you with the ability to perform custom HTTP requests with all the valid HTTP methods that Node.js's built-in HTTP module supports by default including but not limiting to `GET`, `POST`, `PUT`, `TRACE`, etc. requests.
+
+To get started, simply call the blazed.request function in your code and take advantage of flexible and customizable request handling!
+
+Heres a simple example demonstrating a `GET` HTTP request method using the `blazed.reqeust()` function:
+
+```js
+const headers = {} // Provide your custom headers here
+const url = "https://api.github.com/users"; // URL to send the HTTP request
+const method = "GET" // GET HTTP method
+const data = null; // Optional data to include in the request body
+
+// Starting the request
+// Since this example is based on GET request therefore the data whic will be attached in the request body is set to null
+blazed.request(url, method, headers, data)
+.then(res => console.log(res))
+.catch(err => console.error(err));
+```
+
 # URL Parsing
 
 The `blazed.parse()` function can be used to parse a URL. 
