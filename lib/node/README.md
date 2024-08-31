@@ -374,7 +374,7 @@ There are three key events that occur at different stages of the request process
 * **`beforeRequest`**: Fired before sending an HTTP request, this event returns a callback with two parameters: `url` and `options`.
 * **`afterRequest`**: Triggered after the HTTP request's response has finished, this event returns a callback with two parameters: `url` and `response`.
 * **`redirect`**: Fired when `blazed.js` encounters a redirect, this event returns a callback with a single parameter `object`, which contains information about the redirect event.
-* **`request`**: Fired when `blazed.js` sends the HTTP request, this event returns a callback with one parameter: `request`. Which contains the request object
+* **`request`**: Fired when `blazed.js` sends the HTTP request, this event returns a callback with one parameter: `request`. Which contains the request object.
 * **`response`**: Fired when `blazed.js` recieves a response from the connected server. This event returns a callback with one parameter: `response`. Which contains an response object(Not the one provided by the initial response object).
 
 You can listen to these events using the `blazed.on()` function.
