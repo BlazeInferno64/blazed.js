@@ -374,6 +374,8 @@ There are three key events that occur at different stages of the request process
 * **`beforeRequest`**: Fired before sending an HTTP request, this event returns a callback with two parameters: `url` and `options`.
 * **`afterRequest`**: Triggered after the HTTP request's response has finished, this event returns a callback with two parameters: `url` and `response`.
 * **`redirect`**: Fired when `blazed.js` encounters a redirect, this event returns a callback with a single parameter `object`, which contains information about the redirect event.
+* **`request`**: Fired when `blazed.js` sends the HTTP request, this event returns a callback with one parameter: `request`. Which contains the request object
+* **`response`**: Fired when `blazed.js` recieves a response from the connected server. This event returns a callback with one parameter: `response`. Which contains an response object(Not the one provided by the initial response object).
 
 You can listen to these events using the `blazed.on()` function.
 
@@ -445,6 +447,55 @@ blazed.get("http://api.github.com/users")
   });
 // Output will be
 // { OriginalURL: 'http://api.github.com/users/', RedirectURL: 'https://api.github.com/users/' }
+```
+
+4. `request` event:
+
+```js
+// Listen for the "request" event
+blazed.on("request", (req) => {
+  console.log(req) // Note that it will print all associated property with 'req' object to the console
+  // - req.destroy(): It is used to destory the stream from server. Note that after the stream has been destroyed it will throw an connection reset error.
+  // - req.host: Returns the hostname
+  // - req.message: Returns a simple message indicating that it's the 'req' object
+});
+
+// Make a GET request to the GitHub API
+blazed.get("https://api.github.com/users")
+  .then((res) => {
+    console.log("GET request successful:");
+    console.log(res);
+  })
+  .catch((err) => {
+    console.error("Error making GET request:");
+    console.error(err);
+  });
+```
+
+5. `response` event:
+
+```js
+
+const writeStream = fs.createWriteStream("response.txt", "utf-8");
+
+// Listen for the "request" event
+blazed.on("response", (res) => {
+  console.log(res); // Note that it will print all associated property with 'res' object to the console
+  // - req.pipe(): It is used to pipe the response stream from the server to another stream. 'writeStream` for this case.
+  res.pipe(writeStream);
+  // Piping the response stream to the writeStream here.
+});
+
+// Make a GET request to the GitHub API
+blazed.get("https://api.github.com/users")
+  .then((res) => {
+    console.log("GET request successful:");
+    console.log(res);
+  })
+  .catch((err) => {
+    console.error("Error making GET request:");
+    console.error(err);
+  });
 ```
 
 Stay up-to-date with our project for upcoming features and enhancements, including additional events that will be introduced in future releases.

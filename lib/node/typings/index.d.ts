@@ -293,7 +293,7 @@ interface blazed {
    * @param {(url: string) => void | (object: { OriginalURL: string, RedirectURL: string }) => void} callback - The callback function
    */
   /**
-   * 
+   * **Check the docs [here]("https://github.com/BlazeInferno64/blazed.js/tree/main/lib/node#events") or [in the README.md file](./README.md) regarding about the 'events'emitted**
    * @param event (beforeRequest) Fires up before firing a HTTP request
    * @param callback returns two parameters for the callback function named url and the options(headers)
    * @example 
@@ -312,10 +312,24 @@ interface blazed {
    * return console.log(response) // Logs the request response object to the console
    * });
    * 
+   * 
    * // redirect event example usage
    * blazed.on("beforeRequest", (redirectObject) => {
    *  console.log(`Redirect event fired!`); // Logging for the redirect event
    * return console.log(redirectObject) // Logs the redirect object to the console
+   * });
+   * 
+   * 
+   * // request event example usage
+   * blazed.on("request", (req) => {
+   * console.log(req);
+   * });
+   * 
+   * 
+   * // response event example usage
+   * const writeStream = fs.createWriteStream("response.txt", "utf-8");
+   * blazed.on("response", (response) => {
+   * return response.pipe(writeStream);
    * });
    */
   on(event: "beforeRequest", callback: (url: string, options: object) => void): void;
@@ -327,10 +341,22 @@ interface blazed {
   on(event: "afterRequest", callback: (url: string, response: object) => void): void;
   /**
    * 
-   * @param event (redirect) Fires up when a redirect occurs
+   * @param event (redirect) Fires up when a redirect occurs when sending HTTP request to the server
    * @param callback returns an object as the parameter for the callback function which contains the original url and the redirect url
    */
   on(event: "redirect", callback: (object: { OriginalURL: string, RedirectURL: string }) => void): void;
+  /**
+   * 
+   * @param event (request) Fires up when the http request is sent to the server
+   * @param callback returns an object as the parameter for the callback function which contains the redirect object
+   */
+  on(event: "request", callback: (object: { destroy: Function, message: string, host: string }) => void): void;
+  /**
+   * 
+   * @param event (response) Fires up when the http request's response is received from the server
+   * @param callback returns an object as the parameter for the callback function which contains the response object
+   */
+  on(event: "response", callback: (object: { pipe: Function }) => void): void;
 }
 /**
  *  blazed.js is a blazing-fast, light weight, high-performance, promise-based HTTP client
