@@ -22,43 +22,179 @@
 
 // Type definitions for blazed.js
 
-interface URLParser {
-  hash: string;
-  host: string;
-  hostname: string;
-  href: string;
-  origin: string;
-  password: string;
-  pathname: string;
+interface ConnectionObject {
+  /**
+   * A success message indicating the status of the connection (e.g. "Successfully established a connection to...").
+   */
+  message: string;
+  /**
+   * The protocol used for the connection (e.g. "http" or "https").
+   */
   protocol: string;
+  /**
+   * The remote IP address of the remote server.
+   */
+  remoteAddress: string;
+  /**
+   * The port number used by the remote server.
+   */
+  remotePort: number;
+  /**
+   * The IP address of the local machine.
+   */
+  localAddress: string;
+  /**
+   * The address family of the local machine (e.g. "IPv4" or "IPv6").
+   */
+  localFamily: string;
+  /**
+   * The port number used by the local machine for establishing the connection.
+   */
+  localPort: number;
+}
+
+interface RequestObject {
+  /**
+   * The URL you want to send HTTP request.
+   */
+  url?: string;
+  /**
+   * The HTTP method you want to use.
+   */
+  method?: string;
+  /**
+   * The headers you want to include in your request.
+   */
+  headers?: Object;
+  /**
+   * The data you want to include in the body while performing requests like POST,PUT,etc.
+   */
+  body?: any;
+  /**
+   * The redirect count
+   */
+  redirectCount?: number;
+}
+
+interface URLParser {
+  /**
+   * The hash of the parsed url.
+   */
+  hash: string;
+  /**
+   * The host of the parsed url.
+   */
+  host: string;
+  /**
+   * The hostname of the parsed url.
+   */
+  hostname: string;
+  /**
+   * The href of the parsed url.
+   */
+  href: string;
+  /**
+   * The origin of the parsed url.
+   */
+  origin: string;
+  /**
+   * The password of the parsed url.
+   */
+  password: string;
+  /**
+   * The pathname of the parsed url.
+   */
+  pathname: string;
+  /**
+   * The protocol of the parsed url.
+   */
+  protocol: string;
+  /**
+   * The search of the parsed url.
+   */
   search: string;
+  /**
+   * The search params of the parsed url.
+   */
   searchParams: URLSearchParams;
 }
 
 interface AboutObject {
+  /**
+   * Name of the package.
+   */
   Name: string;
+  /**
+   * Name of the author.
+   */
   Author: string;
+  /**
+   * Version of the package.
+   */
   Version: string;
+  /**
+   * Description of the package.
+   */
   Description: string;
+  /**
+   * Repository of the package.
+   */
   Respository: string;
 }
 
 interface ResponseObject {
+  /**
+   * Data received from the server as a response.
+   */
   data: any;
+  /**
+   * Status code received from the server.
+   */
   status: number;
+  /**
+   * Contains the headers which the server has sent.
+   */
   responseHeaders: { [key: string]: string };
+  /**
+   * Contains the headers which the client has sent.
+   */
+  requestHeaders: { [key: string]: string };
+}
+
+interface ConnectionResponseObject {
+  /**
+   * Returns the connection object contaning the connection info.
+   */
+  data: ConnectionObject;
+  /**
+   * Status code for the 'CONNECT' request will be null.
+   */
+  status: number;
+  /**
+   * Contains the headers which the server has sent.
+   */
+  responseHeaders: { [key: string]: string };
+  /**
+   * Contains the headers which the client has sent.
+   */
   requestHeaders: { [key: string]: string };
 }
 
 interface HeaderObject {
+  /**
+   * Name of the header.
+   */
   name: string;
+  /**
+   * Value of the header.
+   */
   value: string;
 }
 
 interface blazed {
   /**
    * Performs an HTTP GET request.
-   * @param {string} url The URL to request.
+   * @param {Object} url The URL to request.
    * @param {Object} headers Optional headers to include in the request.
    * @param {number} redirectCount Optional parameter to limit the number of redirects (default: 5).
    * @returns {Promise<ResponseObject>} A promise that resolves with the response data.
@@ -118,9 +254,10 @@ interface blazed {
   delete(url: string, headers?: Object): Promise<ResponseObject>;
 
   /**
-   * Performs an HTTP CONNECT request.
+   * Performs a HTTP CONNECT request.
    * 
    * **CONNECT request behaves differently than standard HTTP request!** 
+   * **If connection to the remote server is successfull then it will return a connection info object**
    * 
    * **Please check the [here](https://github.com/BlazeInferno64/blazed.js/tree/main/lib/node#connect-request) or [in the README.md file](./README.md) for more info!**
    * @param {string} url The URL to request.
@@ -128,13 +265,13 @@ interface blazed {
    * @param {number} redirectCount Optional parameter to limit the number of redirects (default: 5).
    * @returns {Promise<ResponseObject>} A promise that resolves with the response data with a connection object.
    * @example blazed.connect("https://example.com/api")
-    .then(res => console.log(res)) // Logs the connection info object to the console
+    .then(res => console.log(res.data)) // Logs the connection info object to the console
     .catch(err => console.error(err));
    */
-  connect(url: string, headers?: Object, redirectCount?: number): Promise<ResponseObject>;
+  connect(url: string, headers?: Object, redirectCount?: number): Promise<ConnectionResponseObject>;
 
   /**
-   * Performs an HTTP OPTIONS request.
+   * Performs a HTTP OPTIONS request.
    * @param {string} url The URL to request.
    * @param {Object} headers Optional headers to include in the request.
    * @param {number} redirectCount Optional parameter to limit the number of redirects (default: 5).
@@ -146,7 +283,7 @@ interface blazed {
   options(url: string, headers?: Object, redirectCount?: number): Promise<ResponseObject>;
 
   /**
-   * Performs an HTTP TRACE request.
+   * Performs a HTTP TRACE request.
    * @param {string} url The URL to request.
    * @param {Object} headers Optional headers to include in the request.
    * @param {number} redirectCount Optional parameter to limit the number of redirects (default: 5).
@@ -158,7 +295,7 @@ interface blazed {
   trace(url: string, headers?: Object, redirectCount?: number): Promise<ResponseObject>;
 
   /**
-   * Performs an HTTP PATCH request.
+   * Performs a HTTP PATCH request.
    * @param {string} url The URL to send the PATCH request to.
    * @param {Object} data The data to send in the request body (should be JSON-serializable).
    * @param {Object} headers Optional headers to include in the request.
@@ -170,25 +307,29 @@ interface blazed {
   patch(url: string, data: Object, headers?: Object): Promise<ResponseObject>;
 
   /**
- * Performs a HTTP request with a custom method.
- * @param {string} url The URL to request.
- * @param {string} method The HTTP method to use (e.g. GET, POST, PUT, DELETE, etc.).
- * @param {Object} headers Optional headers to include in the request.
- * @param {Object} data Optional data to send in the request body.
+ * Provides a simplified way of performing HTTP requests similar to the native fetch api.
+ * @param {Object} requestObj - The Object contaning the HTTP request info.
+ * @param {string} requestObj.url - The URL you want to send request.
+ * @param {string} requestObj.method - The HTTP method to use (e.g. GET, POST, PUT, DELETE, etc.).
+ * @param {Object} requestObj.headers - Optional headers to include in the request.
+ * @param {Object} request.body - Optional data to send in the request body.
+ * @param {number} requestObj.redirectCount - The redirect count for the http request. By default it's set to 5.
  * @returns {Promise<ResponseObject>} A promise that resolves with the response data.
  * @example 
- * const headers = {} // Provide your custom headers here
- * const url = "https://api.github.com/users"; // URL to send the HTTP request
- * const method = "GET" // HTTP method
- * const data = null; // Optional data to include in the request body
-
-  // Starting the request
-  blazed.request(url, method, headers, data)
-  .then(res => console.log(res.data))
-  .catch(err => console.error(err));
-  // Since this example is based on GET request therefore the data is set to null
+ * // Starting the request
+ * blazed.request({
+ *   url: "https://api.github.com/users", // URL to send the HTTP request.
+ *   method: "GET", // HTTP method.
+ *   headers: {}, // Provide your custom headers here.
+ *   body: null, // Optional data to include in the request body.
+ * }).then(res => {
+ *   return console.log(res.data);
+ * }).catch(err => {
+ *   return console.error(err);
+ * })
+ * // Since this example is based on GET request therefore the data is set to null
  */
-  request(url: string, method: string, headers?: Object, data?: Object): Promise<ResponseObject>;
+  request(requestObj: RequestObject): Promise<ResponseObject>;
 
   /**
    * Checks return whether a provided URL is valid or not.

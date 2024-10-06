@@ -328,16 +328,26 @@ To get started, simply call the blazed.request function in your code and take ad
 Heres a simple example demonstrating a `GET` HTTP request method using the `blazed.reqeust()` function:
 
 ```js
-const headers = {} // Provide your custom headers here
-const url = "https://api.github.com/users"; // URL to send the HTTP request
-const method = "GET" // GET HTTP method
-const data = null; // Optional data to include in the request body
-
 // Starting the request
-// Since this example is based on GET request therefore the data whic will be attached in the request body is set to null
-blazed.request(url, method, headers, data)
-.then(res => console.log(res))
-.catch(err => console.error(err));
+blazed.request({
+    url: "https://api.github.com/users", // URL to send the HTTP request.
+    method: "GET", // HTTP method.
+    headers: {}, // Provide your custom headers here.
+    body: null, // Optional data to include in the request body.
+})
+.then(response => {
+    return console.log(response);
+    // Response object contains:
+    // - data
+    // - responseHeaders
+    // - status
+    // - requestHeaders
+})
+.catch(err => {
+    return console.error(err);
+    // For handling errors.
+})
+// Since this example is based on GET request therefore the data is set to null.
 ```
 
 # URL Parsing
