@@ -510,6 +510,93 @@ blazed.get("https://api.github.com/users")
 
 Stay up-to-date with our project for upcoming features and enhancements, including additional events that will be introduced in future releases.
 
+# DNS resolving
+
+In addition to making HTTP requests, `blazed.js` also provides an asynchronous way to resolve the DNS of various hostnames.
+
+You can use the `blazed.resolve()` method to achieve this. It returns a promise that resolves with an IP object containing the resolved IP addresses and its format.
+
+The object has the following structre:
+
+```js
+
+{
+  Format: string, // The IP address format (e.g., IPv4, IPv6). Optional. If not specified, **blazed.js** will resolve the promise with the first IP address found after performing a DNS lookup for the host
+  Addresses: Array, // The ip address of the host which has been resolved (Present in array)
+}
+
+```
+
+### Accessing IP Object Properties
+
+When logging the IP object, you can access its properties as follows (assuming the object is named `ipObj`):
+
+* `ipObj.format`: The IP address format (e.g., 'IPv4' or 'IPv6').
+* `ipObj.addresses`: The resolved IP addresses of the host.
+
+Example demonstrating DNS resolving:
+
+```js
+// Resolving DNS using blazed.resolve() with specified ip format.
+
+blazed.resolve({
+  /**
+   * The IP address format (e.g., 'IPv4' or 'IPv6'). Optional.
+   * If not specified, **blazed.js** will resolve the promise with the first IP address found after performing a DNS lookup for the host.
+   */
+  format: "IPv4",
+
+  /**
+   * The hostname to resolve (e.g., 'www.google.com').
+   * Note: if you omit the protocol (http/https), you will get an error of invalid url.
+   */
+  hostname: "https://www.google.com" // Let's take google.com here
+})
+.then(ipObj => {
+  // Logging the ipObj to the console.
+  return console.log(ipObj);
+    // ipObj contains:
+    // - Format (The format of the ip of the host)
+    // - Address (Array containing the list of ip addresses)
+})
+.catch(err => {
+  // Logging any errors to the console.
+  return console.error(err);
+});
+```
+
+
+```js
+ // Resolving DNS using blazed.resolve() with specified ip format.
+ // Starting the request to resolve the hostname.
+
+blazed.request({
+  /**
+   * The hostname to resolve (e.g., 'https://www.google.com').
+   * Note: if you omit the protocol (http/https), you will get an error of invalid url.
+   */
+  hostname: "https://www.google.com" // Let's take google.com here
+})
+.then(ipObj => {
+  // Logging the ipObj to the console.
+  return console.log(ipObj);
+    // ipObj contains:
+    // - Format (The format of the ip of the host)
+    // - Address (Array containing the list of ip addresses)
+})
+.catch(err => {
+  // Logging any errors to the console.
+  return console.error(err);
+});
+
+```
+
+### Underlying Technology
+
+This feature is built on top of Node.js's built-in `dns` module, which provides an asynchronous network wrapper for performing DNS lookups.
+
+For more information about the `dns` module, please refer to the [official Node.js documentation](https://nodejs.org/api/dns.html).
+
 # Validating Header Names and Values
 
 In addition to sending requests, you can also validate header names and values using the `blazed.validateHeaderName()` and `blazed.validateHeaderValue()` functions.

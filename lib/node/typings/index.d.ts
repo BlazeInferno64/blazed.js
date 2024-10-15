@@ -22,6 +22,30 @@
 
 // Type definitions for blazed.js
 
+interface IpObject {
+  /**
+   * The format of the resolved ip
+   */
+  Format: string;
+  /**
+   * The ip address which has been resolved (Present in array)
+   */
+  Addresses: Array
+}
+
+interface HostObject {
+  /**
+   * The hostname (eg. https://www.google.com)
+   */
+  hostname?: string;
+  /**
+   * The IP address format (e.g., IPv4, IPv6)
+   * 
+   * Optional. If not specified, **blazed.js** will resolve the promise with the first IP address found after performing a DNS lookup for the host.
+   */
+  format: ?'IPv4' | 'IPv6';
+}
+
 interface ConnectionObject {
   /**
    * A success message indicating the status of the connection (e.g. "Successfully established a connection to...").
@@ -71,9 +95,9 @@ interface RequestObject {
    */
   body?: any;
   /**
-   * The redirect count
+   * The no of redirects to accept. By default its set to 5
    */
-  redirectCount?: number;
+  limit?: number;
 }
 
 interface URLParser {
@@ -192,6 +216,42 @@ interface HeaderObject {
 }
 
 interface blazed {
+/**
+ * Check the docs for more info.
+ * 
+ * Resolves a hostname's DNS to an IP object containing the IP addresses.
+ * @param {Object} hostObject - The object containing the host data.
+ * @param {('IPv4'|'IPv6')} hostObject.format - Optional. The IP address format. If not specified, 
+ *   blazed.js will resolve the promise with the first IP address found after performing a DNS lookup for the host.
+ * @param {string} hostObject.hostname - The hostname to be resolved.
+ * @returns {Promise<Object>} Returns a promise containing the resolved IP data.
+ * @example 
+ * // Example usage demonstrating DNS resolving with specified format
+ * // Starting the request
+ * blazed.request({
+ *   format: "IPv6",
+ *   hostname: "https://www.google.com"
+ * }).then(res => {
+ *   return console.log(res.data);
+ *   // It will return all the addresses after resolving the DNS
+ * }).catch(err => {
+ *   return console.error(err);
+ * // handling errors
+ * })
+ * 
+ * // Example usage demonstrating DNS resolving without specified format
+ * // Starting the request
+ * blazed.request({
+ *   hostname: "https://www.google.com"
+ * }).then(res => {
+ *   return console.log(res.data);
+ *   // It will return only the fist ip address which is found after dns has been resolved
+ * }).catch(err => {
+ *   return console.error(err);
+ * // handling errors
+ * })
+ */
+  resolve(hostObj: HostObject): Promise<IpObject>;
   /**
    * Performs an HTTP GET request.
    * @param {Object} url The URL to request.
@@ -313,7 +373,7 @@ interface blazed {
  * @param {string} requestObj.method - The HTTP method to use (e.g. GET, POST, PUT, DELETE, etc.).
  * @param {Object} requestObj.headers - Optional headers to include in the request.
  * @param {Object} request.body - Optional data to send in the request body.
- * @param {number} requestObj.redirectCount - The redirect count for the http request. By default it's set to 5.
+ * @param {number} requestObj.limit - The limit for the number of redirects for the http request. By default it's set to 5.
  * @returns {Promise<ResponseObject>} A promise that resolves with the response data.
  * @example 
  * // Starting the request
