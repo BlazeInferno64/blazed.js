@@ -567,7 +567,7 @@ blazed.resolve({
 
 
 ```js
- // Resolving DNS using blazed.resolve() with specified ip format.
+ // Resolving DNS using blazed.resolve() without specified ip format.
  // Starting the request to resolve the hostname.
 
 blazed.request({

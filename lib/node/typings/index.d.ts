@@ -30,7 +30,7 @@ interface IpObject {
   /**
    * The ip address which has been resolved (Present in array)
    */
-  Addresses: Array
+  Addresses: Array;
 }
 
 interface HostObject {
@@ -43,7 +43,7 @@ interface HostObject {
    * 
    * Optional. If not specified, **blazed.js** will resolve the promise with the first IP address found after performing a DNS lookup for the host.
    */
-  format: ?'IPv4' | 'IPv6';
+  format?:'IPv4' | 'IPv6';
 }
 
 interface ConnectionObject {
