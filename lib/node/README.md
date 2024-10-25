@@ -570,7 +570,7 @@ blazed.resolve({
  // Resolving DNS using blazed.resolve() without specified ip format.
  // Starting the request to resolve the hostname.
 
-blazed.request({
+blazed.resolve({
   /**
    * The hostname to resolve (e.g., 'https://www.google.com').
    * Note: if you omit the protocol (http/https), you will get an error of invalid url.

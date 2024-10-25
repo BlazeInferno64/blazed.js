@@ -228,7 +228,7 @@ interface blazed {
  * @example 
  * // Example usage demonstrating DNS resolving with specified format
  * // Starting the request
- * blazed.request({
+ * blazed.resolve({
  *   format: "IPv6",
  *   hostname: "https://www.google.com"
  * }).then(res => {
@@ -241,7 +241,7 @@ interface blazed {
  * 
  * // Example usage demonstrating DNS resolving without specified format
  * // Starting the request
- * blazed.request({
+ * blazed.resolve({
  *   hostname: "https://www.google.com"
  * }).then(res => {
  *   return console.log(res.data);
