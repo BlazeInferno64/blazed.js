@@ -325,7 +325,9 @@ blazed.trace(url, headers)
 
 To get started, simply call the blazed.request function in your code and take advantage of flexible and customizable request handling!
 
-Heres a simple example demonstrating a `GET` HTTP request method using the `blazed.reqeust()` function:
+**Please note when a method is not specified, blazed.js defaults to a GET request**
+
+Heres a simple example demonstrating a `GET` HTTP request method using the `blazed.request()` function:
 
 ```js
 // Starting the request
@@ -347,7 +349,8 @@ blazed.request({
     return console.error(err);
     // For handling errors.
 })
-// Since this example is based on GET request therefore the data is set to null.
+// Since this example is based on GET request therefore the data to
+// be sent in the request body is set to null.
 ```
 
 # URL Parsing

@@ -368,6 +368,7 @@ interface blazed {
 
   /**
  * Provides a simplified way of performing HTTP requests similar to the native fetch api.
+ * When a method is not specified, blazed.js defaults to a GET request
  * @param {Object} requestObj - The Object contaning the HTTP request info.
  * @param {string} requestObj.url - The URL you want to send request.
  * @param {string} requestObj.method - The HTTP method to use (e.g. GET, POST, PUT, DELETE, etc.).
@@ -387,7 +388,8 @@ interface blazed {
  * }).catch(err => {
  *   return console.error(err);
  * })
- * // Since this example is based on GET request therefore the data is set to null
+ * // Since this example is based on GET request therefore the data to
+ * // be sent in the request body is set to null.
  */
   request(requestObj: RequestObject): Promise<ResponseObject>;
 
