@@ -58,6 +58,7 @@ blazed.get(url, headers)
     // - responseHeaders
     // - status
     // - requestHeaders
+    // - responseSize
   })
   .catch(error => {
     console.error(error);
@@ -75,6 +76,7 @@ It's actually quite similar to the native fetch api, node-fetch and axios
 {
     "data": string, // Server response data
     "status": number, // Status code of the response
+    "responseSize": string, // Server response buffer size
     "responseHeaders": object,  // All response headers
     "requestHeaders": object // All request headers
 }
@@ -86,6 +88,7 @@ When logging the response, you can access these properties as follows:
 - `response.status`: Status code of the response
 - `response.responseHeaders`: All response headers
 - `response.requestHeaders`: All request headers
+- `response.responseSize`: Server response buffer size
 
 
 # POST Request
@@ -112,6 +115,7 @@ blazed.post(url, postData, headers)
     // - responseHeaders
     // - status
     // - requestHeaders
+    // - responseSize
   })
   .catch(error => {
     console.error(error);
@@ -137,6 +141,7 @@ blazed.delete(url, headers)
     // - responseHeaders
     // - status
     // - requestHeaders
+    // - responseSize
   })
   .catch(error => {
     console.error(error);
@@ -170,6 +175,7 @@ blazed.put(url, putData, headers)
     // - responseHeaders
     // - status
     // - requestHeaders
+    // - responseSize
   })
   .catch(error => {
     console.error(error);
@@ -194,6 +200,7 @@ blazed.patch(url, patchData, headers)
     // - responseHeaders
     // - status
     // - requestHeaders
+    // - responseSize
   })
  .catch(error => {
     console.error(error);
@@ -216,6 +223,7 @@ blazed.head(url, headers)
     // - responseHeaders
     // - status
     // - requestHeaders
+    // - responseSize
   })
  .catch(error => {
     console.error(error);
@@ -238,6 +246,7 @@ blazed.options(url, headers)
     // - responseHeaders
     // - status
     // - requestHeaders
+    // - responseSize
   })
  .catch(error => {
     console.error(error);
@@ -260,6 +269,7 @@ blazed.connect(url, headers)
     // - responseHeaders
     // - status
     // - requestHeaders
+    // - responseSize
   })
  .catch(error => {
     console.error(error);
@@ -313,6 +323,7 @@ blazed.trace(url, headers)
     // - responseHeaders
     // - status
     // - requestHeaders
+    // - responseSize
   })
  .catch(error => {
     console.error(error);
@@ -344,13 +355,14 @@ blazed.request({
     // - responseHeaders
     // - status
     // - requestHeaders
+    // - responseSize
 })
 .catch(err => {
     return console.error(err);
     // For handling errors.
 })
-// Since this example is based on GET request therefore the data to
-// be sent in the request body is set to null.
+// Since this example is based on GET request therefore the data
+// to be sent in the request body is set to null.
 ```
 
 # URL Parsing
