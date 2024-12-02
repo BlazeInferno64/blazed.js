@@ -76,7 +76,7 @@ It's actually quite similar to the native fetch api, node-fetch and axios
 {
     "data": string, // Server response data
     "status": number, // Status code of the response
-    "responseSize": string, // Server response buffer size
+    "responseSize": string, // Server response buffer size (formatted)
     "responseHeaders": object,  // All response headers
     "requestHeaders": object // All request headers
 }
@@ -88,7 +88,7 @@ When logging the response, you can access these properties as follows:
 - `response.status`: Status code of the response
 - `response.responseHeaders`: All response headers
 - `response.requestHeaders`: All request headers
-- `response.responseSize`: Server response buffer size
+- `response.responseSize`: Server response buffer size (formatted)
 
 
 # POST Request
@@ -681,29 +681,23 @@ const HEADER_NAME = "x-my-header";
 // Define a constant for the dummy header value
 const HEADER_VALUE = "blazed.js";
 
-// Asynchronous headerChecker() function for checking and parsing header name and values
-async function headerChecker() {
-  try {
-    // Validate the header name before parsing the value
-    const isValidHeader = await blazed.validateHeaderName(HEADER_NAME);
-
-    // Check if the header name is valid
-    if (isValidHeader) {
-      // Parse the header value
-      const parsedHeader = await blazed.validateHeaderValue(HEADER_NAME, HEADER_VALUE);
-
-      // Log the parsed header object to the console
-      console.log(parsedHeader);
-    } else {
-      console.log(`Invalid header name: ${HEADER_NAME}`);
-    }
-  } catch (error) {
-    console.error(`Error processing header: ${error}`);
-  }
+try {
+     // Validate the header name before parsing the value
+     const isValidHeader = await blazed.validateHeaderName(HEADER_NAME);
+     
+     // Check if the header name is valid
+     if (isValidHeader) {
+         // Parse the header value
+         const parsedHeader = await blazed.validateHeaderValue(HEADER_NAME, HEADER_VALUE);
+         
+         // Finally log the parsed header object to the console
+         console.log(parsedHeader);
+     } else {
+         console.log(`Invalid header name: ${HEADER_NAME}`);
+     }
+} catch (error) {
+     console.error(`Error processing header: ${error}`);
 }
-
-// Call the headerChecker function
-headerChecker();
 ```
 
 Run your script using `node your-script.js`. 
@@ -747,7 +741,7 @@ To catch and handle errors as needed, use a `try-catch` block.
 Get an object contaning all valid HTTP status codes with `blazed.status_codes()`.
 
 ```js
-console.log(blazed.status_codes())
+console.log(blazed.status_codes());
 ```
 
 # methods()
@@ -755,7 +749,7 @@ console.log(blazed.status_codes())
 The `blazed.methods()` function returns an array of all supported HTTP request methods, providing a convenient way to access the full range of valid methods.
 
 ```js
-console.log(blazed.methods())
+console.log(blazed.methods());
 ```
 
 # about
@@ -763,7 +757,7 @@ console.log(blazed.methods())
 Get package information as an object with `blazed.about()`.
 
 ```js
-console.log(blazed.about())
+console.log(blazed.about());
 ```
 
 # LICENSE

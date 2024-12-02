@@ -2,7 +2,7 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 30/11/2024
+// Last updated: 02/12/2024
 
 // Type definitions for 'blazed.js'
 
@@ -246,9 +246,24 @@ interface blazed {
    * @param {Object} headers Optional headers to include in the request.
    * @param {number} redirectCount Optional parameter to limit the number of redirects (default: 5).
    * @returns {Promise<ResponseObject>} A promise that resolves with the response data.
-   * @example blazed.get("https://jsonplaceholder.typicode.com/posts/1")
-     .then(res => console.log(res))
-     .catch(err => console.error(err)); 
+   * @example 
+   * const headers = {}; // Your headers here 
+   * const url = 'https://jsonplaceholder.typicode.com/posts/1';
+   * // Replace with your desired url
+   * 
+   * blazed.get(url, headers)
+   *  .then(response => {
+   *      console.log(response);
+   *      // Response object contains:
+   *      // - data
+   *      // - responseHeaders
+   *      // - status
+   *      // - requestHeaders
+   *      // - responseSize
+   *  })
+   *  .catch(error => {
+   *      console.log(error);
+   *  });
    */
   get(url: string, headers?: Object, redirectCount?: number): Promise<ResponseObject>;
 
@@ -258,9 +273,24 @@ interface blazed {
    * @param {Object} headers Optional headers to include in the request.
    * @param {number} redirectCount Optional parameter to limit the number of redirects (default: 5).
    * @returns {Promise<ResponseObject>} A promise that resolves with the response data.
-   * @example blazed.head("https://example.com/api")
-     .then(res => console.log(res))
-     .catch(err => console.error(err));
+   * @example 
+   * const headers = {}; // Your headers here 
+   * const url = 'https://jsonplaceholder.typicode.com/posts/1';
+   * // Replace with your desired url
+   * 
+   * blazed.head(url, headers)
+   *  .then(response => {
+   *      console.log(response);
+   *      // Response object contains:
+   *      // - data
+   *      // - responseHeaders
+   *      // - status
+   *      // - requestHeaders
+   *      // - responseSize
+   *  })
+   *  .catch(error => {
+   *      console.log(error);
+   *  });
    */
   head(url: string, headers?: Object, redirectCount?: number): Promise<ResponseObject>;
 
@@ -270,10 +300,30 @@ interface blazed {
    * @param {Object} data The data to send in the request body (should be JSON-serializable).
    * @param {Object} headers Optional headers to include in the request.
    * @returns {Promise<ResponseObject>} A promise that resolves with the response data.
-   * @example const data = { title: 'foo', body: 'bar', userId: 1 }
-   * blazed.post("https://jsonplaceholder.typicode.com/posts/1", data))
-      .then(res => console.log(res))
-      .catch(err => console.error(err));
+   * @example 
+   * const postData = {
+   *    title: 'foo',
+   *    bar: 'bar',
+   *    userId: 1
+   * }
+   * 
+   * const headers = {}; // Your headers here 
+   * const url = 'https://jsonplaceholder.typicode.com/posts/1';
+   * // Replace with your desired url
+   * 
+   * blazed.post(url, postData, headers)
+   *  .then(response => {
+   *      console.log(response);
+   *      // Response object contains:
+   *      // - data
+   *      // - responseHeaders
+   *      // - status
+   *      // - requestHeaders
+   *      // - responseSize
+   *  })
+   *  .catch(error => {
+   *      console.log(error);
+   *  });
    */
   post(url: string, data: Object, headers?: Object): Promise<ResponseObject>;
 
@@ -283,10 +333,30 @@ interface blazed {
    * @param {Object} data The data to send in the request body (should be JSON-serializable).
    * @param {Object} headers Optional headers to include in the request.
    * @returns {Promise<ResponseObject>} A promise that resolves with the response data.
-   * @example const data = { title: 'foo', body: 'bar', userId: 1 }
-   * blazed.put("https://jsonplaceholder.typicode.com/posts/1", data))
-      .then(res => console.log(res))
-      .catch(err => console.error(err));
+   * @example 
+   * const putData = {
+   *    title: 'foo',
+   *    bar: 'bar',
+   *    userId: 1
+   * }
+   * 
+   * const headers = {}; // Your headers here 
+   * const url = 'https://jsonplaceholder.typicode.com/posts/1';
+   * // Replace with your desired url
+   * 
+   * blazed.put(url, putData, headers)
+   *  .then(response => {
+   *      console.log(response);
+   *      // Response object contains:
+   *      // - data
+   *      // - responseHeaders
+   *      // - status
+   *      // - requestHeaders
+   *      // - responseSize
+   *  })
+   *  .catch(error => {
+   *      console.log(error);
+   *  });
    */
   put(url: string, data: Object, headers?: Object): Promise<ResponseObject>;
 
@@ -295,9 +365,24 @@ interface blazed {
    * @param {string} url The URL to send the DELETE request to.
    * @param {Object} headers Optional headers to include in the request.
    * @returns {Promise<ResponseObject>} A promise that resolves with the response data.
-   * @example blazed.delete("https://jsonplaceholder.typicode.com/posts/1")
-    .then(res => console.log(res))
-    .catch(err => console.error(err)); 
+   * @example 
+   * const headers = {}; // Your headers here 
+   * const url = 'https://jsonplaceholder.typicode.com/posts/1';
+   * // Replace with your desired url
+   * 
+   * blazed.delete(url, headers)
+   *  .then(response => {
+   *      console.log(response);
+   *      // Response object contains:
+   *      // - data
+   *      // - responseHeaders
+   *      // - status
+   *      // - requestHeaders
+   *      // - responseSize
+   *  })
+   *  .catch(error => {
+   *      console.log(error);
+   *  });
    */
   delete(url: string, headers?: Object): Promise<ResponseObject>;
 
@@ -312,9 +397,24 @@ interface blazed {
    * @param {Object} headers Optional headers to include in the request.
    * @param {number} redirectCount Optional parameter to limit the number of redirects (default: 5).
    * @returns {Promise<ResponseObject>} A promise that resolves with the response data with a connection object.
-   * @example blazed.connect("https://example.com/api")
-    .then(res => console.log(res.data)) // Logs the connection info object to the console
-    .catch(err => console.error(err));
+   * @example 
+   * const headers = {}; // Your headers here 
+   * const url = 'https://example.com/api/resource';
+   * // Replace with your desired url
+   * 
+   * blazed.connect(url, headers)
+   *  .then(response => {
+   *      console.log(response);
+   *      // Response object contains:
+   *      // - data (contains the connection info object)
+   *      // - responseHeaders
+   *      // - status
+   *      // - requestHeaders
+   *      // - responseSize
+   *  })
+   *  .catch(error => {
+   *      console.log(error);
+   *  });
    */
   connect(url: string, headers?: Object, redirectCount?: number): Promise<ConnectionResponseObject>;
 
@@ -324,9 +424,24 @@ interface blazed {
    * @param {Object} headers Optional headers to include in the request.
    * @param {number} redirectCount Optional parameter to limit the number of redirects (default: 5).
    * @returns {Promise<ResponseObject>} A promise that resolves with the response data.
-   * @example blazed.options("https://example.com/api")
-    .then(res => console.log(res))
-    .catch(err => console.error(err));
+   * @example 
+   * const headers = {}; // Your headers here 
+   * const url = 'https://example.com/api/resource';
+   * // Replace with your desired url
+   * 
+   * blazed.options(url, headers)
+   *  .then(response => {
+   *      console.log(response);
+   *      // Response object contains:
+   *      // - data (contains the connection info object)
+   *      // - responseHeaders
+   *      // - status
+   *      // - requestHeaders
+   *      // - responseSize
+   *  })
+   *  .catch(error => {
+   *      console.log(error);
+   *  });
    */
   options(url: string, headers?: Object, redirectCount?: number): Promise<ResponseObject>;
 
@@ -336,9 +451,24 @@ interface blazed {
    * @param {Object} headers Optional headers to include in the request.
    * @param {number} redirectCount Optional parameter to limit the number of redirects (default: 5).
    * @returns {Promise<ResponseObject>} A promise that resolves with the response data.
-   * @example blazed.trace("https://example.com/api")
-    .then(res => console.log(res))
-    .catch(err => console.error(err));
+   * @example 
+   * const headers = {}; // Your headers here 
+   * const url = 'https://example.com/api/resource';
+   * // Replace with your desired url
+   * 
+   * blazed.trace(url, headers)
+   *  .then(response => {
+   *      console.log(response);
+   *      // Response object contains:
+   *      // - data (contains the connection info object)
+   *      // - responseHeaders
+   *      // - status
+   *      // - requestHeaders
+   *      // - responseSize
+   *  })
+   *  .catch(error => {
+   *      console.log(error);
+   *  });
    */
   trace(url: string, headers?: Object, redirectCount?: number): Promise<ResponseObject>;
 
@@ -348,9 +478,26 @@ interface blazed {
    * @param {Object} data The data to send in the request body (should be JSON-serializable).
    * @param {Object} headers Optional headers to include in the request.
    * @returns {Promise<ResponseObject>} A promise that resolves with the response data.
-   * @example blazed.patch("https://example.com/api")
-    .then(res => console.log(res))
-    .catch(err => console.error(err));
+   * @example    * @example 
+   * const putData = {} // Your patch data here
+   * 
+   * const headers = {}; // Your headers here 
+   * const url = 'https://example.com/api/resource';
+   * // Replace with your desired url
+   * 
+   * blazed.put(url, putData, headers)
+   *  .then(response => {
+   *      console.log(response);
+   *      // Response object contains:
+   *      // - data
+   *      // - responseHeaders
+   *      // - status
+   *      // - requestHeaders
+   *      // - responseSize
+   *  })
+   *  .catch(error => {
+   *      console.log(error);
+   *  });
    */
   patch(url: string, data: Object, headers?: Object): Promise<ResponseObject>;
 
@@ -385,35 +532,42 @@ interface blazed {
    * Checks return whether a provided URL is valid or not.
    * @param {string} url The URL to check.
    * @returns {Promise<URLParser>} A promise that resolves with the parsed URL as an Object.
-    * @example
- * const url = 'https://example.com/path?a=1&b=2';
- * blazed.parse(url)
- * .then(parsedData => console.log(parsedData))
- * .catch(err => console.error(err));
- *
- * // The output will be as below
- *   Output:
- *    {
- *      hash: '',
- *      host: 'example.com',
- *      hostname: 'example.com',
- *      href: 'https://example.com/path?a=1&b=2',
- *      origin: 'https://example.com',
- *      password: '',
- *      pathname: '/path',
- *      protocol: 'https:',
- *      search: '?a=1&b=2',
- *      searchParams: URLSearchParams { 'a' => '1', 'b' => '2' }
- *   }
- * });
-
+   * @example
+   * const url = 'https://example.com/path?a=1&b=2';
+   * // Replace with your desired url
+   * 
+   * blazed.parse(url)
+   *   .then(result => {
+   *       console.log(result); // Prints the parsed URL's values
+   *   })
+   *   .catch(error => {
+   *       console.error(error); // Catch any errors
+   *   })
+   *
+   * // The output will be as below
+   *   Output:
+   *    {
+   *      hash: '',
+   *      host: 'example.com',
+   *      hostname: 'example.com',
+   *      href: 'https://example.com/path?a=1&b=2',
+   *      origin: 'https://example.com',
+   *      password: '',
+   *      pathname: '/path',
+   *      protocol: 'https:',
+   *      search: '?a=1&b=2',
+   *      searchParams: URLSearchParams { 'a' => '1', 'b' => '2' }
+   *   }
+   * });
    */
   parse(url: string): Promise<URLParser>;
 
   /**
    * Returns all the valid HTTP status codes as an object.
    * @returns {Object} A object containing all the valid HTTP status codes.
-   * @example console.log(blazed.status_codes()) // Logging the object to the console.
+   * @example 
+   * console.log(blazed.status_codes()) 
+   * // Logging the object to the console.
    */
   status_codes(): Object;
 
@@ -421,13 +575,17 @@ interface blazed {
    * Returns all the valid HTTP Methods as an array supported by Node
    * @returns {Array<string>} An array of valid HTTP methods.
    * Almost all methods are supported in blazed.js's newer versions
-   * @example console.log(blazed.methods()) // Logging the methods array to the console.
+   * @example 
+   * console.log(blazed.methods()) 
+   * // Logging the HTTP methods array to the console.
    */
   methods(): Array<string>;
 
   /**
    * @returns {AboutObject<Object>} Returns a object which contains some info regarding blazed.js.
-   * @example console.log(blazed.about()); // Logging the object to the console
+   * @example 
+   * console.log(blazed.about()); 
+   * // Logging the about object to the console.
    */
   about(): AboutObject;
 
@@ -435,45 +593,47 @@ interface blazed {
    * Validates header name.
    * @param {string} header The Header name to check.
    * @returns {Promise<any>} A promise that resolves with true if the Header name parsing is successfull, else it will reject it with the error.
-   * @example const headerName = "x-my-header";
+   * @example 
+   * const headerName = "x-my-header";
+   * 
    * blazed.validateHeaderName(headerName)
-     .then(data => console.log(data)) // It will print true
-     .catch(err => console.error(err)) // Handling the error
-    * //Output: true
+   *   .then(data => console.log(data)) // It will print true
+   *   .catch(err => console.error(err)); // Handling any errors
+   * 
+   * //Output will be 'true'
    */
   validateHeaderName(header: string): Promise<any>
 
   /**
     * Validates header name and values
-    * @param {string} name The Header name to check
-    * @param {string} value The Header value to check
-    * @return {Promise<HeaderObject>}  A promise that resolves with the header name and value as an JSON object if the Header parsing is successfull, else it will reject it with the error.
+    * @param {string} name The Header name to parse
+    * @param {string} value The Header value to parse
+    * @return {Promise<HeaderObject>}  A promise that resolves with the header name and value as an object if the Header parsing is successfull, else it will reject it with the error.
     * @example 
     *
-    * // Some dummy header name
-    * const headerName = "x-my-header";
-    * // Some dummy header value
-    * const headerValue = "blazed.js";
+    * // Define a constant for the dummy header name
+    * const HEADER_NAME = "x-my-header";
+    * 
+    * // Define a constant for the dummy header value
+    * const HEADER_VALUE = "blazed.js";
     *
-    * // Asynchronouse headerChecker() function for checking and parsing header name and values
-    * async function headerChecker() {
-    *   try {
-    *     const result = await blazed.validateHeaderName(headerName);  
-    *    // awaiting for the promise
-         // Checking if the result exists
-    *     if (result) {
-           // Awaiting for the header parsing
-    *       const header = await blazed.validateHeaderValue(headerName, headerValue);
-    *     // Finally logging the header object to the console
-    *       console.log(header);
+    * try {
+    *     // Validate the header name before parsing the value
+    *     const isValidHeader = await blazed.validateHeaderName(HEADER_NAME);
+    *     
+    *     // Check if the header name is valid
+    *     if (isValidHeader) {
+    *         // Parse the header value
+    *         const parsedHeader = await blazed.validateHeaderValue(HEADER_NAME, HEADER_VALUE);
+    *         
+    *         // Finally log the parsed header object to the console
+    *         console.log(parsedHeader);
+    *     } else {
+    *         console.log(`Invalid header name: ${HEADER_NAME}`);
     *     }
-    *   } catch (error) {
-    *     console.error(error);
-    *   }
+    * } catch (error) {
+    *     console.error(`Error processing header: ${error}`);
     * }
-    *
-    * // Call the function
-    * headerChecker();
    */
   validateHeaderValue(name: string, value: string): Promise<HeaderObject>
   /**
@@ -490,37 +650,37 @@ interface blazed {
    * @example 
    * // beforeRequest event example usage
    * blazed.on("beforeRequest", (url, options) => {
-   * console.log(`beforeRequest event fired!`); // Logging for the beforeRequest event
-   *  console.log(`HTTP Request URL: ${url}`); // Logs the HTTP request url
-   * return console.log(options) // Logs the request options(including headers and data(if any)) to the console.
+   *    console.log(`beforeRequest event fired!`); // Logging for the beforeRequest event
+   *    console.log(`HTTP Request URL: ${url}`); // Logs the HTTP request url
+   *    return console.log(options) // Logs the request options(including headers and data(if any)) to the console.
    * });
    * 
    * 
    * // afterRequest event example usage
    * blazed.on("afterRequest", (url, response) => {
-   * console.log(`afterRequest event fired!`); // Logging for the afterRequest event
-   *  console.log(`HTTP Request URL: ${url}`); // Logs the HTTP request url
-   * return console.log(response) // Logs the request response object to the console
+   *    console.log(`afterRequest event fired!`); // Logging for the afterRequest event
+   *    console.log(`HTTP Request URL: ${url}`); // Logs the HTTP request url
+   *    return console.log(response) // Logs the request response object to the console
    * });
    * 
    * 
    * // redirect event example usage
    * blazed.on("beforeRequest", (redirectObject) => {
-   *  console.log(`Redirect event fired!`); // Logging for the redirect event
-   * return console.log(redirectObject) // Logs the redirect object to the console
+   *    console.log(`Redirect event fired!`); // Logging for the redirect event
+   *    return console.log(redirectObject) // Logs the redirect object to the console
    * });
    * 
    * 
    * // request event example usage
    * blazed.on("request", (req) => {
-   * console.log(req);
+   *    console.log(req);
    * });
    * 
    * 
    * // response event example usage
    * const writeStream = fs.createWriteStream("response.txt", "utf-8");
    * blazed.on("response", (response) => {
-   * return response.pipe(writeStream);
+   *    return response.pipe(writeStream);
    * });
    */
   on(event: "beforeRequest", callback: (url: string, options: object) => void): void;
@@ -558,6 +718,7 @@ interface blazed {
  * @example 
  * // Require it in your project by doing -
  * const blazed = require("blazed.js");
+ * 
  * // Or import it to your project if its an ES module by doing -
  * import blazed from "blazed.js";
  */
