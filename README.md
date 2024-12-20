@@ -1,8 +1,15 @@
+[![NPM Downloads](https://img.shields.io/npm/dm/blazed.js.svg?style=round-square)](https://npm-stat.com/charts.html?package=blazed.js)
+[![NPM Version](http://img.shields.io/npm/v/blazed.js.svg?style=flat)](https://npmjs.com/package/blazed.js)
+[![install size](https://packagephobia.com/badge?p=blazed.js)](https://packagephobia.com/result?p=blazed.js)
+[![npm bundle size](https://img.shields.io/bundlephobia/minzip/blazed.js?style=round-square)](https://bundlephobia.com/package/blazed.js@latest)
+[![Gitpod Ready-to-code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod&style=round-square)](https://gitpod.io/#https://github.com/blazeinferno64/blazed.js)
+
+
 # blazed.js
 
 Blazing-fast, light weight, high-performance, promise-based HTTP client
 
-# Setup/Installation
+# Installation
 
 To get started with `blazed.js`, simply run the following command in your terminal:
 
@@ -20,7 +27,7 @@ If you're not familiar with promises, check out the [MDN documentation](https://
 
 With `blazed.js`, you can send advanced HTTP requests directly from your Node.js app, featuring automatic JSON parsing and more.
 
-## Built on Top of Node.js HTTP
+## Built on Top of Node.js HTTP library
 
 Under the hood, `blazed.js` leverages the built-in [HTTP library](https://nodejs.org/api/http.html) in Node.js, ensuring a seamless and efficient experience.
 

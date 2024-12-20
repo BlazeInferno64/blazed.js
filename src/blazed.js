@@ -2,7 +2,7 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 07/12/2024
+// Last updated: 20/12/2024
 
 "use strict";
 
@@ -12,7 +12,6 @@ const https = require('https');
 const { dataUriToBuffer } = require("data-uri-to-buffer");
 const { Buffer } = require("buffer");
 const { EventEmitter } = require("events");
-const { URL } = require("url");
 const emitter = new EventEmitter();
 
 const urlParser = require("./utils/url");
@@ -47,6 +46,10 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
     (async () => {
       try {
         const parsedURL = await urlParser.parseThisURL(url, method);
+        // Validate whether it has supported protocol or not.
+        if (!supportedSchemas.has(parsedURL.protocol)) {
+          throw new Error(`${packageJson ? packageJson.name : 'blazed.js'} cannot load the given url '${url}'. URL scheme "${parsedURL.protocol.replace(/:$/, '')}" is not supported.`)
+        }
         // Handle 'data:' URLs directly
         if (parsedURL.protocol === 'data:') {
           const myData = dataUriToBuffer(url);
@@ -58,10 +61,6 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
             requestHeaders: headers
           };
           return resolve(responseObject);
-        }
-        // Validate whether it has supported protocol or not
-        if (!supportedSchemas.has(parsedURL.protocol)) {
-          throw new Error(`${packageJson ? packageJson.name : 'blazed.js'} cannot load the given url: ${url}. URL scheme "${parsedURL.protocol.replace(/:$/, '')}" is not supported.`)
         }
         // Validate every HTTP headers provided by the user
         for (const key in headers) {
@@ -76,15 +75,18 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
             'Connection': 'keep-alive',
             'Cache-Control': 'no-cache',
             'Content-Length': 0,
-            'X-Requested-With': `${packageJson ? packageJson.name : 'blazed.js'}`,
             ...headers, // Spread the user-provided headers
           },
         };
 
-        // Since some web servers block HTTP requests without User-Agent header
+        // Since some web servers block HTTP requests without 'User-Agent' header
         // Therefore add a custom User-Agent header by default if not provided
         if (!requestOptions.headers['User-Agent']) {
           requestOptions.headers['User-Agent'] = packageJson ? `${packageJson.name}/v${packageJson.version}` : 'blazed.js';
+        }
+        // Optionally add another HTTP header named 'X-Requested-With'
+        if (!requestOptions.headers['X-Requested-With']) {
+          requestOptions.headers['X-Requested-With'] = `${packageJson ? packageJson.name : 'blazed.js'}`;
         }
         // Also if any data is present then add some extra headers to the HTTP request
         if (data) {
@@ -96,7 +98,7 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
         emitter.emit("beforeRequest", url, requestOptions);
 
         // Main request part of blazed.js for handling any ongoing requests
-        const request = httpModule.request(new URL(url), requestOptions, (response) => {
+        const request = httpModule.request(parsedURL, requestOptions, (response) => {
           handleResponse(response, resolve, reject, redirectCount = 5, url, data, method, headers, requestOptions, request, parsedURL);
         });
 
@@ -117,7 +119,7 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
           if (method === HTTP_METHODS.CONNECT) {
             const info = await urlParser.parseThisURL(url);
             const connectionInfo = {
-              message: `Successfully established a connection to "${url}"`,
+              message: `Connection successfull to "${url}"`,
               protocol: info.protocol.replace(":", ""),
               remoteAddress: request.socket.remoteAddress,
               remotePort: request.socket.remotePort,
@@ -255,13 +257,15 @@ const handleResponse = (response, resolve, reject, redirectCount = 5, originalUr
   response.on('error', reject);
   if (response.statusCode >= 300 && response.statusCode < 400 && response.headers.location) {
     if (redirectCount > 0) {
-      const redirectUrl = response.headers.location;
+      // Check if the response has an locatiin header or not.
+      // If its present then construct another HTTP redirect URL using it.
+      const redirectUrl = response.headers['location'] || response.headers.location;
 
       if (!redirectUrl) {
         const err = `Undefined_Redirect_Location`;
-        // Process the undefined redirect error
+        // Process the undefined redirect error.
         return reject(async () => {
-          await utilErrors.processError(err, originalUrl, false, false,false, method, reject);
+          await utilErrors.processError(err, originalUrl, false, false, false, method, reject);
         });
       }
       const redirObj = {
