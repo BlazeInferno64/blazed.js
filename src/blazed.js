@@ -2,7 +2,7 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 20/12/2024
+// Last updated: 21/12/2024
 
 "use strict";
 
@@ -145,7 +145,7 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
         // Finally end the ongoing HTTP request
         return request.end();
       } catch (error) {
-        return reject(error);
+        return await utilErrors.processError(error, url, null, null, null, method, reject);
       }
     })();
   });
@@ -169,7 +169,7 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
  */
 
 // Response handler function
-const handleResponse = (response, resolve, reject, redirectCount = 5, originalUrl, data, method, headers, reqOptions, request, connectionInfoObject, parsedURL) => {
+const handleResponse = (response, resolve, reject, redirectCount = 5, originalUrl, data, method, headers, reqOptions, request, connectionInfoObject) => {
   const resObject = {
     pipe: (stream) => response.pipe(stream),
   }
@@ -204,17 +204,20 @@ const handleResponse = (response, resolve, reject, redirectCount = 5, originalUr
   // let responseData = ''; <--- This piece has been commented out for the above reason
   //
   const buffers = [];
+  let totalBytes = 0;
 
   response.on('data', (chunk) => {
+    totalBytes += chunk.length;
     return buffers.push(chunk);
   });
 
   // Handling the ending of response
   response.on('end', async () => {
     const contentType = response.headers['content-type'];
+    const concatedBuffers = Buffer.concat(buffers);
     if (contentType?.includes('application/json')) {
       try {
-        const parsedData = JSON.parse(Buffer.concat(buffers).toString());
+        const parsedData = JSON.parse(concatedBuffers.toString());
         if (!parsedData || Object.keys(parsedData).length === 0) {
           const error = 'JSON_NULL';
           custom = true;
@@ -223,7 +226,7 @@ const handleResponse = (response, resolve, reject, redirectCount = 5, originalUr
         responseObject.data = parsedData;
         responseObject.status = response.statusCode;
         responseObject.statusText = mapStatusCodes(response.statusCode).message;
-        responseObject.responseSize = response.headers['content-length'] ? formatBytes(response.headers['content-length']) : formatBytes(Buffer.byteLength(buffers.toString()));
+        responseObject.responseSize = response.headers['content-length'] ? formatBytes(response.headers['content-length']) : formatBytes(totalBytes);
         for (const key in response.headers) {
           responseObject.responseHeaders[key] = response.headers[key];
         }
@@ -231,7 +234,7 @@ const handleResponse = (response, resolve, reject, redirectCount = 5, originalUr
         emitter.emit("afterRequest", originalUrl, responseObject);
         return resolve(responseObject);
       } catch (error) {
-        if (!Buffer.concat(buffers).toString() || Buffer.concat(buffers).toString().trim() === "") {
+        if (!concatedBuffers.toString() || concatedBuffers.toString().trim() === "") {
           const error = `RES_NULL`;
           custom = true;
           return reject(async () => {
@@ -241,11 +244,11 @@ const handleResponse = (response, resolve, reject, redirectCount = 5, originalUr
         return reject(error);
       }
     } else {
-      responseObject.data = Buffer.concat(buffers).toString();
+      responseObject.data = concatedBuffers.toString();
       for (const key in response.headers) {
         responseObject.responseHeaders[key] = response.headers[key];
       }
-      responseObject.responseSize = response.headers['content-length'] ? formatBytes(response.headers['content-length']) : formatBytes(Buffer.byteLength(Buffer.concat(buffers).toString()));
+      responseObject.responseSize = response.headers['content-length'] ? formatBytes(response.headers['content-length']) : formatBytes(totalBytes);
       responseObject.status = response.statusCode;
       responseObject.statusText = mapStatusCodes(response.statusCode).message;
       // Emitter for the 'afterRequest' event
@@ -277,34 +280,8 @@ const handleResponse = (response, resolve, reject, redirectCount = 5, originalUr
       emitter.emit("redirect", redirObj);
 
       // Redirect logic
-      if (method === HTTP_METHODS.GET) {
-        return resolve(_makeRequest(method, redirectUrl, null, headers, redirectCount - 1));
-      }
-      else if (method === HTTP_METHODS.POST) {
-        if (data) {
-          return resolve(_makeRequest(method, redirectUrl, data, headers, redirectCount - 1));
-        }
-        return resolve(_makeRequest(method, redirectUrl, null, headers, redirectCount - 1));
-      }
-      else if (method === HTTP_METHODS.PUT) {
-        if (data) {
-          return resolve(_makeRequest(method, redirectUrl, data, headers, redirectCount - 1));
-        }
-        return resolve(_makeRequest(method, redirectUrl, null, headers, redirectCount - 1));
-      }
-      else if (method === HTTP_METHODS.DELETE) {
-        return resolve(_makeRequest(method, redirectUrl, null, headers, redirectCount - 1));
-      }
-      else if (method === HTTP_METHODS.PATCH) {
-        if (data) {
-          return resolve(_makeRequest(method, redirectUrl, data, headers, redirectCount - 1));
-        }
-        return resolve(_makeRequest(method, redirectUrl, null, headers, redirectCount - 1));
-      }
-      else if (method === HTTP_METHODS.CONNECT) {
-        return resolve(_makeRequest(method, redirectUrl, data, headers, redirectCount - 1));
-      }
-      return resolve(_makeRequest(method, redirectUrl, null, headers, redirectCount - 1));
+      // Use the handleRedirect function
+      return resolve(handleRedirect(method, redirectUrl, data, headers, redirectCount));
     } else {
       const error = 'REDIRECT_ERR';
       custom = true;
@@ -314,6 +291,11 @@ const handleResponse = (response, resolve, reject, redirectCount = 5, originalUr
     }
 
   }
+};
+
+// Function to handle redirects
+const handleRedirect = (method, redirectUrl, data, headers, redirectCount) => {
+  return _makeRequest(method, redirectUrl, data, headers, redirectCount - 1);
 };
 
 
