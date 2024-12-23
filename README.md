@@ -784,7 +784,7 @@ console.log(blazed.about());
 
 `blazed.js` is released under the MIT License.
 
-View the full license terms <a href="https://github.com/blazeinferno64/blazed.js/blob/main/lib/node/LICENSE">here</a>.
+View the full license terms <a href="https://github.com/BlazeInferno64/blazed.js/blob/main/LICENSE">here</a>.
 
 # Bugs & Issues
 
