@@ -611,10 +611,20 @@ interface blazed {
   /**
    * @returns {AboutObject<Object>} Returns a object which contains some info regarding blazed.js.
    * @example 
-   * console.log(blazed.about()); 
+   * console.log(blazed.ABOUT()); 
    * // Logging the about object to the console.
    */
-  about(): AboutObject;
+  ABOUT(): AboutObject;
+
+
+   /**
+   * Read-only property specifying the maximum allowed size of HTTP headers in bytes. Defaults to 16KB.
+   * @returns {string} - The formatted header size.
+   * @example
+   * console.log(blazed.maxHeaderSize())
+   * // Will log 16.00 KB to the console.
+   */
+  maxHeaderSize(): String;
 
   /**
    * Validates header name.

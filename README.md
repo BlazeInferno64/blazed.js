@@ -13,8 +13,16 @@ Blazing-fast, light weight, high-performance, promise-based HTTP client
 
 To get started with `blazed.js`, simply run the following command in your terminal:
 
+NPM command:
+
 ```bash
 $ npm i blazed.js
+```
+
+yarn command:
+
+```bash
+$ yarn add blazed.js
 ```
 
 # Info
@@ -772,12 +780,12 @@ The `blazed.methods()` function returns an array of all supported HTTP request m
 console.log(blazed.methods());
 ```
 
-# about
+# ABOUT()
 
-Get package information as an object with `blazed.about()`.
+Get package information as an object with `blazed.ABOUT()`.
 
 ```js
-console.log(blazed.about());
+console.log(blazed.ABOUT());
 ```
 
 # LICENSE

@@ -1,8 +1,8 @@
-// Copyright (c) 2024 BlazeInferno64 --> https://github.com/blazeinferno64.
+// Copyright (c) 2025 BlazeInferno64 --> https://github.com/blazeinferno64.
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 07/12/2024
+// Last updated: 01/01/2025
 
 "use strict";
 
@@ -16,7 +16,9 @@ const processError = async(error, url, dns, header, custom, method, reject) => {
     const err = new Error(`DNS Resolution Error`);
     err.code = error.code;
     err.name = "DNS_Resolution_Error";
-    err.hostname = url;
+    err.hostname = error.hostname;
+    err.syscall = error.syscall;
+    err.errno = error.errno;
     err.message = `Failed to resolve the DNS of '${url}'`;
     return reject(err);
   } else if (error.code === 'ETIMEOUT') {
@@ -125,8 +127,10 @@ const processError = async(error, url, dns, header, custom, method, reject) => {
     err.message = `Undefined redirect encountered making HTTP request to ${url} with ${method}`;
     err.code = `ERR_UNDEFINED_REDIRECT`;
     return reject(err);
-  } else {
+  } else if(reject) {
     return reject(error);
+  } else {
+    return Promise.reject(error);
   }
 }
 

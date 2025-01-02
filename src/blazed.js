@@ -1,8 +1,8 @@
-// Copyright (c) 2024 BlazeInferno64 --> https://github.com/blazeinferno64.
+// Copyright (c) 2025 BlazeInferno64 --> https://github.com/blazeinferno64.
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 21/12/2024
+// Last updated: 02/01/2025
 
 "use strict";
 
@@ -377,7 +377,7 @@ const validateHeaderValue = async (name, value) => {
  */
 
 const resolve_dns = async (hostObject) => {
-  if (typeof hostObject !== "object") return new Error(`Expected a host object with properties as hostname and ip address format`)
+  if (typeof hostObject !== "object") return new Error(`Expected a host object with properties as hostname and ip address format!`)
   const url = hostObject.hostname;
   const format = hostObject.format;
   const parsedURL = await urlParser.parseThisURL(url);
@@ -387,21 +387,32 @@ const resolve_dns = async (hostObject) => {
     return error;
   }
 }
+ 
 /**
  * @returns {Object} Returns a object which contains some info regarding blazed.js.
  */
 
 const about = () => {
-  if (!packageJson) throw new Error(`package.json files seems to be missing!\nPlease try again by downloading 'blazed.js' again with the following command\n''npm i blazed.js''\nin your terminal!`);
+  if (!packageJson) throw new Error(`package.json file seems to be missing!\nPlease try again by downloading 'blazed.js' again with the following command\n''npm i blazed.js''\nor\n''yarn add blazed.js''\nin your terminal!`);
+  
   const aboutObject = {
     "Name": packageJson.name,
     "Author": packageJson.author,
     "Version": packageJson.version,
     "Description": packageJson.description,
-    "Respository": packageJson.repository
+    "Repository": packageJson.repository
   };
   return aboutObject;
 };
+
+/**
+ * Read-only property specifying the maximum allowed size of HTTP headers in bytes. Defaults to 16KB.
+ * @returns {string} - The formatted header size.
+ */
+
+const maxHeaderSize = () => {
+  return formatBytes(http.maxHeaderSize);
+}
 
 // Exporting all the required modules
 // For type definitions check -> 'typings/index.d.ts' file
@@ -527,9 +538,10 @@ module.exports = {
   parse_url,
   status_codes,
   methods,
-  about,
+  ABOUT: () => about(),
   validateHeaderName,
   validateHeaderValue,
+  maxHeaderSize,
   resolve_dns,
   /**
    * Attaches a listener to the on event

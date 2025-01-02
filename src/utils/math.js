@@ -1,8 +1,8 @@
-// Copyright (c) 2024 BlazeInferno64 --> https://github.com/blazeinferno64.
+// Copyright (c) 2025 BlazeInferno64 --> https://github.com/blazeinferno64.
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 30/11/2024
+// Last updated: 02/01/2025
 
 "use strict";
 
@@ -20,6 +20,20 @@ const formatBytes = (bytes) => {
     return `${(bytes / Math.pow(1024, i)).toFixed(2)} ${sizes[i]}`;
 }
 
+/**
+ * Util tool for processing given ms into a properly formatted seconds string
+ * 
+ * @param {number} ms - The ms which you would like to format.
+ * @returns {string} A formatted seconds string which eg 2s, 4s, etc.
+ */
+const format_MS_to_S = (ms) => {
+    if (ms < 0) return "Invalid milliseconds size!";
+    if (ms === 0) return "0 s";
+    const seconds = (ms / 1000);
+    return `${seconds} s`; 
+}
+
 module.exports = {
-    formatBytes
+    formatBytes,
+    format_MS_to_S
 }
