@@ -14,14 +14,14 @@ const { Buffer } = require("buffer");
 const { EventEmitter } = require("events");
 const emitter = new EventEmitter();
 
-const urlParser = require("./utils/url");
-const headerParser = require("./utils/headers");
-const utilErrors = require("./utils/errors");
-const dnsResolver = require("./utils/dns");
+const urlParser = require("./utils/tools/url");
+const headerParser = require("./utils/tools/headers");
+const utilErrors = require("./utils/errors/errors");
+const { lookupForIp } = require("./utils/dns/dns");
 
-const { mapStatusCodes } = require("./utils/status-mapper");
-const { formatBytes } = require("./utils/math");
-const { HTTP_METHODS } = require("./utils/methods");
+const { mapStatusCodes } = require("./utils/tools/status-mapper");
+const { formatBytes } = require("./utils/tools/math");
+const { HTTP_METHODS } = require("./utils/tools/methods");
 
 const packageJson = require("../package.json");
 
@@ -372,17 +372,17 @@ const validateHeaderValue = async (name, value) => {
  * Resolves a hostname's dns with a ip object contaning the ip addresses.
  * @param {Object} hostObject - The object containing the host data 
  * @param {('IPv4'|'IPv6')} hostObject.format - Optional ip address format
- * @param {string} hostObject.hostname - The hostname which you want to resolve 
+ * @param {string} hostObject.url - The url which you want to resolve 
  * @returns {Promise<Object>} Returns a promise which contains the resolved ip data
  */
 
 const resolve_dns = async (hostObject) => {
   if (typeof hostObject !== "object") return new Error(`Expected a host object with properties as hostname and ip address format!`)
-  const url = hostObject.hostname;
+  const url = hostObject.url;
   const format = hostObject.format;
   const parsedURL = await urlParser.parseThisURL(url);
   try {
-    return await dnsResolver.lookupForIp(parsedURL.hostname, format, url);
+    return await lookupForIp(parsedURL.hostname, format, url);
   } catch (error) {
     return error;
   }

@@ -590,14 +590,15 @@ blazed.resolve_dns({
   format: "IPv4",
 
   /**
-   * The hostname to resolve (e.g., 'www.google.com').
+   * The url you to resolve (e.g., 'www.google.com').
    * Note: if you omit the protocol (http/https), you will get an error of invalid url.
    */
-  hostname: "https://www.google.com" // Let's take google.com here
+  url: "https://www.google.com" // Let's take google.com here
 })
 .then(ipObj => {
   // Logging the ipObj to the console.
   return console.log(ipObj);
+    // It will return all the addresses after resolving the DNS.
     // ipObj contains:
     // - Format (The format of the ip of the host)
     // - Address (Array containing the list of ip addresses)
@@ -615,14 +616,15 @@ blazed.resolve_dns({
 
 blazed.resolve_dns({
   /**
-   * The hostname to resolve (e.g., 'https://www.google.com').
+   * The url you want to resolve (e.g., 'https://www.google.com').
    * Note: if you omit the protocol (http/https), you will get an error of invalid url.
    */
-  hostname: "https://www.google.com" // Let's take google.com here
+  url: "https://www.google.com" // Let's take google.com here
 })
 .then(ipObj => {
   // Logging the ipObj to the console.
   return console.log(ipObj);
+    // It will return only the fist ip address which is found after dns has been resolved.
     // ipObj contains:
     // - Format (The format of the ip of the host)
     // - Address (Array containing the list of ip addresses)
@@ -735,18 +737,6 @@ If everything is set up correctly, you should see the following output in your c
 ```js
 { name: 'x-my-header', value: 'blazed.js' }
 ```
-
-`Important`: Don't forget to properly handle the promise returned by the function. 
-
-If you don't, you'll see a pending promise in your console instead:
-
-```js
-Promise { <pending> }
-```
-
-This indicates that the promise is still in a pending state, meaning it hasn't been resolved or rejected, and its result hasn't been handled or processed.
-
-This is a common gotcha, so make sure to handle the promise correctly to get the expected output.
 
 # Error Handling
 

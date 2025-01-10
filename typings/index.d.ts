@@ -1,4 +1,4 @@
-// Copyright (c) 2024 BlazeInferno64 --> https://github.com/blazeinferno64.
+// Copyright (c) 2025 BlazeInferno64 --> https://github.com/blazeinferno64.
 //
 // Author(s) -> BlazeInferno64
 //
@@ -19,9 +19,9 @@ interface IpObject {
 
 interface HostObject {
   /**
-   * The hostname (eg. https://www.google.com)
+   * The url (eg. https://www.google.com)
    */
-  hostname?: string;
+  url?: string;
   /**
    * The IP address format (e.g., IPv4, IPv6)
    * 
@@ -219,20 +219,23 @@ interface blazed {
  * @param {Object} hostObject - The object containing the host data.
  * @param {('IPv4'|'IPv6')} hostObject.format - Optional. The IP address format. If not specified, 
  *   blazed.js will resolve the promise with the first IP address found after performing a DNS lookup for the host.
- * @param {string} hostObject.hostname - The hostname to be resolved.
+ * @param {string} hostObject.url - The url to be resolved.
  * @returns {Promise<Object>} Returns a promise containing the resolved IP data.
  * @example 
  * // Example usage demonstrating DNS resolving with specified format
  * // Starting the request
  * blazed.resolve_dns({
- *   format: "IPv6",
- *   hostname: "https://www.google.com"
+ *      format: "IPv6",
+ *      url: "https://www.google.com"
  * }).then(result => {
- *   return console.log(result);
- *   // It will return all the addresses after resolving the DNS
+ *      return console.log(result);
+ *      // It will return all the addresses after resolving the DNS.
+ *      // result contains:
+ *      // - Address (Array containing the list of ip addresses)
+ *      // - Address (Array containing the list of ip addresses)
  * }).catch(err => {
- *   return console.error(err);
- * // handling errors
+ *      return console.error(err);
+ *      // handling errors
  * })
  * 
  * // Example usage demonstrating DNS resolving without specified format
@@ -240,11 +243,14 @@ interface blazed {
  * blazed.resolve_dns({
  *   hostname: "https://www.google.com"
  * }).then(result => {
- *   return console.log(result);
- *   // It will return only the fist ip address which is found after dns has been resolved
+ *        return console.log(result);
+ *        // It will return only the fist ip address which is found after dns has been resolved.
+ *        // result contains:
+ *        // - Address (Array containing the list of ip addresses)
+ *        // - Address (Array containing the list of ip addresses)
  * }).catch(err => {
- *   return console.error(err);
- * // handling errors
+ *        return console.error(err);
+ *        // handling errors
  * })
  */
   resolve_dns(hostObj: HostObject): Promise<IpObject>;
