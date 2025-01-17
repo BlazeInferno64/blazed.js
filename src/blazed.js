@@ -2,7 +2,7 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 02/01/2025
+// Last updated: 17/01/2025
 
 "use strict";
 
@@ -21,11 +21,10 @@ const { lookupForIp } = require("./utils/dns/dns");
 
 const { mapStatusCodes } = require("./utils/tools/status-mapper");
 const { formatBytes } = require("./utils/tools/math");
-const { HTTP_METHODS } = require("./utils/tools/methods");
+const { HTTP_METHODS, supportedSchemas } = require("./utils/tools/base");
 
 const packageJson = require("../package.json");
 
-const supportedSchemas = new Set(['data:', 'http:', 'https:']);
 
 let custom;
 
@@ -201,7 +200,7 @@ const handleResponse = (response, resolve, reject, redirectCount = 5, originalUr
   // So this approach has been deprecated in the latest versions and instead blazed.js uses Node's built-in buffer class for handling
   // The response data as buffers are made to handle memory intensive operations.
   //
-  // let responseData = ''; <--- This piece has been commented out for the above reason
+  // let responseData = ''; <--- This piece has been commented out for the above reason.
   //
   const buffers = [];
   let totalBytes = 0;
@@ -327,17 +326,21 @@ const parse_url = async (url) => {
 /**
  * @returns {Object} Returns all the valid HTTP status codes as an object
 */
-const status_codes = () => {
-  return http.STATUS_CODES;
-};
+const status_codes = Object.freeze({
+  get value() {
+    return http.STATUS_CODES;
+  }
+}).value;
 
 /**
  * @returns {Array} Returns all the valid HTTP Methods as an array supported by Node
  * Almost all methods are supported in blazed.js's newer versions
  */
-const methods = () => {
-  return http.METHODS;
-};
+const methods = Object.freeze({
+  get value() {
+    return http.METHODS;
+  }
+}).value;
 
 
 /**
@@ -392,27 +395,43 @@ const resolve_dns = async (hostObject) => {
  * @returns {Object} Returns a object which contains some info regarding blazed.js.
  */
 
-const about = () => {
-  if (!packageJson) throw new Error(`package.json file seems to be missing!\nPlease try again by downloading 'blazed.js' again with the following command\n''npm i blazed.js''\nor\n''yarn add blazed.js''\nin your terminal!`);
+const about = Object.freeze({
+  get value() {
+    if (!packageJson) throw new Error(`package.json file seems to be missing!\nPlease try again by downloading 'blazed.js' again with the following command\n''npm i blazed.js''\nor\n''yarn add blazed.js''\nin your terminal!`);
   
-  const aboutObject = {
-    "Name": packageJson.name,
-    "Author": packageJson.author,
-    "Version": packageJson.version,
-    "Description": packageJson.description,
-    "Repository": packageJson.repository
-  };
-  return aboutObject;
-};
+    const aboutObject = {
+      "Name": packageJson.name,
+      "Author": packageJson.author,
+      "Version": packageJson.version,
+      "Description": packageJson.description,
+      "Repository": packageJson.repository
+    };
+    return aboutObject;
+  }
+}).value;
+
+/**
+ * 
+ * @returns {string} returns the package version
+ */
+
+const version = Object.freeze({
+  get value() {
+      if (!packageJson) throw new Error(`package.json files seems to be missing!\nPlease try again by downloading 'netport' again with the following command\n''npm i netport''\nin your terminal!`);
+      return packageJson.version;
+  }
+}).value;
 
 /**
  * Read-only property specifying the maximum allowed size of HTTP headers in bytes. Defaults to 16KB.
  * @returns {string} - The formatted header size.
  */
 
-const maxHeaderSize = () => {
-  return formatBytes(http.maxHeaderSize);
-}
+const maxHeaderSize = Object.freeze({
+  get value() {
+    return formatBytes(http.maxHeaderSize);
+  }
+}).value;
 
 // Exporting all the required modules
 // For type definitions check -> 'typings/index.d.ts' file
@@ -536,9 +555,11 @@ module.exports = {
     return _makeRequest(method, url, data, headers, redirectCount, timeout);
   },
   parse_url,
-  status_codes,
+  STATUS_CODES: status_codes,
   methods,
-  ABOUT: () => about(),
+  ABOUT: about,
+  VERSION: version,
+  METHODS: methods,
   validateHeaderName,
   validateHeaderValue,
   maxHeaderSize,

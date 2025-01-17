@@ -754,28 +754,28 @@ Robust Error Handling in `blazed.js`
 
 To catch and handle errors as needed, use a `try-catch` block.
 
-# status_codes()
+# STATUS_CODES
 
-Get an object contaning all valid HTTP status codes with `blazed.status_codes()`.
+Get an object contaning all valid HTTP status codes with `blazed.STATUS_CODES`.
 
 ```js
-console.log(blazed.status_codes());
+console.log(blazed.STATUS_CODES);
 ```
 
-# methods()
+# METHODS
 
-The `blazed.methods()` function returns an array of all supported HTTP request methods, providing a convenient way to access the full range of valid methods.
+The `blazed.METHODS` property returns an array of all supported HTTP request methods, providing a convenient way to access the full range of valid methods.
 
 ```js
-console.log(blazed.methods());
+console.log(blazed.METHODS);
 ```
 
-# ABOUT()
+# ABOUT
 
-Get package information as an object with `blazed.ABOUT()`.
+Get package information as an object with `blazed.ABOUT` property.
 
 ```js
-console.log(blazed.ABOUT());
+console.log(blazed.ABOUT);
 ```
 
 # LICENSE

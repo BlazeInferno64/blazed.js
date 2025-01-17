@@ -2,7 +2,7 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 02/12/2024
+// Last updated: 17/01/2025
 
 // Type definitions for 'blazed.js'
 
@@ -599,38 +599,46 @@ interface blazed {
    * Returns all the valid HTTP status codes as an object.
    * @returns {Object} A object containing all the valid HTTP status codes.
    * @example 
-   * console.log(blazed.status_codes()) 
+   * console.log(blazed.STATUS_CODES) 
    * // Logging the object to the console.
    */
-  status_codes(): Object;
+  STATUS_CODES: Object;
 
   /**
    * Returns all the valid HTTP Methods as an array supported by Node
    * @returns {Array<string>} An array of valid HTTP methods.
    * Almost all methods are supported in blazed.js's newer versions
    * @example 
-   * console.log(blazed.methods()) 
+   * console.log(blazed.METHODS) 
    * // Logging the HTTP methods array to the console.
    */
-  methods(): Array<string>;
+  METHODS: Array<string>;
 
   /**
    * @returns {AboutObject<Object>} Returns a object which contains some info regarding blazed.js.
    * @example 
-   * console.log(blazed.ABOUT()); 
+   * console.log(blazed.ABOUT); 
    * // Logging the about object to the console.
    */
-  ABOUT(): AboutObject;
+  ABOUT: AboutObject;
+
+  /**
+   * @returns {string} returns the package version.
+   * @example 
+   * console.log(blazed.VERSION); 
+   * // Logging the about object to the console.
+   */
+    VERSION: string;
 
 
    /**
    * Read-only property specifying the maximum allowed size of HTTP headers in bytes. Defaults to 16KB.
    * @returns {string} - The formatted header size.
    * @example
-   * console.log(blazed.maxHeaderSize())
-   * // Will log 16.00 KB to the console.
+   * console.log(blazed.maxHeaderSize)
+   * // Will log 16.0 KB to the console.
    */
-  maxHeaderSize(): String;
+  maxHeaderSize: String;
 
   /**
    * Validates header name.
