@@ -2,7 +2,7 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 17/01/2025
+// Last updated: 01/02/2025
 
 "use strict";
 
@@ -21,7 +21,7 @@ const { lookupForIp } = require("./utils/dns/dns");
 
 const { mapStatusCodes } = require("./utils/tools/status-mapper");
 const { formatBytes } = require("./utils/tools/math");
-const { HTTP_METHODS, supportedSchemas } = require("./utils/tools/base");
+const { HTTP_METHODS, supportedSchemas, optionalHeaders } = require("./utils/tools/base");
 
 const packageJson = require("../package.json");
 
@@ -55,6 +55,7 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
           const responseObject = {
             data: myData,
             status: 200,
+            statusText: mapStatusCodes(200).message,
             responseSize: formatBytes(myData.buffer.byteLength),
             responseHeaders: { 'Content-Type': myData.typeFull },
             requestHeaders: headers

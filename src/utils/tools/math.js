@@ -2,7 +2,7 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 10/01/2025
+// Last updated: 01/02/2025
 
 "use strict";
 
@@ -11,6 +11,12 @@
  * 
  * @param {number} bytes - The bytes which you would like to format.
  * @returns {string} A formatted byte string which eg 0 Bytes, 128KB, etc.
+ * @example
+ * // Demo example
+ * const bytes = 1024;
+ * 
+ * const formattedBytes = formateBytes(bytes);
+ * console.log(formattedBytes) // 1 KB
  */
 const formatBytes = (bytes) => {
     if (bytes < 0) return "Invalid byte size"; // Handle negative values

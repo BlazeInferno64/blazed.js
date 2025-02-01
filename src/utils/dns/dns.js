@@ -2,7 +2,7 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 10/01/2025
+// Last updated: 01/02/2025
 
 "use strict";
 
@@ -15,7 +15,15 @@ const { processError } = require("../errors/errors");
  * 
  * @param {string} hostname - The hostname you want to resolve 
  * @param {string} type - The type/format of ip (eg. IPv4, IPv6)
- * @returns {Promise<any>} - Returns a promise which resolves with the ip data 
+ * @returns {Promise<any>} - Returns a promise which resolves with the ip data.
+ * @example
+ * // Demo example
+ * const hostname = 'www.google.com';
+ * const format = 'IPv4' || 'IPv6';
+ * 
+ * const result = await lookupForIp(hostname, format);
+ * 
+ * console.log(result);
  */
 const lookupForIp = async (hostname, type) => {
     return await new Promise((resolve, reject) => {

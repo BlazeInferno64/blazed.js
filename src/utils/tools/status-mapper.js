@@ -2,7 +2,7 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 10/01/2025
+// Last updated: 01/02/2025
 
 "use strict";
 
@@ -13,7 +13,13 @@ const http = require("http");
  * Util tool for processing and mapping respective status codes.
  * 
  * @param {number} status_code - The status code that you want to process.
- * @returns {Object} - Returns the processed status code with the message as an object.
+ * @returns Returns the processed status code with the message as an object.
+ * @example 
+ * // Demo example
+ * const statusCode = 200;
+ * 
+ * const result = mapStatusCodes(statusCode);
+ * console.log(result);
  */
 
 const mapStatusCodes = (status_code) => {

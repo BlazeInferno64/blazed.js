@@ -2,7 +2,7 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 10/01/2025
+// Last updated: 01/02/2025
 
 "use strict";
 
@@ -10,9 +10,13 @@ const { validateHeaderName, validateHeaderValue } = require("http");
 const { processError } = require("../errors/errors");
 
 /**
+ * Validates header name.
  * 
- * @param {string} header The Header Name for checking
- * @returns {Promise<any>} A promise that resolves as true if the header name parsing is successfull, else it will reject with an error
+ * @param {string} header The Header Name for checking (eg. X-Powered-By).
+ * @returns {Promise<boolean>} A promise that resolves as true if the header name parsing is successfull, else it will reject with an error.
+ * @example
+ * // Demo example
+ * const result = await parseThisHeaderName('X-Powered-By');
  */
 
 const parseThisHeaderName = (header) => {
@@ -29,10 +33,13 @@ const parseThisHeaderName = (header) => {
 }
 
 /**
- * Validates header name and values
- * @param {*} name The Header name to check
- * @param {*} value The Header value to check
- * @return {Promise<any>}  A promise that resolves with the header name and value as an object if the Header parsing is successfull, else it will reject it with the error.
+ * Validates header names and values
+ * @param {*} name The Header name to check (eg X-Powered-By).
+ * @param {*} value The Header value to check (eg blazed.js).
+ * @return {Promise<{name: string, value: any}>}  A promise that resolves with the header name and value as an object if the Header parsing is successfull, else it will reject it with the error.
+ * @example
+ * // Demo example
+ * const result = await parseThisHeaderValue('X-Powered-By', 'blazed.js');
  */
 
 const parseThisHeaderValue = (name, value) => {

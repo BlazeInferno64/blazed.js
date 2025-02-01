@@ -2,7 +2,7 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 10/01/2025
+// Last updated: 01/02/2025
 
 "use strict";
 
@@ -27,8 +27,12 @@ const { URL } = require("url");
 /**
  * Checks whether a provided URL is valid or not.
  * If valid it parses the URL to get various properties like host,path,etc.
- * @param {string} url The URL to check.
+ * 
+ * @param {string} url The URL to check (eg. https://www.google.com/search?q=blazed.js).
  * @returns {Promise<ParsedURL>} A promise that resolves with the parsed URL as an Object.
+ * @example
+ * // Demo example
+ * const result = await parseThisURL('https://example.com/path?a=1&b=2', 'GET');
  */
 
 const parseThisURL = (url, method) => {
