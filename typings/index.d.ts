@@ -2,9 +2,20 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 17/01/2025
+// Last updated: 08/02/2025
 
 // Type definitions for 'blazed.js'
+
+interface DisableObject {
+  /**
+   * Disables the optional 'X-Requested-With' header.
+   */
+  'X-Requested-With': boolean;
+  /**
+   * Disables the optional 'User-Agent' header.
+   */
+  'User-Agent': boolean;
+}
 
 interface IpObject {
   /**
@@ -594,6 +605,19 @@ interface blazed {
    * });
    */
   parse_url(url: string): Promise<URLParser>;
+
+  /**
+   * Disables some default settings of 'blazed.js'.
+   * @param disableObj - The object containing the disabled options.
+   * 
+   * @example 
+   * // Basic example
+   * await blazed.disable({
+   *    'X-Requested-With': true, // Here true indicates that it has been disabled.
+   *    'User-Agent': true, // Here true indicated that it has been disabled.
+   * })
+   */
+  disable(disableObj: DisableObject): Promise<void>;
 
   /**
    * Returns all the valid HTTP status codes as an object.

@@ -553,6 +553,22 @@ blazed.get("https://api.github.com/users")
 
 Stay up-to-date with our project for upcoming features and enhancements, including additional events that will be introduced in future releases.
 
+# Disabling default settings
+
+`blazed.js` also provides an way of disabling some default options before making an HTTP request.
+
+For that you need to use the `blazed.disable()` method to achieve this.
+
+Here's a basic usage example:
+
+```js
+await blazed.disable({
+    'User-Agent': true, // Disables the 'User-Agent' header before it is sent. 
+});
+```
+
+The above function will throw an error if the values aren't boolean ,i.e, true/false.
+
 # DNS resolving
 
 In addition to making HTTP requests, `blazed.js` also provides an asynchronous way to resolve the DNS of various hostnames.

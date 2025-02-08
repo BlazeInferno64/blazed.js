@@ -2,7 +2,7 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 01/02/2025
+// Last updated: 08/02/2025
 
 "use strict";
 
@@ -21,12 +21,15 @@ const { lookupForIp } = require("./utils/dns/dns");
 
 const { mapStatusCodes } = require("./utils/tools/status-mapper");
 const { formatBytes } = require("./utils/tools/math");
-const { HTTP_METHODS, supportedSchemas, optionalHeaders } = require("./utils/tools/base");
+const { HTTP_METHODS, supportedSchemas } = require("./utils/tools/base");
 
 const packageJson = require("../package.json");
 
 
 let custom;
+
+let xReqWith = false;
+let userAgent = false;
 
 /**
  * Backbone of blazed.js for performing HTTP requests
@@ -81,11 +84,11 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
 
         // Since some web servers block HTTP requests without 'User-Agent' header
         // Therefore add a custom User-Agent header by default if not provided
-        if (!requestOptions.headers['User-Agent']) {
+        if (!requestOptions.headers['User-Agent'] && !userAgent) {
           requestOptions.headers['User-Agent'] = packageJson ? `${packageJson.name}/v${packageJson.version}` : 'blazed.js';
         }
         // Optionally add another HTTP header named 'X-Requested-With'
-        if (!requestOptions.headers['X-Requested-With']) {
+        if (!requestOptions.headers['X-Requested-With'] && !xReqWith) {
           requestOptions.headers['X-Requested-With'] = `${packageJson ? packageJson.name : 'blazed.js'}`;
         }
         // Also if any data is present then add some extra headers to the HTTP request
@@ -115,6 +118,7 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
         // Event emitter for the 'request' event, with the request object
         emitter.emit("request", reqObject);
 
+        // Handle the response when the request finishes
         request.on("finish", async () => {
           if (method === HTTP_METHODS.CONNECT) {
             const info = await urlParser.parseThisURL(url);
@@ -178,7 +182,7 @@ const handleResponse = (response, resolve, reject, redirectCount = 5, originalUr
   emitter.emit("response", resObject);
 
   const responseObject = {
-    "data": "",
+    "data": null,
     "status": "",
     "statusText": "",
     "responseSize": "0 Bytes",
@@ -218,11 +222,12 @@ const handleResponse = (response, resolve, reject, redirectCount = 5, originalUr
     if (contentType?.includes('application/json')) {
       try {
         const parsedData = JSON.parse(concatedBuffers.toString());
-        if (!parsedData || Object.keys(parsedData).length === 0) {
+        // Commenting the following code
+        /*if (!parsedData || Object.keys(parsedData).length === 0) {
           const error = 'JSON_NULL';
           custom = true;
           return reject(await utilErrors.processError(error, originalUrl, false, false, custom, method, reject));
-        }
+        }*/
         responseObject.data = parsedData;
         responseObject.status = response.statusCode;
         responseObject.statusText = mapStatusCodes(response.statusCode).message;
@@ -234,13 +239,14 @@ const handleResponse = (response, resolve, reject, redirectCount = 5, originalUr
         emitter.emit("afterRequest", originalUrl, responseObject);
         return resolve(responseObject);
       } catch (error) {
-        if (!concatedBuffers.toString() || concatedBuffers.toString().trim() === "") {
+        // Commenting the following code
+        /* if (!concatedBuffers.toString() || concatedBuffers.toString().trim() === "") {
           const error = `RES_NULL`;
           custom = true;
           return reject(async () => {
             return await utilErrors.processError(error, originalUrl, false, false, custom, method, reject);
           });
-        }
+        } */
         return reject(error);
       }
     } else {
@@ -298,7 +304,6 @@ const handleRedirect = (method, redirectUrl, data, headers, redirectCount) => {
   return _makeRequest(method, redirectUrl, data, headers, redirectCount - 1);
 };
 
-
 /**
  * Checks and return whether a provided URL is valid or not.
  * @param {string} url The URL to check.
@@ -342,7 +347,6 @@ const methods = Object.freeze({
     return http.METHODS;
   }
 }).value;
-
 
 /**
  * Validates header name.
@@ -391,7 +395,7 @@ const resolve_dns = async (hostObject) => {
     return error;
   }
 }
- 
+
 /**
  * @returns {Object} Returns a object which contains some info regarding blazed.js.
  */
@@ -399,7 +403,7 @@ const resolve_dns = async (hostObject) => {
 const about = Object.freeze({
   get value() {
     if (!packageJson) throw new Error(`package.json file seems to be missing!\nPlease try again by downloading 'blazed.js' again with the following command\n''npm i blazed.js''\nor\n''yarn add blazed.js''\nin your terminal!`);
-  
+
     const aboutObject = {
       "Name": packageJson.name,
       "Author": packageJson.author,
@@ -418,8 +422,8 @@ const about = Object.freeze({
 
 const version = Object.freeze({
   get value() {
-      if (!packageJson) throw new Error(`package.json files seems to be missing!\nPlease try again by downloading 'netport' again with the following command\n''npm i netport''\nin your terminal!`);
-      return packageJson.version;
+    if (!packageJson) throw new Error(`package.json files seems to be missing!\nPlease try again by downloading 'netport' again with the following command\n''npm i netport''\nin your terminal!`);
+    return packageJson.version;
   }
 }).value;
 
@@ -434,8 +438,47 @@ const maxHeaderSize = Object.freeze({
   }
 }).value;
 
-// Exporting all the required modules
-// For type definitions check -> 'typings/index.d.ts' file
+/**
+ * Function to disable options.
+ * 
+ * @param {*} option - The object containing the disable option info.
+ * @returns {void} - Returns void. 
+ */
+const disable = (option) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      // Define the error name as 'ERR_BOOLEAN'
+      const err = 'ERR_BOOLEAN';
+
+      // Check if 'X-Requested-With' is provided and is a boolean
+      if (!option || typeof option['X-Requested-With'] !== 'boolean') {
+        const error = await utilErrors.processError(err, false, false, false, option['X-Requested-With'], 'X-Requested-With', reject);
+        return reject(error); // Reject the promise with the error
+      }
+  
+      // Check if 'User-Agent' is provided and is a boolean
+      if (!option || typeof option['User-Agent'] !== 'boolean') {
+        const error = await utilErrors.processError(err, false, false, false, option['User-Agent'], 'User-Agent', reject);
+        return reject(error); // Reject the promise with the error
+      }
+      
+      // If both checks pass, you can proceed with your logic
+      xReqWith = option['X-Requested-With'] ? true : false;
+      userAgent = option['User-Agent'] ? true : false;
+      
+      // Resolve the promise
+      return resolve({
+        xReqWith, userAgent
+      });
+    } catch (error) {
+      // Catch and reject the promise with the error
+      reject(error);
+    }
+  });
+}
+
+// Exporting all the required modules.
+// For type definitions check -> 'typings/index.d.ts' file.
 module.exports = {
 
   /**
@@ -564,6 +607,7 @@ module.exports = {
   validateHeaderName,
   validateHeaderValue,
   maxHeaderSize,
+  disable,
   resolve_dns,
   /**
    * Attaches a listener to the on event
