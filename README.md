@@ -7,7 +7,7 @@
 
 # blazed.js
 
-Blazing fast, lightweight, high performance, promise based HTTP and DNS client for the Node
+Blazing fast, light weight, high performance, promise based HTTP and DNS client for the Node
 
 # Installation
 
