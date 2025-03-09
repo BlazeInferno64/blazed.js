@@ -620,6 +620,25 @@ interface blazed {
   disable(disableObj: DisableObject): Promise<void>;
 
   /**
+   * Performs a reverse DNS query that resolves an IPv4 or IPv6 address to an array of host names.
+   * 
+   * @param ip - The ip address for lookup.
+   * @returns {Promise<String[]>} Returns the respective hostnames as an array.
+   * @example
+   * 
+   * const ip = '8.8.8.8' // Google Public DNS
+   * 
+   * blazed.reverse_dns(ip)
+   *    .then(result => {
+   *        console.log(result); // Logging the results.
+   *    })
+   *    .catch(err => {
+   *        console.error(err); // Handling errors.
+   *    });
+   */
+  reverse_dns(ip: string): Promise<String[]>
+
+  /**
    * Returns all the valid HTTP status codes as an object.
    * @returns {Object} A object containing all the valid HTTP status codes.
    * @example 
@@ -785,9 +804,9 @@ interface blazed {
   on(event: "response", callback: (object: { pipe: Function }) => void): void;
 }
 /**
- *  blazed.js is a blazing-fast, light weight, high-performance, promise-based HTTP client
+ *  blazed.js is a blazing fast, lightweight, high performance, promise based HTTP and DNS client for the Node.
  * 
- * HTTP requests done right!
+ * HTTP & DNS requests done right!
  * 
  * Learn more about it from [here](https://github.com/blazeinferno64/blazed.js)
  * @example 

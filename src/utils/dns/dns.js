@@ -2,7 +2,7 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 01/02/2025
+// Last updated: 09/03/2025
 
 "use strict";
 
@@ -81,13 +81,46 @@ const lookupForIp = async (hostname, type) => {
                         return reject(await processError(error, hostname, 'Yes', false, false, false, reject));
                     }
                 } else {
-                    return reject(`Unknown ip address format specified!\nAvailable formats - IPv4, IPv6`);
+                    return reject({
+                        error: `Unknown ip address format specified!\nAvailable formats - IPv4, IPv6`
+                    });
                 }
             }
         })();
     })
 }
 
+/**
+ * 
+ * @param {String} ip - The ip address for the reverse DNS lookup. 
+ * @returns {Promise<String[]>} - Returns a promise with resolved ip hostnames.
+ * @example
+ * // Demo example
+ * const ip = '8.8.8.8';
+ * 
+ * const result = await reverseLookupForIp(ip);
+ * 
+ * console.log(result);
+ */
+
+const reverseLookupForIp = async (ip) => {
+    return await new Promise((resolve, reject) => {
+        (async () => {
+            if (!net.isIP(ip)) {
+                return reject({
+                    input: ip,
+                    error: `Not a valid IP format!`
+                });
+            };
+            return dns.reverse(ip, async (err, hostnames) => {
+                if (err) return reject({ error: await processError(err, ip, 'Yes', false, false, false, reject) });
+                return resolve(hostnames);
+            });
+        })()
+    })
+}
+
 module.exports = {
-    lookupForIp
+    lookupForIp,
+    reverseLookupForIp
 }

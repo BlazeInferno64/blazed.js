@@ -2,7 +2,7 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 08/02/2025
+// Last updated: 09/03/2025
 
 "use strict";
 
@@ -17,7 +17,7 @@ const emitter = new EventEmitter();
 const urlParser = require("./utils/tools/url");
 const headerParser = require("./utils/tools/headers");
 const utilErrors = require("./utils/errors/errors");
-const { lookupForIp } = require("./utils/dns/dns");
+const { lookupForIp, reverseLookupForIp } = require("./utils/dns/dns");
 
 const { mapStatusCodes } = require("./utils/tools/status-mapper");
 const { formatBytes } = require("./utils/tools/math");
@@ -477,6 +477,19 @@ const disable = (option) => {
   });
 }
 
+/**
+ * Performs a reverse dns lookup for the specified ip.
+ * 
+ * @param {String} ip - The ip to resolve. 
+ */
+const reverse_dns = async(ip) => {
+  try {
+    return await reverseLookupForIp(ip);
+  } catch (error) {
+    return error;
+  }
+}
+
 // Exporting all the required modules.
 // For type definitions check -> 'typings/index.d.ts' file.
 module.exports = {
@@ -609,6 +622,7 @@ module.exports = {
   maxHeaderSize,
   disable,
   resolve_dns,
+  reverse_dns,
   /**
    * Attaches a listener to the on event
    * Fires up whenever a request is ready to send

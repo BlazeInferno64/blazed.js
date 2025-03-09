@@ -7,7 +7,7 @@
 
 # blazed.js
 
-Blazing-fast, light weight, high-performance, promise-based HTTP client
+Blazing fast, lightweight, high performance, promise based HTTP and DNS client for the Node
 
 # Installation
 
@@ -569,7 +569,8 @@ await blazed.disable({
 
 The above function will throw an error if the values aren't boolean ,i.e, true/false.
 
-# DNS resolving
+# DNS
+## DNS resolving
 
 In addition to making HTTP requests, `blazed.js` also provides an asynchronous way to resolve the DNS of various hostnames.
 
@@ -649,6 +650,26 @@ blazed.resolve_dns({
   // Logging any errors to the console.
   return console.error(err);
 });
+
+```
+
+## DNS reverse lookup
+`blazed.js` also provides an asynchronous way to resolve reverse DNS ip address of various hostnames.
+
+You can use the `blazed.reverse_dns()` method to achieve this. It returns a promise that resolves with an Array containing the resolved hostname(s) of the respective ip address.
+
+Example demonstrating reverse DNS lookup:
+
+```js
+const ip = "8.8.8.8"; // Google Public DNS
+
+blazed.reverse_dns(ip)
+  .then((result) => {
+    console.log(result); // It will print an array of matching hostnames.
+  })
+  .catch((err) => {
+    console.error(err); // Handling the error
+  });
 
 ```
 
