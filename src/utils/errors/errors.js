@@ -2,7 +2,7 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 08/02/2025
+// Last updated: 13/03/2025
 
 "use strict";
 
@@ -127,12 +127,6 @@ const processError = async(error, url, dns, header, custom, method, reject) => {
     err.message = `Undefined redirect encountered making HTTP request to ${url} with ${method}`;
     err.code = `ERR_UNDEFINED_REDIRECT`;
     return reject(err);
-  } else if (error === 'ERR_BOOLEAN' && custom && method){
-    const err = new Error(`Input isn't a boolean!`);
-    err.name = `Unknwon_Boolean_Error`;
-    err.message = `Expected true/false but got '${custom}' in the '${method}' header!`;
-    err.code = `ERR_BOOLEAN`;
-    return err;
   } else if(reject) {
     return reject(error);
   } else {
@@ -140,6 +134,26 @@ const processError = async(error, url, dns, header, custom, method, reject) => {
   }
 }
 
+/**
+ * Processes boolean errors.
+ * 
+ * @param {any} error The error object 
+ * @param {*} option The option
+ * @param {*} message The message
+ * @returns 
+ */
+
+const processBooleanError = (error, option, message) => {
+  if (error === 'ERR_BOOLEAN' && option && message){
+    const err = new Error(`Input isn't a boolean!`);
+    err.name = `Unknwon_Boolean_Error`;
+    err.message = `Expected true/false but got '${option}' in the '${message}' header!`;
+    err.code = `ERR_BOOLEAN`;
+    return err;
+  }
+}
+
 module.exports = {
-  processError
+  processError,
+  processBooleanError
 }

@@ -2,7 +2,7 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 30/11/2024
+// Last updated: 13/03/2024
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the
@@ -25,9 +25,9 @@
 
 "use strict";
 /**
- * blazed.js is a blazing-fast, light weight, high-performance, promise-based HTTP client
+ * blazed.js is a blazing fast, light weight, high performance, promise based HTTP and DNS client for the Node.
  * 
- * HTTP requests done right
+ * HTTP & DNS requests done right!
  * 
  * Learn more about it from [here](https://github.com/blazeinferno64/blazed.js)
  * @example 

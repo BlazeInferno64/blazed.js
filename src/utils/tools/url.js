@@ -2,7 +2,7 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 07/02/2025
+// Last updated: 12/03/2025
 
 "use strict";
 
@@ -43,7 +43,7 @@ const parseThisURL = (url, method) => {
           const error = new Error(`Empty URL Provided!`);
           error.name = "Null_URL_Error";
           error.code = "ENULLURL"
-          error.message = `HTTP Request '${method}' failed due to empty URL!`;
+          error.message = `Got an empty URL!`;
           error.input = null;
           return reject(error);
         }

@@ -2,7 +2,7 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 09/03/2025
+// Last updated: 13/03/2025
 
 "use strict";
 
@@ -30,6 +30,7 @@ let custom;
 
 let xReqWith = false;
 let userAgent = false;
+let jsonParser = true;
 
 /**
  * Backbone of blazed.js for performing HTTP requests
@@ -219,7 +220,7 @@ const handleResponse = (response, resolve, reject, redirectCount = 5, originalUr
   response.on('end', async () => {
     const contentType = response.headers['content-type'];
     const concatedBuffers = Buffer.concat(buffers);
-    if (contentType?.includes('application/json')) {
+    if (jsonParser && contentType?.includes('application/json')) {
       try {
         const parsedData = JSON.parse(concatedBuffers.toString());
         // Commenting the following code
@@ -445,36 +446,38 @@ const maxHeaderSize = Object.freeze({
  * @returns {void} - Returns void. 
  */
 const disable = (option) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      // Define the error name as 'ERR_BOOLEAN'
-      const err = 'ERR_BOOLEAN';
+  // Define the error name as 'ERR_BOOLEAN'
+  const err = 'ERR_BOOLEAN';
 
-      // Check if 'X-Requested-With' is provided and is a boolean
-      if (!option || typeof option['X-Requested-With'] !== 'boolean') {
-        const error = await utilErrors.processError(err, false, false, false, option['X-Requested-With'], 'X-Requested-With', reject);
-        return reject(error); // Reject the promise with the error
-      }
-  
-      // Check if 'User-Agent' is provided and is a boolean
-      if (!option || typeof option['User-Agent'] !== 'boolean') {
-        const error = await utilErrors.processError(err, false, false, false, option['User-Agent'], 'User-Agent', reject);
-        return reject(error); // Reject the promise with the error
-      }
-      
-      // If both checks pass, you can proceed with your logic
-      xReqWith = option['X-Requested-With'] ? true : false;
-      userAgent = option['User-Agent'] ? true : false;
-      
-      // Resolve the promise
-      return resolve({
-        xReqWith, userAgent
-      });
-    } catch (error) {
-      // Catch and reject the promise with the error
-      reject(error);
-    }
-  });
+  // Check if 'X-Requested-With' is provided and is a boolean
+  if (option.hasOwnProperty('X-Requested-With') && typeof option['X-Requested-With'] !== 'boolean') {
+    const error = utilErrors.processBooleanError(err, option['X-Requested-With'], 'X-Requested-With');
+    throw error; // Reject the promise with the error
+  }
+
+  // Check if 'User-Agent' is provided and is a boolean
+  if (option.hasOwnProperty('User-Agent') && typeof option['User-Agent'] !== 'boolean') {
+    const error = utilErrors.processBooleanError(err, option['User-Agent'], 'User-Agent');
+    throw error; // Reject the promise with the error
+  }
+
+  // Check if 'JSON-Parser' is provided and is a boolean
+  if (option.hasOwnProperty('JSON-Parser') && typeof option['JSON-Parser'] !== 'boolean') {
+    const error = utilErrors.processBooleanError(err, option['JSON-Parser'], 'JSON-Parser');
+    throw error; // Reject the promise with the error
+  }
+
+  // If both checks pass, you can proceed with your logic
+  xReqWith = option.hasOwnProperty('X-Requested-With') ? option['X-Requested-With'] ? true : true : false;
+  userAgent = option.hasOwnProperty('User-Agent') ? option['User-Agent'] ? true : true : false;
+  jsonParser = option.hasOwnProperty('JSON-Parser') ? option['JSON-Parser'] ? false : true : true; // Default to true if not provided
+
+  // Resolve the promise
+  return {
+    'X-Requested-With': xReqWith,
+    'User-Agent': userAgent,
+    'JSON-Parser': jsonParser
+  };
 }
 
 /**
@@ -482,7 +485,7 @@ const disable = (option) => {
  * 
  * @param {String} ip - The ip to resolve. 
  */
-const reverse_dns = async(ip) => {
+const reverse_dns = async (ip) => {
   try {
     return await reverseLookupForIp(ip);
   } catch (error) {

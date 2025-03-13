@@ -2,7 +2,7 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 08/02/2025
+// Last updated: 13/03/2025
 
 // Type definitions for 'blazed.js'
 
@@ -15,6 +15,10 @@ interface DisableObject {
    * Disables the optional 'User-Agent' header.
    */
   'User-Agent': boolean;
+  /**
+   * Disables the automatic json response parsing.
+   */
+  'JSON-Parser': boolean
 }
 
 interface IpObject {
@@ -25,7 +29,7 @@ interface IpObject {
   /**
    * The ip address which has been resolved (Present in array)
    */
-  Addresses: Array;
+  Addresses: String[];
 }
 
 interface HostObject {
@@ -612,12 +616,13 @@ interface blazed {
    * 
    * @example 
    * // Basic example
-   * await blazed.disable({
+   * blazed.disable({
    *    'X-Requested-With': true, // Here true indicates that it has been disabled.
    *    'User-Agent': true, // Here true indicated that it has been disabled.
+   *    'JSON-Parser': true, // Here true indicated that it has been disabled.
    * })
    */
-  disable(disableObj: DisableObject): Promise<void>;
+  disable(disableObj: DisableObject): DisableObject;
 
   /**
    * Performs a reverse DNS query that resolves an IPv4 or IPv6 address to an array of host names.
@@ -804,7 +809,7 @@ interface blazed {
   on(event: "response", callback: (object: { pipe: Function }) => void): void;
 }
 /**
- *  blazed.js is a blazing fast, lightweight, high performance, promise based HTTP and DNS client for the Node.
+ *  blazed.js is a blazing fast, light weight, high performance, promise based HTTP and DNS client for the Node.
  * 
  * HTTP & DNS requests done right!
  * 
