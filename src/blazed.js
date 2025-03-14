@@ -32,6 +32,8 @@ let xReqWith = false;
 let userAgent = false;
 let jsonParser = true;
 
+let defaultURL = null;
+
 /**
  * Backbone of blazed.js for performing HTTP requests
  * 
@@ -47,15 +49,17 @@ let jsonParser = true;
 const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeout = 5000) => {
   return new Promise((resolve, reject) => {
     (async () => {
+      // Use the provided URL if it exists otherwise, use defaultURL
+      const requestUrl = url || defaultURL;
       try {
-        const parsedURL = await urlParser.parseThisURL(url, method);
+        const parsedURL = await urlParser.parseThisURL(requestUrl, method);
         // Validate whether it has supported protocol or not.
         if (!supportedSchemas.has(parsedURL.protocol)) {
-          throw new Error(`${packageJson ? packageJson.name : 'blazed.js'} cannot load the given url '${url}'. URL scheme "${parsedURL.protocol.replace(/:$/, '')}" is not supported.`)
+          throw new Error(`${packageJson ? packageJson.name : 'blazed.js'} cannot load the given url '${requestUrl}'. URL scheme "${parsedURL.protocol.replace(/:$/, '')}" is not supported.`)
         }
         // Handle 'data:' URLs directly
         if (parsedURL.protocol === 'data:') {
-          const myData = dataUriToBuffer(url);
+          const myData = dataUriToBuffer(requestUrl);
           const responseObject = {
             data: myData,
             status: 200,
@@ -99,11 +103,11 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
         }
 
         // Event Emitter for 'beforeRequest' event
-        emitter.emit("beforeRequest", url, requestOptions);
+        emitter.emit("beforeRequest", requestUrl, requestOptions);
 
         // Main request part of blazed.js for handling any ongoing requests
         const request = httpModule.request(parsedURL, requestOptions, (response) => {
-          handleResponse(response, resolve, reject, redirectCount = 5, url, data, method, headers, requestOptions, request, parsedURL);
+          handleResponse(response, resolve, reject, redirectCount = 5, requestUrl, data, method, headers, requestOptions, request, parsedURL);
         });
 
         // Set Request timeout
@@ -122,7 +126,7 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
         // Handle the response when the request finishes
         request.on("finish", async () => {
           if (method === HTTP_METHODS.CONNECT) {
-            const info = await urlParser.parseThisURL(url);
+            const info = await urlParser.parseThisURL(requestUrl);
             const connectionInfo = {
               message: `Connection successfull to "${url}"`,
               protocol: info.protocol.replace(":", ""),
@@ -132,13 +136,13 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
               localFamily: request.socket.localFamily,
               localPort: request.socket.localPort
             };
-            return handleResponse("", resolve, reject, redirectCount, url, data, method, headers, requestOptions, request, connectionInfo);
+            return handleResponse("", resolve, reject, redirectCount, requestUrl, data, method, headers, requestOptions, request, connectionInfo);
           }
         });
 
         request.on('error', async (error) => {
           // Process the http error using the 'utilErrors' util tool.
-          return await utilErrors.processError(error, url, null, null, null, method, reject);
+          return await utilErrors.processError(error, requestUrl, null, null, null, method, reject);
         });
 
         // If any data is present then write it to the request options body
@@ -150,7 +154,7 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
         // Finally end the ongoing HTTP request
         return request.end();
       } catch (error) {
-        return await utilErrors.processError(error, url, null, null, null, method, reject);
+        return await utilErrors.processError(error, requestUrl, null, null, null, method, reject);
       }
     })();
   });
@@ -440,24 +444,24 @@ const maxHeaderSize = Object.freeze({
 }).value;
 
 /**
- * Function to disable options.
+ * Function to configure options.
  * 
- * @param {*} option - The object containing the disable option info.
+ * @param {*} option - The object containing the configuration options info.
  * @returns {void} - Returns void. 
  */
-const disable = (option) => {
+const configure = (option) => {
   // Define the error name as 'ERR_BOOLEAN'
   const err = 'ERR_BOOLEAN';
 
   // Check if 'X-Requested-With' is provided and is a boolean
-  if (option.hasOwnProperty('X-Requested-With') && typeof option['X-Requested-With'] !== 'boolean') {
+  if (option.headers.hasOwnProperty('X-Requested-With') && typeof option.headers['X-Requested-With'] !== 'boolean') {
     const error = utilErrors.processBooleanError(err, option['X-Requested-With'], 'X-Requested-With');
     throw error; // Reject the promise with the error
   }
 
   // Check if 'User-Agent' is provided and is a boolean
-  if (option.hasOwnProperty('User-Agent') && typeof option['User-Agent'] !== 'boolean') {
-    const error = utilErrors.processBooleanError(err, option['User-Agent'], 'User-Agent');
+  if (option.headers.hasOwnProperty('User-Agent') && typeof option.headers['User-Agent'] !== 'boolean') {
+    const error = utilErrors.processBooleanError(err, option.headers['User-Agent'], 'User-Agent');
     throw error; // Reject the promise with the error
   }
 
@@ -467,16 +471,26 @@ const disable = (option) => {
     throw error; // Reject the promise with the error
   }
 
+  // Check if 'Default-URL' is provided and is a boolean
+  if (option.hasOwnProperty('Default-URL') && typeof option['Default-URL'] !== 'string') {
+    const error = utilErrors.processBooleanError(err, option['Default-URL'], 'Default-URL');
+    throw error; // Reject the promise with the error
+  }
+
   // If both checks pass, you can proceed with your logic
-  xReqWith = option.hasOwnProperty('X-Requested-With') ? option['X-Requested-With'] ? true : true : false;
-  userAgent = option.hasOwnProperty('User-Agent') ? option['User-Agent'] ? true : true : false;
-  jsonParser = option.hasOwnProperty('JSON-Parser') ? option['JSON-Parser'] ? false : true : true; // Default to true if not provided
+  xReqWith = option.headers.hasOwnProperty('X-Requested-With') ? option.headers['X-Requested-With'] ? false : true : false;
+  userAgent = option.headers.hasOwnProperty('User-Agent') ? option.headers['User-Agent'] ? false : true : false;
+  jsonParser = option.hasOwnProperty('JSON-Parser') ? option['JSON-Parser'] ? true : false : true; // Default to true if not provided
+  defaultURL = option.hasOwnProperty('Default-URL') ? option['Default-URL'] : null; // Default to null if not provided
 
   // Resolve the promise
   return {
-    'X-Requested-With': xReqWith,
-    'User-Agent': userAgent,
-    'JSON-Parser': jsonParser
+    'Default-URL': defaultURL,
+    'JSON-Parser': jsonParser,
+    headers: {
+      'X-Requested-With': xReqWith,
+      'User-Agent': userAgent,
+    }
   };
 }
 
@@ -623,7 +637,7 @@ module.exports = {
   validateHeaderName,
   validateHeaderValue,
   maxHeaderSize,
-  disable,
+  configure,
   resolve_dns,
   reverse_dns,
   /**

@@ -7,7 +7,7 @@
 
 # blazed.js
 
-Blazing fast, light weight, high performance, promise based HTTP and DNS client for the Node
+> Blazing fast, light weight, high performance, promise based HTTP and DNS client for the Node
 
 ## Features
 
@@ -20,7 +20,7 @@ Blazing fast, light weight, high performance, promise based HTTP and DNS client 
 
 To get started with `blazed.js`, simply run the following command in your terminal:
 
-NPM command:
+npm command:
 
 ```bash
 $ npm i blazed.js
@@ -400,6 +400,37 @@ blazed.request({
 // to be sent in the request body is set to null.
 ```
 
+# Configuring default settings
+
+`blazed.js` also provides an way of configuring some default options before making an HTTP request.
+
+For that you need to use the `blazed.config()` method to achieve this.
+
+Here's a basic usage example:
+
+```js
+//Configure 'blazed.js'
+blazed.configure({
+    'Default-URL': "https://api.github.com/users", // Will set default HTTP request URL to Github API unless another url is provided.
+    'JSON-Parser': true, // JSON response will be automatically parsed.
+    //Configuring some header options.
+    headers: {
+        'User-Agent': false, // Disables the optional 'User-Agent' header.
+        'X-Requested-With': false // Disables the opional 'X-Requested-With' header.
+    }
+})
+
+
+// After you have configured 'blazed.js' along with 'Default-URL' option. 
+// You can directly make an http request to that url without providing it in the http request methods
+// Below is a simple example
+blazed.get() // Will send GET request to the Github Api.
+.then(res => console.log(res)) // parsed JSON response. 
+.catch(err => console.error(err)); // Handling any error
+```
+
+The above function will throw an error if the values aren't boolean ,i.e, true/false.
+
 # URL Parsing
 
 The `blazed.parse_url()` function can be used to parse a URL. 
@@ -559,22 +590,6 @@ blazed.get("https://api.github.com/users")
 ```
 
 Stay up-to-date with our project for upcoming features and enhancements, including additional events that will be introduced in future releases.
-
-# Disabling default settings
-
-`blazed.js` also provides an way of disabling some default options before making an HTTP request.
-
-For that you need to use the `blazed.disable()` method to achieve this.
-
-Here's a basic usage example:
-
-```js
-blazed.disable({
-    'User-Agent': true, // Disables the 'User-Agent' header before it is sent. 
-});
-```
-
-The above function will throw an error if the values aren't boolean ,i.e, true/false.
 
 # DNS
 ## DNS resolving

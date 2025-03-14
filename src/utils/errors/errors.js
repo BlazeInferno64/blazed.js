@@ -2,7 +2,7 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 13/03/2025
+// Last updated: 14/03/2025
 
 "use strict";
 
@@ -153,7 +153,28 @@ const processBooleanError = (error, option, message) => {
   }
 }
 
+/**
+ * Processes URL Parsing errors.
+ * 
+ * @param {any} error The error object 
+ * @param {*} option The option
+ * @param {*} message The message
+ * @returns 
+ */
+
+const processURLError = (error, url) => {
+  if(error.code === 'ERR_INVALID_URL'){
+    const err = new TypeError('Invalid URL!');
+    err.message = `Invalid URL provided "${url}"`;
+    err.code = error.code;
+    err.input = url;
+    err.name = `URL_Parsing_Error`;
+    return err;
+  }
+}
+
 module.exports = {
   processError,
-  processBooleanError
+  processBooleanError,
+  processURLError
 }

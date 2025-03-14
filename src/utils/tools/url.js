@@ -2,12 +2,14 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 12/03/2025
+// Last updated: 14/03/2025
 
 "use strict";
 
-const { processError } = require("../errors/errors");
+const { processError, processURLError } = require("../errors/errors");
 const { URL } = require("url");
+
+let myURL;
 
 /**
  * Represents a parsed URL.
@@ -39,6 +41,7 @@ const parseThisURL = (url, method) => {
   return new Promise((resolve, reject) => {
     (async () => {
       try {
+        myURL = url;
         if (!url) {
           const error = new Error(`Empty URL Provided!`);
           error.name = "Null_URL_Error";
@@ -48,6 +51,7 @@ const parseThisURL = (url, method) => {
           return reject(error);
         }
         const parsedURL = new URL(url);
+        console.log(url);
         const urlData = {
           hash: parsedURL.hash,
           host: parsedURL.host,
@@ -62,7 +66,7 @@ const parseThisURL = (url, method) => {
         };
         return resolve(urlData);
       } catch (error) {
-        return reject(await processError(error, url, false, false, false, method, reject))
+        return reject(processURLError(error, error.input))
       }
     })();
   });

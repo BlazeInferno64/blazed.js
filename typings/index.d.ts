@@ -2,24 +2,10 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 13/03/2025
+// Last updated: 14/03/2025
 
 // Type definitions for 'blazed.js'
 
-interface DisableObject {
-  /**
-   * Disables the optional 'X-Requested-With' header.
-   */
-  'X-Requested-With': boolean;
-  /**
-   * Disables the optional 'User-Agent' header.
-   */
-  'User-Agent': boolean;
-  /**
-   * Disables the automatic json response parsing.
-   */
-  'JSON-Parser': boolean
-}
 
 interface IpObject {
   /**
@@ -32,6 +18,34 @@ interface IpObject {
   Addresses: String[];
 }
 
+interface OptionsObject {
+  /**
+ * Configure the optional 'X-Requested-With' header.
+ */
+  'X-Requested-With': boolean;
+  /**
+   * Configure the optional 'User-Agent' header.
+   */
+  'User-Agent': boolean;
+}
+
+interface ConfigObject {
+  /**
+   * Configure the automatic json response parsing.
+   */
+  'JSON-Parser': boolean;
+  /**
+   * Configure the default URL.
+   */
+  'Default-URL': String;
+  /**
+   * Configure header object.
+   * 
+   * True indicates it has been disabled and False indicated it hasn't been disabled.
+   */
+  headers: OptionsObject
+}
+
 interface HostObject {
   /**
    * The url (eg. https://www.google.com)
@@ -42,7 +56,7 @@ interface HostObject {
    * 
    * Optional. If not specified, **blazed.js** will resolve the promise with the first IP address found after performing a DNS lookup for the host.
    */
-  format?:'IPv4' | 'IPv6';
+  format?: 'IPv4' | 'IPv6';
 }
 
 interface ConnectionObject {
@@ -227,47 +241,47 @@ interface HeaderObject {
 }
 
 interface blazed {
-/**
- * Check the docs for more info.
- * 
- * Resolves a hostname's DNS to an IP object containing the resolved IP addresses.
- * @param {Object} hostObject - The object containing the host data.
- * @param {('IPv4'|'IPv6')} hostObject.format - Optional. The IP address format. If not specified, 
- *   blazed.js will resolve the promise with the first IP address found after performing a DNS lookup for the host.
- * @param {string} hostObject.url - The url to be resolved.
- * @returns {Promise<Object>} Returns a promise containing the resolved IP data.
- * @example 
- * // Example usage demonstrating DNS resolving with specified format
- * // Starting the request
- * blazed.resolve_dns({
- *      format: "IPv6",
- *      url: "https://www.google.com"
- * }).then(result => {
- *      return console.log(result);
- *      // It will return all the addresses after resolving the DNS.
- *      // result contains:
- *      // - Address (Array containing the list of ip addresses)
- *      // - Address (Array containing the list of ip addresses)
- * }).catch(err => {
- *      return console.error(err);
- *      // handling errors
- * })
- * 
- * // Example usage demonstrating DNS resolving without specified format
- * // Starting the request
- * blazed.resolve_dns({
- *   hostname: "https://www.google.com"
- * }).then(result => {
- *        return console.log(result);
- *        // It will return only the fist ip address which is found after dns has been resolved.
- *        // result contains:
- *        // - Address (Array containing the list of ip addresses)
- *        // - Address (Array containing the list of ip addresses)
- * }).catch(err => {
- *        return console.error(err);
- *        // handling errors
- * })
- */
+  /**
+   * Check the docs for more info.
+   * 
+   * Resolves a hostname's DNS to an IP object containing the resolved IP addresses.
+   * @param {Object} hostObject - The object containing the host data.
+   * @param {('IPv4'|'IPv6')} hostObject.format - Optional. The IP address format. If not specified, 
+   *   blazed.js will resolve the promise with the first IP address found after performing a DNS lookup for the host.
+   * @param {string} hostObject.url - The url to be resolved.
+   * @returns {Promise<Object>} Returns a promise containing the resolved IP data.
+   * @example 
+   * // Example usage demonstrating DNS resolving with specified format
+   * // Starting the request
+   * blazed.resolve_dns({
+   *      format: "IPv6",
+   *      url: "https://www.google.com"
+   * }).then(result => {
+   *      return console.log(result);
+   *      // It will return all the addresses after resolving the DNS.
+   *      // result contains:
+   *      // - Address (Array containing the list of ip addresses)
+   *      // - Address (Array containing the list of ip addresses)
+   * }).catch(err => {
+   *      return console.error(err);
+   *      // handling errors
+   * })
+   * 
+   * // Example usage demonstrating DNS resolving without specified format
+   * // Starting the request
+   * blazed.resolve_dns({
+   *   hostname: "https://www.google.com"
+   * }).then(result => {
+   *        return console.log(result);
+   *        // It will return only the fist ip address which is found after dns has been resolved.
+   *        // result contains:
+   *        // - Address (Array containing the list of ip addresses)
+   *        // - Address (Array containing the list of ip addresses)
+   * }).catch(err => {
+   *        return console.error(err);
+   *        // handling errors
+   * })
+   */
   resolve_dns(hostObj: HostObject): Promise<IpObject>;
   /**
    * Performs an HTTP GET request.
@@ -612,17 +626,20 @@ interface blazed {
 
   /**
    * Disables some default settings of 'blazed.js'.
-   * @param disableObj - The object containing the disabled options.
+   * @param configObj - The object containing the configured options.
    * 
    * @example 
    * // Basic example
-   * blazed.disable({
-   *    'X-Requested-With': true, // Here true indicates that it has been disabled.
-   *    'User-Agent': true, // Here true indicated that it has been disabled.
-   *    'JSON-Parser': true, // Here true indicated that it has been disabled.
-   * })
+   * blazed.configure({
+   *    'Default-URL': 'https://api.github.com/users', // Set the default url to Github API
+   *    'JSON-Parser': true, // True indicates that the response will be formatted if its json
+   *     headers: {
+   *        'User-Agent': false, // Disables the 'User-Agent' header.
+   *        'X-Requested-With': false, // Disables the 'X-Requested-With' header.
+   *     }
+   *  })
    */
-  disable(disableObj: DisableObject): DisableObject;
+  configure(configObj: ConfigObject): ConfigObject;
 
   /**
    * Performs a reverse DNS query that resolves an IPv4 or IPv6 address to an array of host names.
@@ -676,16 +693,16 @@ interface blazed {
    * console.log(blazed.VERSION); 
    * // Logging the about object to the console.
    */
-    VERSION: string;
+  VERSION: string;
 
 
-   /**
-   * Read-only property specifying the maximum allowed size of HTTP headers in bytes. Defaults to 16KB.
-   * @returns {string} - The formatted header size.
-   * @example
-   * console.log(blazed.maxHeaderSize)
-   * // Will log 16.0 KB to the console.
-   */
+  /**
+  * Read-only property specifying the maximum allowed size of HTTP headers in bytes. Defaults to 16KB.
+  * @returns {string} - The formatted header size.
+  * @example
+  * console.log(blazed.maxHeaderSize)
+  * // Will log 16.0 KB to the console.
+  */
   maxHeaderSize: String;
 
   /**
