@@ -2,7 +2,7 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 14/03/2025
+// Last updated: 16/03/2025
 
 // Type definitions for 'blazed.js'
 
@@ -142,6 +142,10 @@ interface URLParser {
    * The password of the parsed url.
    */
   password: string;
+  /**
+   * The port of the parsed url(if available).
+  */
+  port: string;
   /**
    * The pathname of the parsed url.
    */
@@ -595,7 +599,7 @@ interface blazed {
    * @param {string} url The URL to check.
    * @returns {Promise<URLParser>} A promise that resolves with the parsed URL as an Object.
    * @example
-   * const url = 'https://example.com/path?a=1&b=2';
+   * const url = 'https://example.com:3000/path?a=1&b=2';
    * // Replace with your desired url
    * 
    * blazed.parse_url(url)
@@ -612,10 +616,11 @@ interface blazed {
    *      hash: '',
    *      host: 'example.com',
    *      hostname: 'example.com',
-   *      href: 'https://example.com/path?a=1&b=2',
+   *      href: 'https://example.com:3000/path?a=1&b=2',
    *      origin: 'https://example.com',
    *      password: '',
    *      pathname: '/path',
+   *      port: '3000',
    *      protocol: 'https:',
    *      search: '?a=1&b=2',
    *      searchParams: URLSearchParams { 'a' => '1', 'b' => '2' }

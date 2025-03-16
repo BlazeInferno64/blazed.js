@@ -7,7 +7,7 @@
 
 # blazed.js
 
-> Blazing fast, light weight, high performance, promise based HTTP and DNS client for the Node
+> Blazing fast, light weight, high performance, promise based [HTTP](https://nodejs.org/api/http.html) and [DNS](https://nodejs.org/api/dns.html) client for the [Node](https://nodejs.org)
 
 ## Features
 
@@ -20,13 +20,13 @@
 
 To get started with `blazed.js`, simply run the following command in your terminal:
 
-npm command:
+[npm](https://npmjs.com) installation command:
 
 ```bash
 $ npm i blazed.js
 ```
 
-yarn command:
+[yarn](https://yarnpkg.com) installation command:
 
 ```bash
 $ yarn add blazed.js
@@ -442,7 +442,7 @@ Here's an simple example with `.then() and .catch()` statements
 ```js
 const blazed = require('blazed.js'); // or import blazed from 'blazed.js'; for ES Module
 
-blazed.parse_url('https://www.google.com')
+blazed.parse_url('https://example.com:3000/path?a=1&b=2')
   .then((url) => {
     console.log(url); // prints all values of the url object to the console
   })

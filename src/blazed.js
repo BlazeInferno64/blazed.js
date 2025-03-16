@@ -2,7 +2,7 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 13/03/2025
+// Last updated: 16/03/2025
 
 "use strict";
 
@@ -454,13 +454,13 @@ const configure = (option) => {
   const err = 'ERR_BOOLEAN';
 
   // Check if 'X-Requested-With' is provided and is a boolean
-  if (option.headers.hasOwnProperty('X-Requested-With') && typeof option.headers['X-Requested-With'] !== 'boolean') {
+  if (option.headers && option.headers.hasOwnProperty('X-Requested-With') && typeof option.headers['X-Requested-With'] !== 'boolean') {
     const error = utilErrors.processBooleanError(err, option['X-Requested-With'], 'X-Requested-With');
     throw error; // Reject the promise with the error
   }
 
   // Check if 'User-Agent' is provided and is a boolean
-  if (option.headers.hasOwnProperty('User-Agent') && typeof option.headers['User-Agent'] !== 'boolean') {
+  if (option.headers && option.headers.hasOwnProperty('User-Agent') && typeof option.headers['User-Agent'] !== 'boolean') {
     const error = utilErrors.processBooleanError(err, option.headers['User-Agent'], 'User-Agent');
     throw error; // Reject the promise with the error
   }
@@ -478,8 +478,8 @@ const configure = (option) => {
   }
 
   // If both checks pass, you can proceed with your logic
-  xReqWith = option.headers.hasOwnProperty('X-Requested-With') ? option.headers['X-Requested-With'] ? false : true : false;
-  userAgent = option.headers.hasOwnProperty('User-Agent') ? option.headers['User-Agent'] ? false : true : false;
+  xReqWith = option.headers ? option.headers.hasOwnProperty('X-Requested-With') ? option.headers['X-Requested-With'] ? false : true : false : false;
+  userAgent = option.headers ? option.headers.hasOwnProperty('User-Agent') ? option.headers['User-Agent'] ? false : true : false : false;
   jsonParser = option.hasOwnProperty('JSON-Parser') ? option['JSON-Parser'] ? true : false : true; // Default to true if not provided
   defaultURL = option.hasOwnProperty('Default-URL') ? option['Default-URL'] : null; // Default to null if not provided
 

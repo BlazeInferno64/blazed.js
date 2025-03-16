@@ -2,14 +2,13 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 14/03/2025
+// Last updated: 16/03/2025
 
 "use strict";
 
 const { processError, processURLError } = require("../errors/errors");
 const { URL } = require("url");
 
-let myURL;
 
 /**
  * Represents a parsed URL.
@@ -20,6 +19,7 @@ let myURL;
  * @property {string} href
  * @property {string} origin
  * @property {string} password
+ * @property {string} port
  * @property {string} pathname
  * @property {string} protocol
  * @property {string} search
@@ -34,14 +34,13 @@ let myURL;
  * @returns {Promise<ParsedURL>} A promise that resolves with the parsed URL as an Object.
  * @example
  * // Demo example
- * const result = await parseThisURL('https://example.com/path?a=1&b=2', 'GET');
+ * const result = await parseThisURL('https://example.com:3000/path?a=1&b=2', 'GET');
  */
 
 const parseThisURL = (url, method) => {
   return new Promise((resolve, reject) => {
     (async () => {
       try {
-        myURL = url;
         if (!url) {
           const error = new Error(`Empty URL Provided!`);
           error.name = "Null_URL_Error";
@@ -51,7 +50,7 @@ const parseThisURL = (url, method) => {
           return reject(error);
         }
         const parsedURL = new URL(url);
-        console.log(url);
+        // console.log(url);
         const urlData = {
           hash: parsedURL.hash,
           host: parsedURL.host,
@@ -60,6 +59,7 @@ const parseThisURL = (url, method) => {
           origin: parsedURL.origin,
           password: parsedURL.password,
           pathname: parsedURL.pathname,
+          port: parsedURL.port,
           protocol: parsedURL.protocol,
           search: parsedURL.search,
           searchParams: parsedURL.searchParams,
