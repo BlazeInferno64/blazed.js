@@ -1,6 +1,6 @@
 {
   "name": "blazed.js",
-  "version": "1.9.0",
+  "version": "1.9.5",
   "main": "index.js",
   "types": "typings/index.d.ts",
   "scripts": {
@@ -8,7 +8,9 @@
   },
   "contributors": [
     "BlazeInferno64",
-    "blazeinferno"
+    "blazeinferno",
+    "Sud3ep",
+    "Sudeep"
   ],
   "keywords": [
     "blazed",
@@ -40,7 +42,12 @@
     "htmx",
     "www",
     "npm",
-    "high-peformance"
+    "high-peformance",
+    "keep-Alive",
+    "apache",
+    "http/1.1",
+    "http/1",
+    "http/3"
   ],
   "jest": {
     "testMatch": [

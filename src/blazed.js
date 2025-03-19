@@ -4,7 +4,7 @@
 // 1. BlazeInferno64 -> https://github.com/blazeinferno64
 // 2. Sud3ep -> https://github.com/Sud3ep
 //
-// Last updated: 18/03/2025
+// Last updated: 19/03/2025
 
 "use strict";
 
@@ -62,14 +62,25 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
         // Handle 'data:' URLs directly
         if (parsedURL.protocol === 'data:') {
           const myData = dataUriToBuffer(requestUrl);
+          const contentType = myData.typeFull || 'application/octet-stream'; // a generic binary data type
+          const dataSize = myData.buffer?.byteLength || myData.length || 0;
           const responseObject = {
             data: myData,
             status: 200,
             statusText: mapStatusCodes(200).message,
-            responseSize: formatBytes(myData.buffer.byteLength),
-            responseHeaders: { 'Content-Type': myData.typeFull },
+            responseSize: formatBytes(dataSize),
+            responseHeaders: {
+              'Content-Type': contentType
+            },
             requestHeaders: headers
           };
+          // How to decode it ?
+          // Its easy just follow below steps -
+          //
+          // const parsed = new TextDecoder(response.data.buffer.ArrayBuffer);
+          //
+          // console.log(parsed);
+          //
           return resolve(responseObject);
         }
         // Validate every HTTP headers provided by the user
@@ -78,6 +89,11 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
         }
         // Set the HTTP module depending upon the url protocol provided
         const httpModule = parsedURL.protocol === 'https:' ? https : http;
+        // Create a 'keep-alive' connection to improve performance.
+        const agent = new httpModule.Agent({
+          keepAlive: true
+        });
+        // Define 'requestOptions' object.
         const requestOptions = {
           method,
           headers: {
@@ -87,6 +103,7 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
             'Content-Length': 0,
             ...headers, // Spread the user-provided headers
           },
+          agent, // Add the 'keep-alive' connection here.
         };
 
         // Since some web servers block HTTP requests without 'User-Agent' header
