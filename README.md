@@ -7,6 +7,8 @@
 
 # blazed.js
 
+<img src="https://github.com/BlazeInferno64/blazed.js/releases/download/v1.9.0/IMG_20250318_212949.jpg">
+
 > Blazing fast, light weight, high performance, promise based [HTTP](https://nodejs.org/api/http.html) and [DNS](https://nodejs.org/api/dns.html) client for the [Node](https://nodejs.org)
 
 ## Features

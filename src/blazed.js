@@ -1,8 +1,10 @@
 // Copyright (c) 2025 BlazeInferno64 --> https://github.com/blazeinferno64.
 //
-// Author(s) -> BlazeInferno64
+// Author(s) -> 
+// 1. BlazeInferno64 -> https://github.com/blazeinferno64
+// 2. Sud3ep -> https://github.com/Sud3ep
 //
-// Last updated: 16/03/2025
+// Last updated: 18/03/2025
 
 "use strict";
 
@@ -21,7 +23,7 @@ const { lookupForIp, reverseLookupForIp } = require("./utils/dns/dns");
 
 const { mapStatusCodes } = require("./utils/tools/status-mapper");
 const { formatBytes } = require("./utils/tools/math");
-const { HTTP_METHODS, supportedSchemas } = require("./utils/tools/base");
+const { HTTP_METHODS, supportedSchemas, validateBooleanOption } = require("./utils/tools/base");
 
 const packageJson = require("../package.json");
 
@@ -128,7 +130,7 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
           if (method === HTTP_METHODS.CONNECT) {
             const info = await urlParser.parseThisURL(requestUrl);
             const connectionInfo = {
-              message: `Connection successfull to "${url}"`,
+              message: `Connection successful to "${url}"`,
               protocol: info.protocol.replace(":", ""),
               remoteAddress: request.socket.remoteAddress,
               remotePort: request.socket.remotePort,
@@ -271,7 +273,7 @@ const handleResponse = (response, resolve, reject, redirectCount = 5, originalUr
   response.on('error', reject);
   if (response.statusCode >= 300 && response.statusCode < 400 && response.headers.location) {
     if (redirectCount > 0) {
-      // Check if the response has an locatiin header or not.
+      // Check if the response has an location header or not.
       // If its present then construct another HTTP redirect URL using it.
       const redirectUrl = response.headers['location'] || response.headers.location;
 
@@ -382,7 +384,7 @@ const validateHeaderValue = async (name, value) => {
 }
 
 /**
- * Resolves a hostname's dns with a ip object contaning the ip addresses.
+ * Resolves a hostname's dns with a ip object containing the ip addresses.
  * @param {Object} hostObject - The object containing the host data 
  * @param {('IPv4'|'IPv6')} hostObject.format - Optional ip address format
  * @param {string} hostObject.url - The url which you want to resolve 
@@ -449,39 +451,23 @@ const maxHeaderSize = Object.freeze({
  * @param {*} option - The object containing the configuration options info.
  * @returns {void} - Returns void. 
  */
-const configure = (option) => {
-  // Define the error name as 'ERR_BOOLEAN'
-  const err = 'ERR_BOOLEAN';
+const configure = (option = {}) => {
+  // Ensure headers is an object
+  const headers = option.headers || {};
 
   // Check if 'X-Requested-With' is provided and is a boolean
-  if (option.headers && option.headers.hasOwnProperty('X-Requested-With') && typeof option.headers['X-Requested-With'] !== 'boolean') {
-    const error = utilErrors.processBooleanError(err, option['X-Requested-With'], 'X-Requested-With');
-    throw error; // Reject the promise with the error
-  }
-
+  validateBooleanOption(headers, 'X-Requested-With');
   // Check if 'User-Agent' is provided and is a boolean
-  if (option.headers && option.headers.hasOwnProperty('User-Agent') && typeof option.headers['User-Agent'] !== 'boolean') {
-    const error = utilErrors.processBooleanError(err, option.headers['User-Agent'], 'User-Agent');
-    throw error; // Reject the promise with the error
-  }
-
+  validateBooleanOption(headers, 'User-Agent');
   // Check if 'JSON-Parser' is provided and is a boolean
-  if (option.hasOwnProperty('JSON-Parser') && typeof option['JSON-Parser'] !== 'boolean') {
-    const error = utilErrors.processBooleanError(err, option['JSON-Parser'], 'JSON-Parser');
-    throw error; // Reject the promise with the error
-  }
+  validateBooleanOption(option, 'JSON-Parser');
 
-  // Check if 'Default-URL' is provided and is a boolean
-  if (option.hasOwnProperty('Default-URL') && typeof option['Default-URL'] !== 'string') {
-    const error = utilErrors.processBooleanError(err, option['Default-URL'], 'Default-URL');
-    throw error; // Reject the promise with the error
-  }
 
-  // If both checks pass, you can proceed with your logic
-  xReqWith = option.headers ? option.headers.hasOwnProperty('X-Requested-With') ? option.headers['X-Requested-With'] ? false : true : false : false;
-  userAgent = option.headers ? option.headers.hasOwnProperty('User-Agent') ? option.headers['User-Agent'] ? false : true : false : false;
-  jsonParser = option.hasOwnProperty('JSON-Parser') ? option['JSON-Parser'] ? true : false : true; // Default to true if not provided
-  defaultURL = option.hasOwnProperty('Default-URL') ? option['Default-URL'] : null; // Default to null if not provided
+  // Use optional chaining to safely access headers
+  xReqWith = !!headers["X-Requested-With"];
+  userAgent = !!headers["User-Agent"];
+  jsonParser = !!option["JSON-Parser"]; // Default to false if not provided
+  defaultURL = option["Default-URL"] || null; // Default to null if not provided
 
   // Resolve the promise
   return {
