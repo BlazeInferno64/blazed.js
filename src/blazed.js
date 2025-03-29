@@ -4,7 +4,7 @@
 // 1. BlazeInferno64 -> https://github.com/blazeinferno64
 // 2. Sud3ep -> https://github.com/Sud3ep
 //
-// Last updated: 19/03/2025
+// Last updated: 29/03/2025
 
 "use strict";
 
@@ -44,7 +44,7 @@ let defaultURL = null;
  * @param {any} data 
  * @param {object} headers 
  * @param {number} redirectCount 
- * @returns 
+ * @returns {void}
 */
 
 // Make request function to perform the HTTP request!

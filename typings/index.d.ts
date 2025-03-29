@@ -2,7 +2,7 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 16/03/2025
+// Last updated: 29/03/2025
 
 // Type definitions for 'blazed.js'
 
@@ -614,10 +614,10 @@ interface blazed {
    *   Output:
    *    {
    *      hash: '',
-   *      host: 'example.com',
+   *      host: 'example.com:3000',
    *      hostname: 'example.com',
    *      href: 'https://example.com:3000/path?a=1&b=2',
-   *      origin: 'https://example.com',
+   *      origin: 'https://example.com:3000',
    *      password: '',
    *      pathname: '/path',
    *      port: '3000',
@@ -765,13 +765,13 @@ interface blazed {
    * @param {(url: string) => void | (object: { OriginalURL: string, RedirectURL: string }) => void} callback - The callback function
    */
   /**
-   * **Check the docs [here]("https://github.com/BlazeInferno64/blazed.js/tree/main/lib/node#events") or [in the README.md file](./README.md) regarding about the 'events'emitted**
+   * **Check the docs [here]("https://github.com/BlazeInferno64/blazed.js/tree/main?tab=readme-ov-file#events") or [in the README.md file](./README.md) regarding about the 'events'emitted**
    * @param event (beforeRequest) Fires up before firing a HTTP request
    * @param callback returns two parameters for the callback function named url and the options(headers)
    * @example 
    * // beforeRequest event example usage
    * blazed.on("beforeRequest", (url, options) => {
-   *    console.log(`beforeRequest event fired!`); // Logging for the beforeRequest event
+   *    console.log(`beforeRequest event fired!`); // Logging for the 'beforeRequest' event
    *    console.log(`HTTP Request URL: ${url}`); // Logs the HTTP request url
    *    return console.log(options) // Logs the request options(including headers and data(if any)) to the console.
    * });
@@ -779,29 +779,31 @@ interface blazed {
    * 
    * // afterRequest event example usage
    * blazed.on("afterRequest", (url, response) => {
-   *    console.log(`afterRequest event fired!`); // Logging for the afterRequest event
+   *    console.log(`afterRequest event fired!`); // Logging for the 'afterRequest' event
    *    console.log(`HTTP Request URL: ${url}`); // Logs the HTTP request url
    *    return console.log(response) // Logs the request response object to the console
    * });
    * 
    * 
    * // redirect event example usage
-   * blazed.on("beforeRequest", (redirectObject) => {
-   *    console.log(`Redirect event fired!`); // Logging for the redirect event
+   * blazed.on("redirect", (redirectObject) => {
+   *    console.log(`Redirect event fired!`); // Logging for the 'redirect' event
    *    return console.log(redirectObject) // Logs the redirect object to the console
    * });
    * 
    * 
    * // request event example usage
    * blazed.on("request", (req) => {
-   *    console.log(req);
+   *    console.log(`Request event fired!`); // Logging for the 'request' event
+   *    return console.log(req); // Logging the 'req' object
    * });
    * 
    * 
    * // response event example usage
    * const writeStream = fs.createWriteStream("response.txt", "utf-8");
    * blazed.on("response", (response) => {
-   *    return response.pipe(writeStream);
+   *    console.log(`Response event fired!`); // Logging for the 'response' event
+   *    return response.pipe(writeStream); // Pipe the response to the 'writeStream'
    * });
    */
   on(event: "beforeRequest", callback: (url: string, options: object) => void): void;
@@ -809,24 +811,49 @@ interface blazed {
    * 
    * @param event (afterRequest) Fires up when the HTTP request ends
    * @param callback returns two parameters which is the url and the response object
+   * @example
+   * // afterRequest event example usage
+   * blazed.on("afterRequest", (url, response) => {
+   *    console.log(`afterRequest event fired!`); // Logging for the afterRequest event
+   *    console.log(`HTTP Request URL: ${url}`); // Logs the HTTP request url
+   *    return console.log(response) // Logs the request response object to the console
+   * });
    */
   on(event: "afterRequest", callback: (url: string, response: object) => void): void;
   /**
    * 
    * @param event (redirect) Fires up when a redirect occurs when sending HTTP request to the server
    * @param callback returns an object as the parameter for the callback function which contains the original url and the redirect url
+   * @example 
+   * // redirect event example usage
+   * blazed.on("redirect", (redirectObject) => {
+   *    console.log(`Redirect event fired!`); // Logging for the 'redirect' event
+   *    return console.log(redirectObject) // Logs the redirect object to the console
+   * });
    */
   on(event: "redirect", callback: (object: { OriginalURL: string, RedirectURL: string }) => void): void;
   /**
    * 
    * @param event (request) Fires up when the http request is sent to the server
    * @param callback returns an object as the parameter for the callback function which contains the redirect object
+   * // request event example usage
+   * blazed.on("request", (req) => {
+   *    console.log(`Request event fired!`); // Logging for the 'request' event
+   *    return console.log(req); // Logging the 'req' object
+   * });
    */
   on(event: "request", callback: (object: { destroy: Function, message: string, host: string }) => void): void;
   /**
    * 
    * @param event (response) Fires up when the http request's response is received from the server
    * @param callback returns an object as the parameter for the callback function which contains the response object
+   * @example
+   * // response event example usage
+   * const writeStream = fs.createWriteStream("response.txt", "utf-8");
+   * blazed.on("response", (response) => {
+   *    console.log(`Response event fired!`); // Logging for the 'response' event
+   *    return response.pipe(writeStream); // Pipe the response to the 'writeStream'
+   * });
    */
   on(event: "response", callback: (object: { pipe: Function }) => void): void;
 }
