@@ -4,7 +4,7 @@
 // 1. BlazeInferno64 -> https://github.com/blazeinferno64
 // 2. Sud3ep -> https://github.com/Sud3ep
 //
-// Last updated: 29/03/2025
+// Last updated: 30/03/2025
 
 "use strict";
 
@@ -483,7 +483,7 @@ const configure = (option = {}) => {
   // Use optional chaining to safely access headers
   xReqWith = !!headers["X-Requested-With"];
   userAgent = !!headers["User-Agent"];
-  jsonParser = !!option["JSON-Parser"]; // Default to false if not provided
+  jsonParser = option["JSON-Parser"] !== undefined ? !!option["JSON-Parser"] : true; // Default to true if not provided
   defaultURL = option["Default-URL"] || null; // Default to null if not provided
 
   // Resolve the promise
