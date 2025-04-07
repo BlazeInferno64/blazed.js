@@ -4,7 +4,7 @@
 // 1. BlazeInferno64 -> https://github.com/blazeinferno64
 // 2. Sud3ep -> https://github.com/Sud3ep
 //
-// Last updated: 30/03/2025
+// Last updated: 07/04/2025
 
 "use strict";
 
@@ -346,11 +346,7 @@ const handleRedirect = (method, redirectUrl, data, headers, redirectCount) => {
 
 // URL parser and validator
 const parse_url = async (url) => {
-  try {
-    return await urlParser.parseThisURL(url);
-  } catch (error) {
-    return error;
-  }
+  return await urlParser.parseThisURL(url);
 };
 
 /**
@@ -378,11 +374,7 @@ const methods = Object.freeze({
  * @returns {Promise<any>} A promise that resolves with true if the Header name parsing is successfull, else it will reject it with the error.
  */
 const validateHeaderName = async (header) => {
-  try {
-    return await headerParser.parseThisHeaderName(header);
-  } catch (error) {
-    return error;
-  }
+  return await headerParser.parseThisHeaderName(header);
 }
 
 /**
@@ -393,11 +385,7 @@ const validateHeaderName = async (header) => {
  */
 
 const validateHeaderValue = async (name, value) => {
-  try {
-    return await headerParser.parseThisHeaderValue(name, value);
-  } catch (error) {
-    return error;
-  }
+  return await headerParser.parseThisHeaderValue(name, value);
 }
 
 /**
@@ -413,11 +401,7 @@ const resolve_dns = async (hostObject) => {
   const url = hostObject.url;
   const format = hostObject.format;
   const parsedURL = await urlParser.parseThisURL(url);
-  try {
-    return await lookupForIp(parsedURL.hostname, format, url);
-  } catch (error) {
-    return error;
-  }
+  return await lookupForIp(parsedURL.hostname, format, url);
 }
 
 /**
@@ -503,11 +487,7 @@ const configure = (option = {}) => {
  * @param {String} ip - The ip to resolve. 
  */
 const reverse_dns = async (ip) => {
-  try {
-    return await reverseLookupForIp(ip);
-  } catch (error) {
-    return error;
-  }
+  return await reverseLookupForIp(ip);
 }
 
 // Exporting all the required modules.
