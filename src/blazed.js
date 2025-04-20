@@ -4,7 +4,7 @@
 // 1. BlazeInferno64 -> https://github.com/blazeinferno64
 // 2. Sud3ep -> https://github.com/Sud3ep
 //
-// Last updated: 07/04/2025
+// Last updated: 20/04/2025
 
 "use strict";
 
@@ -200,6 +200,9 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
 const handleResponse = (response, resolve, reject, redirectCount = 5, originalUrl, data, method, headers, reqOptions, request, connectionInfoObject) => {
   const resObject = {
     pipe: (stream) => response.pipe(stream),
+    destroy: () => response.destroy(),
+    pause: () => response.pause(),
+    resume: () => response.resume()
   }
 
   // Event emitter for the 'response' event

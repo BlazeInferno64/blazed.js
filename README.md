@@ -574,7 +574,10 @@ const writeStream = fs.createWriteStream("response.txt", "utf-8");
 // Listen for the "request" event
 blazed.on("response", (res) => {
   console.log(res); // Note that it will print all associated property with 'res' object to the console
-  // - req.pipe(): It is used to pipe the response stream from the server to another stream. 'writeStream` for this case.
+  // - res.pipe(): It is used to pipe the response stream from the server to another stream. 'writeStream` for this case.
+  // - res.destroy(): It is used to destroy the response stream from the server.
+  // - res.pause(): It is used to pause the response stream from the server.
+  // - res.resume(): It is used to resume the response stream from the server(If it has been paused).
   res.pipe(writeStream);
   // Piping the response stream to the writeStream here.
 });

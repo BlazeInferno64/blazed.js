@@ -2,7 +2,7 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 29/03/2025
+// Last updated: 20/04/2025
 
 // Type definitions for 'blazed.js'
 
@@ -851,11 +851,11 @@ interface blazed {
    * // response event example usage
    * const writeStream = fs.createWriteStream("response.txt", "utf-8");
    * blazed.on("response", (response) => {
-   *    console.log(`Response event fired!`); // Logging for the 'response' event
+   *    console.log(`Response event fired!`); // Logging for the 'response' event 'response' object.
    *    return response.pipe(writeStream); // Pipe the response to the 'writeStream'
    * });
    */
-  on(event: "response", callback: (object: { pipe: Function }) => void): void;
+  on(event: "response", callback: (object: { pipe: Function, destroy: Function, resume: Function, pause: Function }) => void): void;
 }
 /**
  *  blazed.js is a blazing fast, light weight, high performance, promise based HTTP and DNS client for the Node.
