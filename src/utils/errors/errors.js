@@ -2,7 +2,7 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 14/03/2025
+// Last updated: 17/05/2025
 
 "use strict";
 
@@ -173,8 +173,31 @@ const processURLError = (error, url) => {
   }
 }
 
+/**
+ * Processes File URL Parsing errors.
+ * 
+ * @param {any} error The error object 
+ * @param {*} option The option
+ * @param {*} message The message
+ * @returns 
+ */
+
+const processFileError = (error, url) => {
+  if (error.code === 'ERR_INVALID_URL_SCHEME') {
+    const err = new TypeError('Invalid File URL Scheme!');
+    err.name = `File_URL_Parsing_Error`;
+    err.input = url;
+    err.message = `The URL must be of scheme file eg("file:///")!`;
+    err.examples = [
+      `'file:///C:/Users/something' for Windows`
+    ];
+    return err;
+  }
+}
+
 module.exports = {
   processError,
   processBooleanError,
-  processURLError
+  processURLError,
+  processFileError
 }

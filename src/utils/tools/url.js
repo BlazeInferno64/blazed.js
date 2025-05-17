@@ -2,12 +2,12 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 16/03/2025
+// Last updated: 17/05/2025
 
 "use strict";
 
-const { processError, processURLError } = require("../errors/errors");
-const { URL } = require("url");
+const { processError, processURLError, processFileError } = require("../errors/errors");
+const { URL, pathToFileURL, fileURLToPath } = require("url");
 
 
 /**
@@ -59,6 +59,7 @@ const parseThisURL = (url, method) => {
           origin: parsedURL.origin,
           password: parsedURL.password,
           pathname: parsedURL.pathname,
+          username: parsedURL.username,
           port: parsedURL.port,
           protocol: parsedURL.protocol,
           search: parsedURL.search,
@@ -72,6 +73,25 @@ const parseThisURL = (url, method) => {
   });
 };
 
+/**
+ * Converts a specified param to a file url using the native URL module.
+ * @param {*} param - The param to convert. eg('foo').
+ * @returns 
+ */
+const fileURL = (param) => {
+  return new Promise((resolve, reject) => {
+    (async () => {
+      try {
+        const result = fileURLToPath(param);
+        return resolve(result);
+      } catch (error) {
+        return reject(processFileError(error, param))
+      }
+    })()
+  })
+}
+
 module.exports = {
-  parseThisURL
+  parseThisURL,
+  fileURL
 }

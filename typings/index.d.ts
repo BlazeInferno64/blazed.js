@@ -2,7 +2,7 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 20/04/2025
+// Last updated: 17/05/2025
 
 // Type definitions for 'blazed.js'
 
@@ -162,6 +162,10 @@ interface URLParser {
    * The search params of the parsed url.
    */
   searchParams: URLSearchParams;
+  /**
+   * The username portion of the URL.
+   */
+  username: string
 }
 
 interface AboutObject {
@@ -628,6 +632,21 @@ interface blazed {
    * });
    */
   parse_url(url: string): Promise<URLParser>;
+
+  /**
+   * File paths resolved absolutely, and the URL control characters are correctly encoded when converting into a File URL.
+   * @param path - The path of the file eg.('file:///C:/path/something'). 
+   * @returns {Promise<URLParser>} Returns a promise which contains the resolved path data.
+   * @example
+   * blazed.fileURL('file:///C:/path/something')
+   *   .then(result => {
+   *       console.log(result); // Prints resolved value to the console
+   *   })
+   *   .catch(error => {
+   *       console.error(error); // Catch any errors
+   *   })
+   */
+  fileURL(path: string): Promise<String>;
 
   /**
    * Disables some default settings of 'blazed.js'.

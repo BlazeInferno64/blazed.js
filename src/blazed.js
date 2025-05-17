@@ -4,7 +4,7 @@
 // 1. BlazeInferno64 -> https://github.com/blazeinferno64
 // 2. Sud3ep -> https://github.com/Sud3ep
 //
-// Last updated: 20/04/2025
+// Last updated: 17/05/2025
 
 "use strict";
 
@@ -408,6 +408,15 @@ const resolve_dns = async (hostObject) => {
 }
 
 /**
+ * File paths resolved absolutely, and the URL control characters are correctly encoded when converting into a File URL.
+ * @param {string} path - The path of the file. 
+ * @returns {Promise<Object>} Returns a promise which contains the resolved path data.
+ */
+const fileURL = async (path) => {
+  return await urlParser.fileURL(path);
+}
+
+/**
  * @returns {Object} Returns a object which contains some info regarding blazed.js.
  */
 
@@ -625,6 +634,7 @@ module.exports = {
   maxHeaderSize,
   configure,
   resolve_dns,
+  fileURL,
   reverse_dns,
   /**
    * Attaches a listener to the on event

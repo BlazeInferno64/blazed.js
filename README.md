@@ -455,9 +455,32 @@ blazed.parse_url('https://example.com:3000/path?a=1&b=2')
 
 After running this code, the parsed URL values will be logged to the console. 
 
-If any errors occur, the `catch` block will catch and print them to the console. 
+# File Path Parsing
 
-Alternatively, you can use `async/await` syntax for more concise and readable code.
+The `blazed.fileURL()` function can be used to  resolve file paths absolutely. 
+
+Simply pass the file URL as a parameter to this function.
+
+Here's an simple example with `.then() and .catch()` statements
+
+
+```js
+const blazed = require('blazed.js'); // or import blazed from 'blazed.js'; for ES Module
+
+blazed.fileURL('file:///C:/path/something')
+  .then((data) => {
+    console.log(data); // prints the value of the parsed url to the console.
+  })
+  .catch((err) => {
+    console.error(err); // handling error(s).
+  });
+```
+
+After running this code, the parsed file URL values will be logged to the console. 
+
+>If any errors occur, the `catch` block will catch and print them to the console. 
+
+>Alternatively, you can use `async/await` syntax for more concise and readable code.
 
 # Events
 **`blazed.js` provides a range of events that are triggered regardless of the HTTP method used, allowing you to tap into the request lifecycle.**
