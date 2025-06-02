@@ -4,7 +4,7 @@
 // 1. BlazeInferno64 -> https://github.com/blazeinferno64
 // 2. Sud3ep -> https://github.com/Sud3ep
 //
-// Last updated: 17/05/2025
+// Last updated: 02/06/2025
 
 "use strict";
 
@@ -105,6 +105,12 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
           },
           agent, // Add the 'keep-alive' connection here.
         };
+
+        // Remove Content-Length and Content-Type headers for GET or HEAD requests
+        if (method === 'GET' || method === 'HEAD') {
+          delete requestOptions.headers['Content-Length'];
+          delete requestOptions.headers['Content-Type'];
+        }
 
         // Since some web servers block HTTP requests without 'User-Agent' header
         // Therefore add a custom User-Agent header by default if not provided
