@@ -64,7 +64,7 @@
   "description": "Blazing fast, light weight, high performance, promise based HTTP and DNS client for the Node",
   "devDependencies": {
     "@eslint/js": "^9.27.0",
-    "@jest/globals": "^29.7.0",
+    "@jest/globals": "^30.0.1",
     "eslint": "^9.27.0",
     "jest": "^29.7.0"
   },
