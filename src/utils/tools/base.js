@@ -4,7 +4,7 @@
 // 1. BlazeInferno64 -> https://github.com/blazeinferno64
 // 2. Sud3ep -> https://github.com/Sud3ep
 //
-// Last updated: 18/03/2025
+// Last updated: 22/06/2025
 
 "use strict";
 
@@ -44,8 +44,23 @@ const validateBooleanOption = (option, name) => {
     }
 };
 
+/**
+ * Checks and validate appropriate Node.js version
+ * 
+ * @param {string} version - The Current Node.js version 
+ */
+const compareNodeVersion = (version = process.versions.node ) => {
+    // version = process.versions.node;
+    const requiredVersion = '13.0.0';
+
+    if (version.localeCompare(requiredVersion, undefined, { numeric: true }) < 0)  {
+        throw new Error(`Node.js version '${requiredVersion}' or higher is required to run 'blazed.js' smoothly and efficiently. Current version: '${version}'\nConsider upgrading the Node.js version!`);
+    }
+}
+
 module.exports = {
     HTTP_METHODS,
     supportedSchemas,
-    validateBooleanOption
+    validateBooleanOption,
+    compareNodeVersion
 }

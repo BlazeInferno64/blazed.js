@@ -4,7 +4,7 @@
 // 1. BlazeInferno64 -> https://github.com/blazeinferno64
 // 2. Sud3ep -> https://github.com/Sud3ep
 //
-// Last updated: 02/06/2025
+// Last updated: 22/06/2025
 
 "use strict";
 
@@ -23,7 +23,7 @@ const { lookupForIp, reverseLookupForIp } = require("./utils/dns/dns");
 
 const { mapStatusCodes } = require("./utils/tools/status-mapper");
 const { formatBytes } = require("./utils/tools/math");
-const { HTTP_METHODS, supportedSchemas, validateBooleanOption } = require("./utils/tools/base");
+const { HTTP_METHODS, supportedSchemas, validateBooleanOption, compareNodeVersion } = require("./utils/tools/base");
 
 const packageJson = require("../package.json");
 
@@ -35,6 +35,9 @@ let userAgent = false;
 let jsonParser = true;
 
 let defaultURL = null;
+
+// Compare version
+compareNodeVersion();
 
 /**
  * Backbone of blazed.js for performing HTTP requests
