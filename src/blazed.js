@@ -4,7 +4,7 @@
 // 1. BlazeInferno64 -> https://github.com/blazeinferno64
 // 2. Sud3ep -> https://github.com/Sud3ep
 //
-// Last updated: 22/06/2025
+// Last updated: 03/07/2025
 
 "use strict";
 
@@ -16,14 +16,14 @@ const { Buffer } = require("buffer");
 const { EventEmitter } = require("events");
 const emitter = new EventEmitter();
 
-const urlParser = require("./utils/tools/url");
-const headerParser = require("./utils/tools/headers");
+const urlParser = require("./utils/plugins/url");
+const headerParser = require("./utils/plugins/headers");
 const utilErrors = require("./utils/errors/errors");
 const { lookupForIp, reverseLookupForIp } = require("./utils/dns/dns");
 
-const { mapStatusCodes } = require("./utils/tools/status-mapper");
-const { formatBytes } = require("./utils/tools/math");
-const { HTTP_METHODS, supportedSchemas, validateBooleanOption, compareNodeVersion } = require("./utils/tools/base");
+const { mapStatusCodes } = require("./utils/plugins/status-mapper");
+const { formatBytes } = require("./utils/plugins/math");
+const { HTTP_METHODS, supportedSchemas, validateBooleanOption, compareNodeVersion } = require("./utils/plugins/base");
 
 const packageJson = require("../package.json");
 
@@ -237,7 +237,7 @@ const handleResponse = (response, resolve, reject, redirectCount = 5, originalUr
     emitter.emit("afterRequest", originalUrl, responseObject);
     return resolve(responseObject)
   }
-  // Collecting response data inside the 'responseData' variable is a memory heavy process for large responses
+  // Collecting response data inside the 'responseData' variable is a memory heavy process for large server responses
   // So this approach has been deprecated in the latest versions and instead blazed.js uses Node's built-in buffer class for handling
   // The response data as buffers are made to handle memory intensive operations.
   //
@@ -253,50 +253,40 @@ const handleResponse = (response, resolve, reject, redirectCount = 5, originalUr
 
   // Handling the ending of response
   response.on('end', async () => {
-    const contentType = response.headers['content-type'];
+    // Commenting out the 'contentType' variable to reduce memory usage and thus improve performance
+    // const contentType = response.headers['content-type'];
     const concatedBuffers = Buffer.concat(buffers);
-    if (jsonParser && contentType?.includes('application/json')) {
+
+    // Checks for 'content-type' header for 'application/json' data method has been deprecated
+    // Since checking can sometimes hinder with the performance while processing requests and might eventually slow it down
+    // Therefore parse is as JSON by default method has been implemented instead.
+    //
+    // if (contentType?.includes('application/json')) <-- This piece has been commented out for the above reason.
+    //
+    if (jsonParser) {
       try {
         const parsedData = JSON.parse(concatedBuffers.toString());
-        // Commenting the following code
-        /*if (!parsedData || Object.keys(parsedData).length === 0) {
-          const error = 'JSON_NULL';
-          custom = true;
-          return reject(await utilErrors.processError(error, originalUrl, false, false, custom, method, reject));
-        }*/
         responseObject.data = parsedData;
-        responseObject.status = response.statusCode;
-        responseObject.statusText = mapStatusCodes(response.statusCode).message;
-        responseObject.responseSize = response.headers['content-length'] ? formatBytes(response.headers['content-length']) : formatBytes(totalBytes);
-        for (const key in response.headers) {
-          responseObject.responseHeaders[key] = response.headers[key];
-        }
-        // Emitter for the 'afterRequest' event
-        emitter.emit("afterRequest", originalUrl, responseObject);
-        return resolve(responseObject);
       } catch (error) {
-        // Commenting the following code
-        /* if (!concatedBuffers.toString() || concatedBuffers.toString().trim() === "") {
-          const error = `RES_NULL`;
-          custom = true;
-          return reject(async () => {
-            return await utilErrors.processError(error, originalUrl, false, false, custom, method, reject);
-          });
-        } */
-        return reject(error);
+        // Send it as a string if its not getting parsed
+        responseObject.data = concatedBuffers.toString();
+        //return reject(error);
       }
     } else {
+      // Send it as a string if its not getting parsed only if 'jsonParser' variable is set to 'false'
       responseObject.data = concatedBuffers.toString();
-      for (const key in response.headers) {
-        responseObject.responseHeaders[key] = response.headers[key];
-      }
-      responseObject.responseSize = response.headers['content-length'] ? formatBytes(response.headers['content-length']) : formatBytes(totalBytes);
-      responseObject.status = response.statusCode;
-      responseObject.statusText = mapStatusCodes(response.statusCode).message;
-      // Emitter for the 'afterRequest' event
-      emitter.emit("afterRequest", originalUrl, responseObject);
-      return resolve(responseObject);
     }
+    // responseObject.data = concatedBuffers.toString();
+    for (const key in response.headers) {
+      responseObject.responseHeaders[key] = response.headers[key];
+    }
+    responseObject.responseSize = response.headers['content-length'] ? formatBytes(response.headers['content-length']) : formatBytes(totalBytes);
+    responseObject.status = response.statusCode;
+    responseObject.statusText = mapStatusCodes(response.statusCode).message;
+    // Emitter for the 'afterRequest' event
+    emitter.emit("afterRequest", originalUrl, responseObject);
+    // Resolve with the 'responseObject' finally
+    return resolve(responseObject);
   });
 
   response.on('error', reject);
