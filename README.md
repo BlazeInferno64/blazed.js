@@ -433,6 +433,32 @@ blazed.get() // Will send GET request to the Github Api.
 
 The above function will throw an error if the values aren't boolean ,i.e, true/false.
 
+# HTTP Request Cancellation
+
+`blazed.js` also offers a convenient way to cancel any ongoing HTTP requests.
+
+For that you need to use the `blazed.cancel()` method to achieve this.
+
+```js
+// Simple dummy request
+blazed.request({
+    url: "https://jsonplaceholder.typicode.com/posts/1",
+    method: "GET",
+})
+    .then(res => {
+        console.log(`This request will be aborted!`);
+        console.log(res);
+    })
+    .catch(err => {
+        console.error(`This error has occured due to the request being cancelled!`)
+        console.error(err);
+    })
+
+// Will cancel the ongoing request
+blazed.cancel();
+console.log("The ongoing request has been cancelled."); // Logging a messsage
+```
+
 # URL Parsing
 
 The `blazed.parse_url()` function can be used to parse a URL. 

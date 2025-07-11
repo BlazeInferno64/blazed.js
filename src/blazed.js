@@ -4,7 +4,7 @@
 // 1. BlazeInferno64 -> https://github.com/blazeinferno64
 // 2. Sud3ep -> https://github.com/Sud3ep
 //
-// Last updated: 03/07/2025
+// Last updated: 11/07/2025
 
 "use strict";
 
@@ -30,6 +30,8 @@ const packageJson = require("../package.json");
 
 let custom;
 
+let currentController = null; // Global variable to hold the current AbortController
+
 let xReqWith = false;
 let userAgent = false;
 let jsonParser = true;
@@ -52,6 +54,10 @@ compareNodeVersion();
 
 // Make request function to perform the HTTP request!
 const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeout = 5000) => {
+  // Create a new AbortController instance for each request
+  currentController = new AbortController();
+  const { signal } = currentController;
+
   return new Promise((resolve, reject) => {
     (async () => {
       // Use the provided URL if it exists otherwise, use defaultURL
@@ -107,6 +113,7 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
             ...headers, // Spread the user-provided headers
           },
           agent, // Add the 'keep-alive' connection here.
+          signal // Add the signal to the request options.
         };
 
         // Remove Content-Length and Content-Type headers for GET or HEAD requests
@@ -329,6 +336,16 @@ const handleResponse = (response, resolve, reject, redirectCount = 5, originalUr
 const handleRedirect = (method, redirectUrl, data, headers, redirectCount) => {
   return _makeRequest(method, redirectUrl, data, headers, redirectCount - 1);
 };
+
+/**
+ * Cancels any ongoing HTTP request.
+ */
+const cancel = () => {
+  if (currentController) {
+    currentController.abort(); // Abort the ongoing request
+    currentController = null; // Reset the controller
+  }
+}
 
 /**
  * Checks and return whether a provided URL is valid or not.
@@ -634,6 +651,7 @@ module.exports = {
   configure,
   resolve_dns,
   fileURL,
+  cancel,
   reverse_dns,
   /**
    * Attaches a listener to the on event

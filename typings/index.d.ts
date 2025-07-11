@@ -2,7 +2,7 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 17/05/2025
+// Last updated: 11/07/2025
 
 // Type definitions for 'blazed.js'
 
@@ -291,6 +291,18 @@ interface blazed {
    * })
    */
   resolve_dns(hostObj: HostObject): Promise<IpObject>;
+  
+  /**
+   * Cancels any ongoing HTTP request.
+   * 
+   * **Important:** Calling this method will abort the current request and throw an error with the code 'ABORT_ERR'.
+   * This error can be caught in the promise chain of the request.
+   * @example
+   * 
+   * // Run the .cancel() method
+   * blazed.cancel()
+   */
+  cancel(): void;
   /**
    * Performs an HTTP GET request.
    * @param {Object} url The URL to request.

@@ -2,7 +2,7 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 17/05/2025
+// Last updated: 11/07/2025
 
 "use strict";
 
@@ -32,7 +32,7 @@ const processError = async(error, url, dns, header, custom, method, reject) => {
     const err = new Error(`Request Aborted`);
     err.code = error.code;
     err.name = "Request_Abort_Error";
-    err.message = `HTTP ${method} request to ${url} was aborted`;
+    err.message = `The HTTP ${method} request to ${url} was aborted`;
     return reject(err);
   } else if (error.code === 'ECONNREFUSED') {
     const err = new Error(`Connection Refused`);
