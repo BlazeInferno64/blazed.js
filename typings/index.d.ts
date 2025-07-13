@@ -2,7 +2,7 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 11/07/2025
+// Last updated: 12/07/2025
 
 // Type definitions for 'blazed.js'
 
@@ -16,6 +16,17 @@ interface IpObject {
    * The ip address which has been resolved (Present in array)
    */
   Addresses: String[];
+}
+
+interface speedObject {
+  /**
+   * Samples (data) count
+   */
+  'data-count': Number;
+  /**
+   * The minimum time (in milliseconds) before calculating speed
+   */
+  'rate': Number;
 }
 
 interface OptionsObject {
@@ -215,7 +226,11 @@ interface ResponseObject {
   /**
    * Contains the response buffer size.
    */
-  responseSize: string
+  responseSize: string;
+  /**
+   * Contains the transfer speed of data.
+   */
+  transferSpeed: string
 }
 
 interface ConnectionResponseObject {
@@ -235,6 +250,10 @@ interface ConnectionResponseObject {
    * Contains the headers which the client has sent.
    */
   requestHeaders: { [key: string]: string };
+  /**
+   * Contains the transfer speed of data.
+   */
+  transferSpeed: string
 }
 
 interface HeaderObject {
@@ -291,7 +310,7 @@ interface blazed {
    * })
    */
   resolve_dns(hostObj: HostObject): Promise<IpObject>;
-  
+
   /**
    * Cancels any ongoing HTTP request.
    * 
@@ -303,6 +322,19 @@ interface blazed {
    * blazed.cancel()
    */
   cancel(): void;
+
+  /**
+   * Calculate data flow maximum rate
+   * @param {Number} [dataCount=10] - The number of samples to keep track of.
+   * @default 10
+   * @param {Number} [rate=1000] - The minimum time (in milliseconds) before calculating speed.
+   * @default 1000
+   * @returns {Function} - A function that takes the length of the data chunk and returns the speed.
+   * @example
+   * // Customize the speedometer
+   * blazed.speedometer(10, 1000);
+   */
+  speedometer(dataCount: Number, rate: Number): speedObject;
   /**
    * Performs an HTTP GET request.
    * @param {Object} url The URL to request.
@@ -325,6 +357,7 @@ interface blazed {
    *      // - statusText
    *      // - requestHeaders
    *      // - responseSize
+   *      // - transferSpeed
    *  })
    *  .catch(error => {
    *      console.log(error);
@@ -354,6 +387,7 @@ interface blazed {
    *      // - statusText
    *      // - requestHeaders
    *      // - responseSize
+   *      // - transferSpeed
    *  })
    *  .catch(error => {
    *      console.log(error);
@@ -389,6 +423,7 @@ interface blazed {
    *      // - statusText
    *      // - requestHeaders
    *      // - responseSize
+   *      // - transferSpeed
    *  })
    *  .catch(error => {
    *      console.log(error);
@@ -423,6 +458,7 @@ interface blazed {
    *      // - statusText
    *      // - requestHeaders
    *      // - responseSize
+   *      // - transferSpeed
    *  })
    *  .catch(error => {
    *      console.log(error);
@@ -451,6 +487,7 @@ interface blazed {
    *      // - statusText
    *      // - requestHeaders
    *      // - responseSize
+   *      // - transferSpeed
    *  })
    *  .catch(error => {
    *      console.log(error);
@@ -485,6 +522,7 @@ interface blazed {
    *      // - statusText
    *      // - requestHeaders
    *      // - responseSize
+   *      // - transferSpeed
    *  })
    *  .catch(error => {
    *      console.log(error);
@@ -514,6 +552,7 @@ interface blazed {
    *      // - statusText
    *      // - requestHeaders
    *      // - responseSize
+   *      // - transferSpeed
    *  })
    *  .catch(error => {
    *      console.log(error);
@@ -543,6 +582,7 @@ interface blazed {
    *      // - statusText
    *      // - requestHeaders
    *      // - responseSize
+   *      // - transferSpeed
    *  })
    *  .catch(error => {
    *      console.log(error);
@@ -574,6 +614,7 @@ interface blazed {
    *      // - statusText
    *      // - requestHeaders
    *      // - responseSize
+   *      // - transferSpeed
    *  })
    *  .catch(error => {
    *      console.log(error);

@@ -4,7 +4,7 @@
 // 1. BlazeInferno64 -> https://github.com/blazeinferno64
 // 2. Sud3ep -> https://github.com/Sud3ep
 //
-// Last updated: 11/07/2025
+// Last updated: 13/07/2025
 
 "use strict";
 
@@ -21,6 +21,7 @@ const headerParser = require("./utils/plugins/headers");
 const utilErrors = require("./utils/errors/errors");
 const { lookupForIp, reverseLookupForIp } = require("./utils/dns/dns");
 
+const { speedoMeter } = require("./utils/plugins/speedometer");
 const { mapStatusCodes } = require("./utils/plugins/status-mapper");
 const { formatBytes } = require("./utils/plugins/math");
 const { HTTP_METHODS, supportedSchemas, validateBooleanOption, compareNodeVersion } = require("./utils/plugins/base");
@@ -29,6 +30,11 @@ const packageJson = require("../package.json");
 
 
 let custom;
+
+let currentTransferSpeed = 0; // For future usage
+let userSamplesCount;
+let userMin;
+let speed;
 
 let currentController = null; // Global variable to hold the current AbortController
 
@@ -57,6 +63,9 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
   // Create a new AbortController instance for each request
   currentController = new AbortController();
   const { signal } = currentController;
+
+  // Initializes the speedometer with the defined values
+  speed = speedoMeter(userSamplesCount, userMin);
 
   return new Promise((resolve, reject) => {
     (async () => {
@@ -133,8 +142,9 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
         }
         // Also if any data is present then add some extra headers to the HTTP request
         if (data) {
-          requestOptions.headers['Content-Length'] = Buffer.byteLength(JSON.stringify(data));
-          requestOptions.body = JSON.stringify(data);
+          const body = data;
+          requestOptions.headers['Content-Length'] = Buffer.byteLength(JSON.stringify(body));
+          requestOptions.body = JSON.stringify(body);
         }
 
         // Event Emitter for 'beforeRequest' event
@@ -181,7 +191,9 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
         });
 
         // If any data is present then write it to the request options body
-        if (data) {
+        if (requestOptions.body) {
+          const dataSize = Buffer.byteLength(JSON.stringify(data));
+          speed(dataSize);
           request.write(requestOptions.body);
           return request.end();
         }
@@ -237,9 +249,8 @@ const handleResponse = (response, resolve, reject, redirectCount = 5, originalUr
     responseObject.data = connectionInfoObject;
     responseObject.status = null;
     responseObject.statusText = null;
-    for (const key in response.headers) {
-      responseObject.responseHeaders[key] = response.headers[key];
-    }
+    responseObject.responseHeaders = {};
+    responseObject.transferSpeed = `Unavailable for '${method}' request!`;
     // Emitter for the 'afterRequest' event
     emitter.emit("afterRequest", originalUrl, responseObject);
     return resolve(responseObject)
@@ -255,11 +266,12 @@ const handleResponse = (response, resolve, reject, redirectCount = 5, originalUr
 
   response.on('data', (chunk) => {
     totalBytes += chunk.length;
+    currentTransferSpeed = speed(chunk.length); // Update speedometer with the size of the received chunk
     return buffers.push(chunk);
   });
-
   // Handling the ending of response
   response.on('end', async () => {
+    const transferSpeed = speed(totalBytes); // Get the transfer speed
     // Commenting out the 'contentType' variable to reduce memory usage and thus improve performance
     // const contentType = response.headers['content-type'];
     const concatedBuffers = Buffer.concat(buffers);
@@ -290,6 +302,7 @@ const handleResponse = (response, resolve, reject, redirectCount = 5, originalUr
     responseObject.responseSize = response.headers['content-length'] ? formatBytes(response.headers['content-length']) : formatBytes(totalBytes);
     responseObject.status = response.statusCode;
     responseObject.statusText = mapStatusCodes(response.statusCode).message;
+    responseObject.transferSpeed =  transferSpeed !== undefined ? `${formatBytes(transferSpeed)} /second` : `Unavailable for '${method}' request!`;
     // Emitter for the 'afterRequest' event
     emitter.emit("afterRequest", originalUrl, responseObject);
     // Resolve with the 'responseObject' finally
@@ -518,6 +531,22 @@ const reverse_dns = async (ip) => {
   return await reverseLookupForIp(ip);
 }
 
+/**
+ * Customizes the speedometer to calculate the max data rate
+ * 
+ * @param {Number} [dataCount = 10]
+ * @param {Number} [rate = 1000]
+ */
+const speedometer = (dataCount, rate) => {
+  userSamplesCount = dataCount ? dataCount : 10;
+  userMin = rate ? rate : 1000;
+
+  return {
+    'data-count': userSamplesCount,
+    'rate': userMin
+  }
+}
+
 // Exporting all the required modules.
 // For type definitions check -> 'typings/index.d.ts' file.
 module.exports = {
@@ -640,6 +669,7 @@ module.exports = {
     return _makeRequest(method, url, data, headers, redirectCount, timeout);
   },
   parse_url,
+  speedometer,
   STATUS_CODES: status_codes,
   methods,
   ABOUT: about,

@@ -84,6 +84,7 @@ blazed.get(url, headers)
     // - statusText
     // - requestHeaders
     // - responseSize
+    // - transferSpeed
   })
   .catch(error => {
     console.error(error);
@@ -102,6 +103,7 @@ It's actually quite similar to the native fetch api, node-fetch and axios
     "data": string, // Server response data
     "status": number, // Status code of the response
     "statusText": string, // Status text of the status code received from the server
+    "transferSpeed": string, // Transfer speed of data (formatted)
     "responseSize": string, // Server response buffer size (formatted)
     "responseHeaders": object,  // All response headers
     "requestHeaders": object // All request headers
@@ -116,6 +118,7 @@ When logging the response, you can access these properties as follows:
 - `response.responseHeaders`: All response headers
 - `response.requestHeaders`: All request headers
 - `response.responseSize`: Server response buffer size (formatted)
+- `response.transferSpeed`: Transfer speed of data (formatted)
 
 
 # POST Request
@@ -144,6 +147,7 @@ blazed.post(url, postData, headers)
     // - statusText
     // - requestHeaders
     // - responseSize
+    // - transferSpeed
   })
   .catch(error => {
     console.error(error);
@@ -171,6 +175,7 @@ blazed.delete(url, headers)
     // - statusText
     // - requestHeaders
     // - responseSize
+    // - transferSpeed
   })
   .catch(error => {
     console.error(error);
@@ -206,6 +211,7 @@ blazed.put(url, putData, headers)
     // - statusText
     // - requestHeaders
     // - responseSize
+    // - transferSpeed
   })
   .catch(error => {
     console.error(error);
@@ -232,6 +238,7 @@ blazed.patch(url, patchData, headers)
     // - statusText
     // - requestHeaders
     // - responseSize
+    // - transferSpeed
   })
  .catch(error => {
     console.error(error);
@@ -256,6 +263,7 @@ blazed.head(url, headers)
     // - statusText
     // - requestHeaders
     // - responseSize
+    // - transferSpeed
   })
  .catch(error => {
     console.error(error);
@@ -280,6 +288,7 @@ blazed.options(url, headers)
     // - statusText
     // - requestHeaders
     // - responseSize
+    // - transferSpeed
   })
  .catch(error => {
     console.error(error);
@@ -304,6 +313,7 @@ blazed.connect(url, headers)
     // - statusText
     // - requestHeaders
     // - responseSize
+    // - transferSpeed
   })
  .catch(error => {
     console.error(error);
@@ -359,6 +369,7 @@ blazed.trace(url, headers)
     // - statusText
     // - requestHeaders
     // - responseSize
+    // - transferSpeed
   })
  .catch(error => {
     console.error(error);
@@ -393,6 +404,7 @@ blazed.request({
     // - statusText
     // - requestHeaders
     // - responseSize
+    // - transferSpeed
 })
 .catch(err => {
     return console.error(err);
@@ -432,6 +444,24 @@ blazed.get() // Will send GET request to the Github Api.
 ```
 
 The above function will throw an error if the values aren't boolean ,i.e, true/false.
+
+# HTTP Request Speedometer
+
+Here’s an improved version of your text that enhances clarity and flow:
+
+---
+
+`blazed.js` offers a user-friendly way to measure the maximum data flow rate during HTTP requests.
+
+While you can customize the speedometer by calling the `blazed.speedometer()` method, it's important to note that a default speedometer is already set up for you. This method is primarily intended for customization.
+
+Once configured, you can easily monitor the data flow rate by accessing the `transferSpeed` property of the `response object`.
+
+
+```js
+blazed.speedometer(10, 1000);
+// 10 samples per second (1000 ms)
+```
 
 # HTTP Request Cancellation
 
