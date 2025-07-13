@@ -447,9 +447,6 @@ The above function will throw an error if the values aren't boolean ,i.e, true/f
 
 # HTTP Request Speedometer
 
-Here’s an improved version of your text that enhances clarity and flow:
-
----
 
 `blazed.js` offers a user-friendly way to measure the maximum data flow rate during HTTP requests.
 
