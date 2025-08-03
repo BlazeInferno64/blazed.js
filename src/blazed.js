@@ -4,7 +4,7 @@
 // 1. BlazeInferno64 -> https://github.com/blazeinferno64
 // 2. Sud3ep -> https://github.com/Sud3ep
 //
-// Last updated: 13/07/2025
+// Last updated: 26/07/2025
 
 "use strict";
 
@@ -55,8 +55,9 @@ compareNodeVersion();
  * @param {any} data 
  * @param {object} headers 
  * @param {number} redirectCount 
- * @returns {void}
-*/
+ * @param {number} timeout
+ * @returns {Promise<Object>}
+ */
 
 // Make request function to perform the HTTP request!
 const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeout = 5000) => {
@@ -225,7 +226,7 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
  */
 
 // Response handler function
-const handleResponse = (response, resolve, reject, redirectCount = 5, originalUrl, data, method, headers, reqOptions, request, connectionInfoObject) => {
+const handleResponse = async (response, resolve, reject, redirectCount = 5, originalUrl, data, method, headers, reqOptions, request, connectionInfoObject) => {
   const resObject = {
     pipe: (stream) => response.pipe(stream),
     destroy: () => response.destroy(),
@@ -302,7 +303,7 @@ const handleResponse = (response, resolve, reject, redirectCount = 5, originalUr
     responseObject.responseSize = response.headers['content-length'] ? formatBytes(response.headers['content-length']) : formatBytes(totalBytes);
     responseObject.status = response.statusCode;
     responseObject.statusText = mapStatusCodes(response.statusCode).message;
-    responseObject.transferSpeed =  transferSpeed !== undefined ? `${formatBytes(transferSpeed)} /second` : `Unavailable for '${method}' request!`;
+    responseObject.transferSpeed = transferSpeed !== undefined ? `${formatBytes(transferSpeed)} /second` : `Unavailable for '${method}' request!`;
     // Emitter for the 'afterRequest' event
     emitter.emit("afterRequest", originalUrl, responseObject);
     // Resolve with the 'responseObject' finally
@@ -323,6 +324,19 @@ const handleResponse = (response, resolve, reject, redirectCount = 5, originalUr
           await utilErrors.processError(err, originalUrl, false, false, false, method, reject);
         });
       }
+
+      // Parse and validate the redirect URL
+      let parsedRedirectUrl = redirectUrl;
+      try {
+        parsedRedirectUrl = await urlParser.parseThisURL(redirectUrl, method);
+      } catch (error) {
+        return reject(new Error(`Invalid redirect URL: ${redirectUrl}`));
+      }
+      
+      if (!supportedSchemas.has(parsedRedirectUrl.protocol)) {
+        return reject(new Error(`Redirect to unsupported protocol: ${parsedRedirectUrl.protocol}`));
+      }
+      
       const redirObj = {
         "OriginalURL": originalUrl,
         "RedirectURL": redirectUrl
