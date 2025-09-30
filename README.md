@@ -79,6 +79,7 @@ blazed.get(url, headers)
     console.log(response);
     // Response object contains:
     // - data
+    // - duration
     // - responseHeaders
     // - status
     // - statusText
@@ -113,6 +114,7 @@ It's actually quite similar to the native fetch api, node-fetch and axios
 When logging the response, you can access these properties as follows:
 
 - `response.data`: Server response data
+- `response.duration`: Total duration of the request (in ms)
 - `response.status`: Status code of the response
 - `response.statusText`: Status text of the status code received from the server
 - `response.responseHeaders`: All response headers
@@ -142,6 +144,7 @@ blazed.post(url, postData, headers)
     console.log(response);
     // Response object contains:
     // - data
+    // - duration
     // - responseHeaders
     // - status
     // - statusText
@@ -170,6 +173,7 @@ blazed.delete(url, headers)
     console.log(response);
     // Response object contains:
     // - data
+    // - duration
     // - responseHeaders
     // - status
     // - statusText
@@ -206,6 +210,7 @@ blazed.put(url, putData, headers)
     console.log(response);
     // Response object contains:
     // - data
+    // - duration
     // - responseHeaders
     // - status
     // - statusText
@@ -233,6 +238,7 @@ blazed.patch(url, patchData, headers)
     console.log(response);
     // Response object contains:
     // - data
+    // - duration
     // - responseHeaders
     // - status
     // - statusText
@@ -258,6 +264,7 @@ blazed.head(url, headers)
     console.log(response);
     // Response object contains:
     // - data
+    // - duration
     // - responseHeaders
     // - status
     // - statusText
@@ -283,6 +290,7 @@ blazed.options(url, headers)
     console.log(response);
     // Response object contains:
     // - data
+    // - duration
     // - responseHeaders
     // - status
     // - statusText
@@ -308,6 +316,7 @@ blazed.connect(url, headers)
     console.log(response);
     // Response object contains:
     // - data (contains the connection info object)
+    // - duration
     // - responseHeaders
     // - status
     // - statusText
@@ -364,6 +373,7 @@ blazed.trace(url, headers)
     console.log(response);
     // Response object contains:
     // - data
+    // - duration
     // - responseHeaders
     // - status
     // - statusText
@@ -399,6 +409,7 @@ blazed.request({
     return console.log(response);
     // Response object contains:
     // - data
+    // - duration
     // - responseHeaders
     // - status
     // - statusText

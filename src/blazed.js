@@ -4,7 +4,7 @@
 // 1. BlazeInferno64 -> https://github.com/blazeinferno64
 // 2. Sud3ep -> https://github.com/Sud3ep
 //
-// Last updated: 27/09/2025
+// Last updated: 30/09/2025
 
 "use strict";
 
@@ -21,8 +21,6 @@ const headerParser = require("./utils/plugins/headers");
 const utilErrors = require("./utils/errors/errors");
 const { lookupForIp, reverseLookupForIp } = require("./utils/dns/dns");
 
-const { retryRequest } = require("./utils/plugins/retry")
-const { speedoMeter } = require("./utils/plugins/speedometer");
 const { mapStatusCodes } = require("./utils/plugins/status-mapper");
 const { formatBytes } = require("./utils/plugins/math");
 const { HTTP_METHODS, supportedSchemas, validateBooleanOption, compareNodeVersion } = require("./utils/plugins/base");
@@ -32,11 +30,6 @@ const packageJson = require("../package.json");
 
 let custom;
 
-let currentTransferSpeed = 0; // For future usage
-let userSamplesCount;
-let userMin;
-let speed;
-
 let currentController = null; // Global variable to hold the current AbortController
 
 let xReqWith = false;
@@ -44,6 +37,8 @@ let userAgent = false;
 let jsonParser = true;
 
 let defaultURL = null;
+
+let startTime = null;
 
 // Compare version
 compareNodeVersion();
@@ -56,182 +51,153 @@ compareNodeVersion();
  * @param {any} data 
  * @param {object} headers 
  * @param {number} redirectCount 
- * @param {number} timeout
- * @returns {Promise<Object>}
- */
+ * @returns {void}
+*/
 
 // Make request function to perform the HTTP request!
-const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeout = 5000, retries = 3, delay = 500) => {
+const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeout = 5000) => {
   // Create a new AbortController instance for each request
   currentController = new AbortController();
   const { signal } = currentController;
 
-  // Initializes the speedometer with the defined values
-  speed = speedoMeter(userSamplesCount, userMin);
-
-  let attempt = 0;
-
   return new Promise((resolve, reject) => {
-    const tryRequest = async () => {
-      attempt++;
-      // const requestUrl = url || defaultURL;
-        // Use the provided URL if it exists otherwise, use defaultURL
-        const requestUrl = url || defaultURL;
-        try {
-          const parsedURL = await urlParser.parseThisURL(requestUrl, method);
-          // Validate whether it has supported protocol or not.
-          if (!supportedSchemas.has(parsedURL.protocol)) {
-            throw new Error(`${packageJson ? packageJson.name : 'blazed.js'} cannot load the given url '${requestUrl}'. URL scheme "${parsedURL.protocol.replace(/:$/, '')}" is not supported.`)
-          }
-          // Handle 'data:' URLs directly
-          if (parsedURL.protocol === 'data:') {
-            const myData = dataUriToBuffer(requestUrl);
-            const contentType = myData.typeFull || 'application/octet-stream'; // a generic binary data type
-            const dataSize = myData.buffer?.byteLength || myData.length || 0;
-            const responseObject = {
-              data: myData,
-              status: 200,
-              statusText: mapStatusCodes(200).message,
-              responseSize: formatBytes(dataSize),
-              responseHeaders: {
-                'Content-Type': contentType
-              },
-              requestHeaders: headers
-            };
-            // How to decode it ?
-            // Its easy just follow below steps -
-            //
-            // const parsed = new TextDecoder(response.data.buffer.ArrayBuffer);
-            //
-            // console.log(parsed);
-            //
-            return resolve(responseObject);
-          }
-          // Validate every HTTP headers provided by the user
-          for (const key in headers) {
-            await headerParser.parseThisHeaderName(key);
-          }
-          // Set the HTTP module depending upon the url protocol provided
-          const httpModule = parsedURL.protocol === 'https:' ? https : http;
-          // Create a 'keep-alive' connection to improve performance.
-          const agent = new httpModule.Agent({
-            keepAlive: true
-          });
-          // Define 'requestOptions' object.
-          const requestOptions = {
-            method,
-            headers: {
-              'Content-Type': 'application/json',
-              'Connection': 'keep-alive',
-              'Cache-Control': 'no-cache',
-              'Content-Length': 0,
-              ...headers, // Spread the user-provided headers
-            },
-            agent, // Add the 'keep-alive' connection here.
-            signal // Add the signal to the request options.
-          };
-
-          // Remove Content-Length and Content-Type headers for GET or HEAD requests
-          if (method === 'GET' || method === 'HEAD') {
-            delete requestOptions.headers['Content-Length'];
-            delete requestOptions.headers['Content-Type'];
-          }
-
-          // Since some web servers block HTTP requests without 'User-Agent' header
-          // Therefore add a custom User-Agent header by default if not provided
-          if (!requestOptions.headers['User-Agent'] && !userAgent) {
-            requestOptions.headers['User-Agent'] = packageJson ? `${packageJson.name}/v${packageJson.version}` : 'blazed.js';
-          }
-          // Optionally add another HTTP header named 'X-Requested-With'
-          if (!requestOptions.headers['X-Requested-With'] && !xReqWith) {
-            requestOptions.headers['X-Requested-With'] = `${packageJson ? packageJson.name : 'blazed.js'}`;
-          }
-          // Also if any data is present then add some extra headers to the HTTP request
-          if (data) {
-            const body = data;
-            requestOptions.headers['Content-Length'] = Buffer.byteLength(JSON.stringify(body));
-            requestOptions.body = JSON.stringify(body);
-          }
-
-          // Event Emitter for 'beforeRequest' event
-          emitter.emit("beforeRequest", requestUrl, requestOptions);
-
-          // Main request part of blazed.js for handling any ongoing requests
-          const request = httpModule.request(parsedURL, requestOptions, (response) => {
-            handleResponse(response, resolve, reject, redirectCount = 5, requestUrl, data, method, headers, requestOptions, request, parsedURL);
-          });
-
-          // Set Request timeout
-          request.setTimeout(timeout);
-
-          // Define a request object named 'reqObj' which will be used to control the requests in a more efficient way
-          const reqObject = {
-            destroy: () => request.destroy(),
-            host: request.host,
-            message: `Request object emitted by the 'request' event`
-          }
-
-          // Event emitter for the 'request' event, with the request object
-          emitter.emit("request", reqObject);
-
-          // Handle the response when the request finishes
-          request.on("finish", async () => {
-            if (method === HTTP_METHODS.CONNECT) {
-              const info = await urlParser.parseThisURL(requestUrl);
-              const connectionInfo = {
-                message: `Connection successful to "${url}"`,
-                protocol: info.protocol.replace(":", ""),
-                remoteAddress: request.socket.remoteAddress,
-                remotePort: request.socket.remotePort,
-                localAddress: request.socket.localAddress,
-                localFamily: request.socket.localFamily,
-                localPort: request.socket.localPort
-              };
-              return handleResponse("", resolve, reject, redirectCount, requestUrl, data, method, headers, requestOptions, request, connectionInfo);
-            }
-          });
-
-          request.on('error', async (error) => {
-            // Retry logic on error
-            if (attempt <= retries) {
-              setTimeout(tryRequest, delay * Math.pow(2, attempt - 1)); // Exponential backoff
-            }
-            else {
-              // Process the http error using the 'utilErrors' util tool.
-              return await utilErrors.processError(error, requestUrl, null, null, null, method, reject);
-            }
-          });
-
-          // If any data is present then write it to the request options body
-          if (requestOptions.body) {
-            const dataSize = Buffer.byteLength(JSON.stringify(data));
-            speed(dataSize);
-            request.write(requestOptions.body);
-            return request.end();
-          }
-
-          // Finally end the ongoing HTTP request
-          return request.end();
-        } catch (error) {
-          //return await utilErrors.processError(error, requestUrl, null, null, null, method, reject);
-          // Retry logic on synchronous error
-          if (attempt <= retries) {
-            setTimeout(tryRequest, delay * Math.pow(2, attempt - 1));
-          } else {
-            return await utilErrors.processError(error, requestUrl, null, null, null, method, reject);
-          }
+    (async () => {
+      startTime = Date.now();
+      // Use the provided URL if it exists otherwise, use defaultURL
+      const requestUrl = url || defaultURL;
+      try {
+        const parsedURL = await urlParser.parseThisURL(requestUrl, method);
+        // Validate whether it has supported protocol or not.
+        if (!supportedSchemas.has(parsedURL.protocol)) {
+          throw new Error(`${packageJson ? packageJson.name : 'blazed.js'} cannot load the given url '${requestUrl}'. URL scheme "${parsedURL.protocol.replace(/:$/, '')}" is not supported.`)
         }
-    };
-    tryRequest();
-  });
-};
+        // Handle 'data:' URLs directly
+        if (parsedURL.protocol === 'data:') {
+          const myData = dataUriToBuffer(requestUrl);
+          const contentType = myData.typeFull || 'application/octet-stream'; // a generic binary data type
+          const dataSize = myData.buffer?.byteLength || myData.length || 0;
+          const responseObject = {
+            data: myData,
+            status: 200,
+            statusText: mapStatusCodes(200).message,
+            responseSize: formatBytes(dataSize),
+            transferSpeed: null,
+            duration: Date.now() - startTime, // <-- This indicates the response time duration in ms.
+            responseHeaders: {
+              'Content-Type': contentType
+            },
+            requestHeaders: headers
+          };
+          // How to decode it ?
+          // Its easy just follow below steps -
+          //
+          // const parsed = new TextDecoder(response.data.buffer.ArrayBuffer);
+          //
+          // console.log(parsed);
+          //
+          return resolve(responseObject);
+        }
+        // Validate every HTTP headers provided by the user
+        for (const key in headers) {
+          await headerParser.parseThisHeaderName(key);
+        }
+        // Set the HTTP module depending upon the url protocol provided
+        const httpModule = parsedURL.protocol === 'https:' ? https : http;
+        // Create a 'keep-alive' connection to improve performance.
+        const agent = new httpModule.Agent({
+          keepAlive: true
+        });
+        // Define 'requestOptions' object.
+        const requestOptions = {
+          method,
+          headers: {
+            'Content-Type': 'application/json',
+            'Connection': 'keep-alive',
+            'Cache-Control': 'no-cache',
+            'Content-Length': 0,
+            ...headers, // Spread the user-provided headers
+          },
+          agent, // Add the 'keep-alive' connection here.
+          signal // Add the signal to the request options.
+        };
 
-const _makeRequestWithRetry = (method, url, data, headers = {}, redirectCount = 5, timeout = 5000, retries = 3, delay = 500) => {
-  return retryRequest(
-    () => _makeRequest(method, url, data, headers, redirectCount, timeout),
-    retries,
-    delay
-  );
+        // Remove Content-Length and Content-Type headers for GET or HEAD requests
+        if (method === 'GET' || method === 'HEAD') {
+          delete requestOptions.headers['Content-Length'];
+          delete requestOptions.headers['Content-Type'];
+        }
+
+        // Since some web servers block HTTP requests without 'User-Agent' header
+        // Therefore add a custom User-Agent header by default if not provided
+        if (!requestOptions.headers['User-Agent'] && !userAgent) {
+          requestOptions.headers['User-Agent'] = packageJson ? `${packageJson.name}/v${packageJson.version}` : 'blazed.js';
+        }
+        // Optionally add another HTTP header named 'X-Requested-With'
+        if (!requestOptions.headers['X-Requested-With'] && !xReqWith) {
+          requestOptions.headers['X-Requested-With'] = `${packageJson ? packageJson.name : 'blazed.js'}`;
+        }
+        // Also if any data is present then add some extra headers to the HTTP request
+        if (data) {
+          requestOptions.headers['Content-Length'] = Buffer.byteLength(JSON.stringify(data));
+          requestOptions.body = JSON.stringify(data);
+        }
+
+        // Event Emitter for 'beforeRequest' event
+        emitter.emit("beforeRequest", requestUrl, requestOptions);
+
+        // Main request part of blazed.js for handling any ongoing requests
+        const request = httpModule.request(parsedURL, requestOptions, (response) => {
+          handleResponse(response, resolve, reject, redirectCount = 5, requestUrl, data, method, headers, requestOptions, request, parsedURL, timeout);
+        });
+
+        // Set Request timeout
+        request.setTimeout(timeout);
+
+        // Define a request object named 'reqObj' which will be used to control the requests in a more efficient way
+        const reqObject = {
+          destroy: () => request.destroy(),
+          host: request.host,
+          message: `Request object emitted by the 'request' event`
+        }
+
+        // Event emitter for the 'request' event, with the request object
+        emitter.emit("request", reqObject);
+
+        // Handle the response when the request finishes
+        request.on("finish", async () => {
+          if (method === HTTP_METHODS.CONNECT) {
+            const info = await urlParser.parseThisURL(requestUrl);
+            const connectionInfo = {
+              message: `Connection successful to "${url}"`,
+              protocol: info.protocol.replace(":", ""),
+              remoteAddress: request.socket.remoteAddress,
+              remotePort: request.socket.remotePort,
+              localAddress: request.socket.localAddress,
+              localFamily: request.socket.localFamily,
+              localPort: request.socket.localPort
+            };
+            return handleResponse("", resolve, reject, redirectCount, requestUrl, data, method, headers, requestOptions, request, connectionInfo, timeout);
+          }
+        });
+
+        request.on('error', async (error) => {
+          // Process the http error using the 'utilErrors' util tool.
+          return await utilErrors.processError(error, requestUrl, null, null, null, method, reject);
+        });
+
+        // If any data is present then write it to the request options body
+        if (data) {
+          request.write(requestOptions.body);
+          return request.end();
+        }
+
+        // Finally end the ongoing HTTP request
+        return request.end();
+      } catch (error) {
+        return await utilErrors.processError(error, requestUrl, null, null, null, method, reject);
+      }
+    })();
+  });
 };
 
 /**
@@ -248,11 +214,12 @@ const _makeRequestWithRetry = (method, url, data, headers = {}, redirectCount = 
  * @param {*} reqOptions - The request options.
  * @param {*} request - The request object.
  * @param {*} connectionInfoObject - The connection info object (if applicable).
+ * @param {*} timeout - The timeout duration for the request.
  * @returns {*} - The response object.
  */
 
 // Response handler function
-const handleResponse = async (response, resolve, reject, redirectCount = 5, originalUrl, data, method, headers, reqOptions, request, connectionInfoObject) => {
+const handleResponse = (response, resolve, reject, redirectCount = 5, originalUrl, data, method, headers, reqOptions, request, connectionInfoObject, timeout) => {
   const resObject = {
     pipe: (stream) => response.pipe(stream),
     destroy: () => response.destroy(),
@@ -269,6 +236,7 @@ const handleResponse = async (response, resolve, reject, redirectCount = 5, orig
     "statusText": "",
     "responseSize": "0 Bytes",
     "responseHeaders": {},
+    "duration": "",
     "requestHeaders": reqOptions.headers
   }
 
@@ -276,8 +244,10 @@ const handleResponse = async (response, resolve, reject, redirectCount = 5, orig
     responseObject.data = connectionInfoObject;
     responseObject.status = null;
     responseObject.statusText = null;
-    responseObject.responseHeaders = {};
-    responseObject.transferSpeed = `Unavailable for '${method}' request!`;
+    responseObject.duration = Date.now() - startTime; // <-- This indicates the response time duration in ms.
+    for (const key in response.headers) {
+      responseObject.responseHeaders[key] = response.headers[key];
+    }
     // Emitter for the 'afterRequest' event
     emitter.emit("afterRequest", originalUrl, responseObject);
     return resolve(responseObject)
@@ -293,12 +263,11 @@ const handleResponse = async (response, resolve, reject, redirectCount = 5, orig
 
   response.on('data', (chunk) => {
     totalBytes += chunk.length;
-    currentTransferSpeed = speed(chunk.length); // Update speedometer with the size of the received chunk
     return buffers.push(chunk);
   });
+
   // Handling the ending of response
   response.on('end', async () => {
-    const transferSpeed = speed(totalBytes); // Get the transfer speed
     // Commenting out the 'contentType' variable to reduce memory usage and thus improve performance
     // const contentType = response.headers['content-type'];
     const concatedBuffers = Buffer.concat(buffers);
@@ -329,7 +298,7 @@ const handleResponse = async (response, resolve, reject, redirectCount = 5, orig
     responseObject.responseSize = response.headers['content-length'] ? formatBytes(response.headers['content-length']) : formatBytes(totalBytes);
     responseObject.status = response.statusCode;
     responseObject.statusText = mapStatusCodes(response.statusCode).message;
-    responseObject.transferSpeed = transferSpeed !== undefined ? `${formatBytes(transferSpeed)} /second` : `Unavailable for '${method}' request!`;
+    responseObject.duration = Date.now() - startTime; // <-- This indicates the response time duration in ms.
     // Emitter for the 'afterRequest' event
     emitter.emit("afterRequest", originalUrl, responseObject);
     // Resolve with the 'responseObject' finally
@@ -350,19 +319,6 @@ const handleResponse = async (response, resolve, reject, redirectCount = 5, orig
           await utilErrors.processError(err, originalUrl, false, false, false, method, reject);
         });
       }
-
-      // Parse and validate the redirect URL
-      let parsedRedirectUrl = redirectUrl;
-      try {
-        parsedRedirectUrl = await urlParser.parseThisURL(redirectUrl, method);
-      } catch (error) {
-        return reject(new Error(`Invalid redirect URL: ${redirectUrl}`));
-      }
-
-      if (!supportedSchemas.has(parsedRedirectUrl.protocol)) {
-        return reject(new Error(`Redirect to unsupported protocol: ${parsedRedirectUrl.protocol}`));
-      }
-
       const redirObj = {
         "OriginalURL": originalUrl,
         "RedirectURL": redirectUrl
@@ -373,7 +329,7 @@ const handleResponse = async (response, resolve, reject, redirectCount = 5, orig
 
       // Redirect logic
       // Use the handleRedirect function
-      return resolve(handleRedirect(method, redirectUrl, data, headers, redirectCount));
+      return resolve(handleRedirect(method, redirectUrl, data, headers, redirectCount, timeout));
     } else {
       const error = 'REDIRECT_ERR';
       custom = true;
@@ -386,8 +342,8 @@ const handleResponse = async (response, resolve, reject, redirectCount = 5, orig
 };
 
 // Function to handle redirects
-const handleRedirect = (method, redirectUrl, data, headers, redirectCount) => {
-  return _makeRequest(method, redirectUrl, data, headers, redirectCount - 1);
+const handleRedirect = (method, redirectUrl, data, headers, redirectCount, timeout) => {
+  return _makeRequest(method, redirectUrl, data, headers, redirectCount - 1, timeout);
 };
 
 /**
@@ -571,22 +527,6 @@ const reverse_dns = async (ip) => {
   return await reverseLookupForIp(ip);
 }
 
-/**
- * Customizes the speedometer to calculate the max data rate
- * 
- * @param {Number} [dataCount = 10]
- * @param {Number} [rate = 1000]
- */
-const speedometer = (dataCount, rate) => {
-  userSamplesCount = dataCount ? dataCount : 10;
-  userMin = rate ? rate : 1000;
-
-  return {
-    'data-count': userSamplesCount,
-    'rate': userMin
-  }
-}
-
 // Exporting all the required modules.
 // For type definitions check -> 'typings/index.d.ts' file.
 module.exports = {
@@ -597,11 +537,9 @@ module.exports = {
    * @param {Object} headers Optional headers to include in the request.
    * @param {number} redirectCount Optional parameter to limit the number of redirects (default: 5).
    * @param {number} timeout Optional timeout parameter for the HTTP request (default: 5000 ms).
-   * @param {number} retries Optional number of retries for failed requests (default: 3).
-   * @param {number} delay Optional delay between retries in ms (default: 500).
    * @returns {Promise<{ data: *, status: number, responseHeaders: { [key: string]: string }, requestHeaders: { [key: string]: string }, responseSize: string }>} A promise that resolves with the response data.
   */
-  get: (url, headers, redirectCount, timeout, retries, delay) => _makeRequest(HTTP_METHODS.GET, url, null, headers, redirectCount, timeout, retries = 3, delay = 500),
+  get: (url, headers, redirectCount, timeout) => _makeRequest(HTTP_METHODS.GET, url, null, headers, redirectCount, timeout),
 
   /**
    * Performs an HTTP HEAD request.
@@ -609,11 +547,9 @@ module.exports = {
    * @param {Object} headers Optional headers to include in the request.
    * @param {number} redirectCount Optional parameter to limit the number of redirects (default: 5).
    * @param {number} timeout Optional timeout parameter for the HTTP request (default: 5000 ms).
-   * @param {number} retries Optional number of retries for failed requests (default: 3).
-   * @param {number} delay Optional delay between retries in ms (default: 500).
    * @returns {Promise<{ data: *, status: number, responseHeaders: { [key: string]: string }, requestHeaders: { [key: string]: string }, responseSize: string }>} A promise that resolves with the response data.
   */
-  head: (url, headers, redirectCount, timeout, retries, delay) => _makeRequest(HTTP_METHODS.HEAD, url, null, headers, redirectCount, timeout, retries = 3, delay = 500),
+  head: (url, headers, redirectCount, timeout) => _makeRequest(HTTP_METHODS.HEAD, url, null, headers, redirectCount, timeout),
 
   /**
    * Performs an HTTP POST request.
@@ -621,11 +557,9 @@ module.exports = {
    * @param {Object} data The data to send in the request body (should be JSON-serializable).
    * @param {Object} headers Optional headers to include in the request.
    * @param {number} timeout Optional timeout parameter for the HTTP request (default: 5000 ms).
-   * @param {number} retries Optional number of retries for failed requests (default: 3).
-   * @param {number} delay Optional delay between retries in ms (default: 500).
    * @returns {Promise<{ data: *, status: number, responseHeaders: { [key: string]: string }, requestHeaders: { [key: string]: string }, responseSize: string }>} A promise that resolves with the response data.
   */
-  post: (url, data, headers, redirectCount, timeout, retries, delay) => _makeRequest(HTTP_METHODS.POST, url, data, headers, redirectCount, timeout, retries = 3, delay = 500),
+  post: (url, data, headers, redirectCount, timeout) => _makeRequest(HTTP_METHODS.POST, url, data, headers, redirectCount, timeout),
 
   /**
    * Performs an HTTP PUT request.
@@ -633,22 +567,18 @@ module.exports = {
    * @param {Object} data The data to send in the request body (should be JSON-serializable).
    * @param {Object} headers Optional headers to include in the request.
    * @param {number} timeout Optional timeout parameter for the HTTP request (default: 5000 ms).
-   * @param {number} retries Optional number of retries for failed requests (default: 3).
-   * @param {number} delay Optional delay between retries in ms (default: 500).
    * @returns {Promise<{ data: *, status: number, responseHeaders: { [key: string]: string }, requestHeaders: { [key: string]: string }, responseSize: string }>} A promise that resolves with the response data.
   */
-  put: (url, data, headers, redirectCount, timeout, retries, delay) => _makeRequest(HTTP_METHODS.PUT, url, data, headers, redirectCount, timeout, retries = 3, delay = 500),
+  put: (url, data, headers, redirectCount, timeout) => _makeRequest(HTTP_METHODS.PUT, url, data, headers, redirectCount, timeout),
 
   /**
    * Performs an HTTP DELETE request.
    * @param {string} url The URL to send the DELETE request to.
    * @param {Object} headers Optional headers to include in the request.
    * @param {number} timeout Optional timeout parameter for the HTTP request (default: 5000 ms).
-   * @param {number} retries Optional number of retries for failed requests (default: 3).
-   * @param {number} delay Optional delay between retries in ms (default: 500).
    * @returns {Promise<{ data: *, status: number, responseHeaders: { [key: string]: string }, requestHeaders: { [key: string]: string }, responseSize: string }>} A promise that resolves with the response data.
   */
-  delete: (url, headers, redirectCount, timeout, retries, delay) => _makeRequest(HTTP_METHODS.DELETE, url, null, headers, redirectCount, timeout, retries = 3, delay = 500),
+  delete: (url, headers, redirectCount, timeout) => _makeRequest(HTTP_METHODS.DELETE, url, null, headers, redirectCount, timeout),
 
   /**
    * Performs an HTTP CONNECT request.
@@ -656,11 +586,9 @@ module.exports = {
    * @param {Object} headers Optional headers to include in the request.
    * @param {number} redirectCount Optional parameter to limit the number of redirects (default: 5).
    * @param {number} timeout Optional timeout parameter for the HTTP request (default: 5000 ms).
-   * @param {number} retries Optional number of retries for failed requests (default: 3).
-   * @param {number} delay Optional delay between retries in ms (default: 500).
    * @returns {Promise<{ data: *, status: number, responseHeaders: { [key: string]: string }, requestHeaders: { [key: string]: string }, responseSize: string }>} A promise that resolves with the response data.
   */
-  connect: (url, headers, redirectCount, timeout, retries, delay) => _makeRequest(HTTP_METHODS.CONNECT, url, null, headers, redirectCount, timeout, retries = 3, delay = 500),
+  connect: (url, headers, redirectCount, timeout) => _makeRequest(HTTP_METHODS.CONNECT, url, null, headers, redirectCount, timeout),
 
   /**
    * Performs an HTTP OPTIONS request.
@@ -668,11 +596,9 @@ module.exports = {
    * @param {Object} headers Optional headers to include in the request.
    * @param {number} redirectCount Optional parameter to limit the number of redirects (default: 5).
    * @param {number} timeout Optional timeout parameter for the HTTP request (default: 5000 ms).
-   * @param {number} retries Optional number of retries for failed requests (default: 3).
-   * @param {number} delay Optional delay between retries in ms (default: 500).
    * @returns {Promise<{ data: *, status: number, responseHeaders: { [key: string]: string }, requestHeaders: { [key: string]: string }, responseSize: string }>} A promise that resolves with the response data.
   */
-  options: (url, headers, redirectCount, timeout, retries, delay) => _makeRequest(HTTP_METHODS.OPTIONS, url, null, headers, redirectCount, timeout, retries = 3, delay = 500),
+  options: (url, headers, redirectCount, timeout) => _makeRequest(HTTP_METHODS.OPTIONS, url, null, headers, redirectCount, timeout),
 
   /**
    * Performs an HTTP TRACE request.
@@ -680,23 +606,18 @@ module.exports = {
    * @param {Object} headers Optional headers to include in the request.
    * @param {number} redirectCount Optional parameter to limit the number of redirects (default: 5).
    * @param {number} timeout Optional timeout parameter for the HTTP request (default: 5000 ms).
-   * @param {number} retries Optional number of retries for failed requests (default: 3).
-   * @param {number} delay Optional delay between retries in ms (default: 500).
    * @returns {Promise<{ data: *, status: number, responseHeaders: { [key: string]: string }, requestHeaders: { [key: string]: string }, responseSize: string }>} A promise that resolves with the response data.
   */
-  trace: (url, headers, redirectCount, timeout, retries, delay) => _makeRequest(HTTP_METHODS.TRACE, url, null, headers, redirectCount, timeout, retries = 3, delay = 500),
+  trace: (url, headers, redirectCount, timeout) => _makeRequest(HTTP_METHODS.TRACE, url, null, headers, redirectCount, timeout),
 
   /**
    * Performs an HTTP PATCH request.
    * @param {string} url The URL to send the DELETE request to.
-   * @param {Object} data The data to send in the request body (should be JSON-serializable).
    * @param {Object} headers Optional headers to include in the request.
    * @param {number} timeout Optional timeout parameter for the HTTP request (default: 5000 ms).
-   * @param {number} retries Optional number of retries for failed requests (default: 3).
-   * @param {number} delay Optional delay between retries in ms (default: 500).
    * @returns {Promise<{ data: *, status: number, headers: { [key: string]: string }, requestHeaders: { [key: string]: string }, responseSize: string }>} A promise that resolves with the response data.
   */
-  patch: (url, data, headers, timeout, retries, delay) => _makeRequest(HTTP_METHODS.PATCH, url, data, headers, timeout, retries = 3, delay = 500),
+  patch: (url, data, headers, timeout) => _makeRequest(HTTP_METHODS.PATCH, url, data, headers, timeout),
 
   /**
    * Provides an simplified interface for performing HTTP requests.
@@ -714,8 +635,6 @@ module.exports = {
     const data = object.body || null;
     const timeout = object.timeout || 5000; // Default to the 5s timeout if not specified
     let redirectCount = object.limit || 5; // Default to 5 if not specified
-    const retries = object.retries || 3; // Default to 3 retries if not specified
-    const delay = object.delay || 500; // Default to 500ms delay if not specified
 
     // Validate the HTTP method
     if (!http.METHODS.includes(method.toUpperCase())) {
@@ -727,10 +646,9 @@ module.exports = {
     }
 
     // Call the _makeRequest function and return its result
-    return _makeRequest(method, url, data, headers, redirectCount, timeout, retries, delay);
+    return _makeRequest(method, url, data, headers, redirectCount, timeout);
   },
   parse_url,
-  speedometer,
   STATUS_CODES: status_codes,
   methods,
   ABOUT: about,

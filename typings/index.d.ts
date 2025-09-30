@@ -2,7 +2,7 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 27/09/2025
+// Last updated: 30/09/2025
 
 // Type definitions for 'blazed.js'
 
@@ -16,17 +16,6 @@ interface IpObject {
    * The ip address which has been resolved (Present in array)
    */
   Addresses: String[];
-}
-
-interface speedObject {
-  /**
-   * Samples (data) count
-   */
-  'data-count': Number;
-  /**
-   * The minimum time (in milliseconds) before calculating speed
-   */
-  'rate': Number;
 }
 
 interface OptionsObject {
@@ -108,39 +97,24 @@ interface RequestObject {
   url?: string;
   /**
    * The HTTP method you want to use.
-   * When a method is not specified, `blazed.js` defaults to a GET request
    */
   method?: string;
   /**
    * The headers you want to include in your request.
-   * This parameter should be a JSON-serializable object.
    */
   headers?: Object;
   /**
    * The data you want to include in the body while performing requests like POST,PUT,etc.
-   * This parameter should be a JSON-serializable object.
    */
   body?: any;
   /**
    * The no of redirects to accept. By default its set to 5
-   * This parameter specifies the maximum number of redirects to follow for the request.
    */
   limit?: number;
   /**
    * The timeout limit to set for the request. By default its set to 5000ms (5 seconds).
-   * This parameter specifies the maximum time to wait for a response before aborting the request.
    */
   timeout?: number;
-  /**
-   * Optional number of retries for failed requests (default: 3).
-   * This parameter specifies how many times the request should be retried in case of failure.
-   */
-  retries?: number;
-  /**
-   * Optional delay between retries in milliseconds (default: 500).
-   * This parameter specifies the amount of time to wait before retrying a failed request.
-   */
-  delay?: number;
 }
 
 interface URLParser {
@@ -223,6 +197,12 @@ interface ResponseObject {
    */
   data: any;
   /**
+   * Duration taken to complete the request in milliseconds.
+   * 
+   * **Important**: If the request fails or is aborted, this value will be -1.
+   */
+  duration: number;
+  /**
    * Status code received from the server.
    */
   status: number;
@@ -241,11 +221,7 @@ interface ResponseObject {
   /**
    * Contains the response buffer size.
    */
-  responseSize: string;
-  /**
-   * Contains the transfer speed of data.
-   */
-  transferSpeed: string
+  responseSize: string
 }
 
 interface ConnectionResponseObject {
@@ -253,6 +229,12 @@ interface ConnectionResponseObject {
    * Returns the connection object contaning the connection info.
    */
   data: ConnectionObject;
+  /**
+   * Duration taken to complete the request in milliseconds.
+   * 
+   * **Important**: If the request fails or is aborted, this value will be -1.
+   */
+  duration: number;
   /**
    * Status code for the 'CONNECT' request will be null.
    */
@@ -265,10 +247,6 @@ interface ConnectionResponseObject {
    * Contains the headers which the client has sent.
    */
   requestHeaders: { [key: string]: string };
-  /**
-   * Contains the transfer speed of data.
-   */
-  transferSpeed: string
 }
 
 interface HeaderObject {
@@ -337,19 +315,6 @@ interface blazed {
    * blazed.cancel()
    */
   cancel(): void;
-
-  /**
-   * Calculate data flow maximum rate
-   * @param {Number} [dataCount=10] - The number of samples to keep track of.
-   * @default 10
-   * @param {Number} [rate=1000] - The minimum time (in milliseconds) before calculating speed.
-   * @default 1000
-   * @returns {Function} - A function that takes the length of the data chunk and returns the speed.
-   * @example
-   * // Customize the speedometer
-   * blazed.speedometer(10, 1000);
-   */
-  speedometer(dataCount: Number, rate: Number): speedObject;
   /**
    * Performs an HTTP GET request.
    * @param {Object} url The URL to request.
@@ -367,18 +332,18 @@ interface blazed {
    *      console.log(response);
    *      // Response object contains:
    *      // - data
+   *      // - duration
    *      // - responseHeaders
    *      // - status
    *      // - statusText
    *      // - requestHeaders
    *      // - responseSize
-   *      // - transferSpeed
    *  })
    *  .catch(error => {
    *      console.log(error);
    *  });
    */
-  get(url: string, headers?: Object, redirectCount?: number, timeout?: number, retries?: number, delay?: number): Promise<ResponseObject>;
+  get(url: string, headers?: Object, redirectCount?: number, timeout?: number): Promise<ResponseObject>;
 
   /**
    * Performs an HTTP HEAD request.
@@ -397,18 +362,18 @@ interface blazed {
    *      console.log(response);
    *      // Response object contains:
    *      // - data
+   *      // - duration
    *      // - responseHeaders
    *      // - status
    *      // - statusText
    *      // - requestHeaders
    *      // - responseSize
-   *      // - transferSpeed
    *  })
    *  .catch(error => {
    *      console.log(error);
    *  });
    */
-  head(url: string, headers?: Object, redirectCount?: number, timeout?: number, retries?: number, delay?: number): Promise<ResponseObject>;
+  head(url: string, headers?: Object, redirectCount?: number, timeout?: number): Promise<ResponseObject>;
 
   /**
    * Performs an HTTP POST request.
@@ -433,18 +398,18 @@ interface blazed {
    *      console.log(response);
    *      // Response object contains:
    *      // - data
+   *      // - duration
    *      // - responseHeaders
    *      // - status
    *      // - statusText
    *      // - requestHeaders
    *      // - responseSize
-   *      // - transferSpeed
    *  })
    *  .catch(error => {
    *      console.log(error);
    *  });
    */
-  post(url: string, data: Object, headers?: Object, timeout?: number, retries?: number, delay?: number): Promise<ResponseObject>;
+  post(url: string, data: Object, headers?: Object, timeout?: number): Promise<ResponseObject>;
 
   /**
    * Performs an HTTP PUT request.
@@ -468,18 +433,18 @@ interface blazed {
    *      console.log(response);
    *      // Response object contains:
    *      // - data
+   *      // - duration
    *      // - responseHeaders
    *      // - status
    *      // - statusText
    *      // - requestHeaders
    *      // - responseSize
-   *      // - transferSpeed
    *  })
    *  .catch(error => {
    *      console.log(error);
    *  });
    */
-  put(url: string, data: Object, headers?: Object, timeout?: number, retries?: number, delay?: number): Promise<ResponseObject>;
+  put(url: string, data: Object, headers?: Object): Promise<ResponseObject>;
 
   /**
    * Performs an HTTP DELETE request.
@@ -497,18 +462,18 @@ interface blazed {
    *      console.log(response);
    *      // Response object contains:
    *      // - data
+   *      // - duration
    *      // - responseHeaders
    *      // - status
    *      // - statusText
    *      // - requestHeaders
    *      // - responseSize
-   *      // - transferSpeed
    *  })
    *  .catch(error => {
    *      console.log(error);
    *  });
    */
-  delete(url: string, headers?: Object, timeout?: number, retries?: number, delay?: number): Promise<ResponseObject>;
+  delete(url: string, headers?: Object, timeout?: number): Promise<ResponseObject>;
 
   /**
    * Performs a HTTP CONNECT request.
@@ -532,18 +497,18 @@ interface blazed {
    *      console.log(response);
    *      // Response object contains:
    *      // - data (contains the connection info object)
+   *      // - duration
    *      // - responseHeaders
    *      // - status
    *      // - statusText
    *      // - requestHeaders
    *      // - responseSize
-   *      // - transferSpeed
    *  })
    *  .catch(error => {
    *      console.log(error);
    *  });
    */
-  connect(url: string, headers?: Object, redirectCount?: number, timeout?: number, retries?: number, delay?: number): Promise<ConnectionResponseObject>;
+  connect(url: string, headers?: Object, redirectCount?: number, timeout?: number): Promise<ConnectionResponseObject>;
 
   /**
    * Performs a HTTP OPTIONS request.
@@ -562,18 +527,18 @@ interface blazed {
    *      console.log(response);
    *      // Response object contains:
    *      // - data (contains the connection info object)
+   *      // - duration
    *      // - responseHeaders
    *      // - status
    *      // - statusText
    *      // - requestHeaders
    *      // - responseSize
-   *      // - transferSpeed
    *  })
    *  .catch(error => {
    *      console.log(error);
    *  });
    */
-  options(url: string, headers?: Object, redirectCount?: number, timeout?: number, retries?: number, delay?: number): Promise<ResponseObject>;
+  options(url: string, headers?: Object, redirectCount?: number, timeout?: number): Promise<ResponseObject>;
 
   /**
    * Performs a HTTP TRACE request.
@@ -592,18 +557,18 @@ interface blazed {
    *      console.log(response);
    *      // Response object contains:
    *      // - data (contains the connection info object)
+   *      // - duration
    *      // - responseHeaders
    *      // - status
    *      // - statusText
    *      // - requestHeaders
    *      // - responseSize
-   *      // - transferSpeed
    *  })
    *  .catch(error => {
    *      console.log(error);
    *  });
    */
-  trace(url: string, headers?: Object, redirectCount?: number, timeout?: number, retries?: number, delay?: number): Promise<ResponseObject>;
+  trace(url: string, headers?: Object, redirectCount?: number, timeout?: number): Promise<ResponseObject>;
 
   /**
    * Performs a HTTP PATCH request.
@@ -624,18 +589,18 @@ interface blazed {
    *      console.log(response);
    *      // Response object contains:
    *      // - data
+   *      // - duration
    *      // - responseHeaders
    *      // - status
    *      // - statusText
    *      // - requestHeaders
    *      // - responseSize
-   *      // - transferSpeed
    *  })
    *  .catch(error => {
    *      console.log(error);
    *  });
    */
-  patch(url: string, data: Object, headers?: Object, timeout?: number, retries?: number, delay?: number): Promise<ResponseObject>;
+  patch(url: string, data: Object, headers?: Object, timeout?: number): Promise<ResponseObject>;
 
   /**
  * Provides a simplified way of performing HTTP requests similar to the native fetch api.
@@ -647,8 +612,6 @@ interface blazed {
  * @param {Object} request.body - Optional data to send in the request body.
  * @param {number} requestObj.limit - The limit for the number of redirects for the http request. By default it's set to 5.
  * @param {number} requestObj.timeout - Optional timeout parameter for the HTTP request (default: 5000 ms).
- * @param {number} requestObj.retries - Optional number of retries for failed requests (default: 3).
- * @param {number} requestObj.delay - Optional delay between retries in milliseconds (default: 500).
  * @returns {Promise<ResponseObject>} A promise that resolves with the response data.
  * @example 
  * // Starting the request
