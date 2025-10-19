@@ -4,7 +4,7 @@
 // 1. BlazeInferno64 -> https://github.com/blazeinferno64
 // 2. Sud3ep -> https://github.com/Sud3ep
 //
-// Last updated: 30/09/2025
+// Last updated: 19/10/2025
 
 "use strict";
 
@@ -55,11 +55,13 @@ compareNodeVersion();
 */
 
 // Make request function to perform the HTTP request!
-const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeout = 5000) => {
+const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeout = 5000, externalSignal = null) => {
   // Create a new AbortController instance for each request
   currentController = new AbortController();
-  const { signal } = currentController;
-
+  const controller = currentController;
+  // Merge external signal (if provided) with internal signal
+  const signal = externalSignal || controller.signal;
+  // Main function logic
   return new Promise((resolve, reject) => {
     (async () => {
       startTime = Date.now();
@@ -111,11 +113,10 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
         const requestOptions = {
           method,
           headers: {
-            'Content-Type': 'application/json',
             'Connection': 'keep-alive',
             'Cache-Control': 'no-cache',
             'Content-Length': 0,
-            ...headers, // Spread the user-provided headers
+            ...headerParser.normalizeHeaders(headers), // Spread the user-provided headers
           },
           agent, // Add the 'keep-alive' connection here.
           signal // Add the signal to the request options.
@@ -129,17 +130,32 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
 
         // Since some web servers block HTTP requests without 'User-Agent' header
         // Therefore add a custom User-Agent header by default if not provided
-        if (!requestOptions.headers['User-Agent'] && !userAgent) {
+        if (!headerParser.hasHeader(requestOptions.headers, 'User-Agent') && !userAgent) {
           requestOptions.headers['User-Agent'] = packageJson ? `${packageJson.name}/v${packageJson.version}` : 'blazed.js';
         }
         // Optionally add another HTTP header named 'X-Requested-With'
-        if (!requestOptions.headers['X-Requested-With'] && !xReqWith) {
+        if (!headerParser.hasHeader(requestOptions.headers['X-Requested-With'] && !xReqWith)) {
           requestOptions.headers['X-Requested-With'] = `${packageJson ? packageJson.name : 'blazed.js'}`;
         }
+        // If 'Content-Type' header is not present and method is not GET or HEAD, add it as 'application/json' by default
+        if (!headerParser.hasHeader(headers, 'Content-Type') && method !== 'GET' && method !== 'HEAD') {
+          headers['Content-Type'] = 'application/json';
+        }
+
+        let body = null;
         // Also if any data is present then add some extra headers to the HTTP request
-        if (data) {
+        /*if (data) {
           requestOptions.headers['Content-Length'] = Buffer.byteLength(JSON.stringify(data));
           requestOptions.body = JSON.stringify(data);
+        }*/
+        if (data) {
+          if (Buffer.isBuffer(data) || typeof data === 'string') {
+            body = data;
+          } else {
+            body = JSON.stringify(data);
+          }
+          requestOptions.headers['Content-Length'] = Buffer.byteLength(body);
+          requestOptions.body = body;
         }
 
         // Event Emitter for 'beforeRequest' event
@@ -502,8 +518,8 @@ const configure = (option = {}) => {
 
 
   // Use optional chaining to safely access headers
-  xReqWith = !!headers["X-Requested-With"];
-  userAgent = !!headers["User-Agent"];
+  xReqWith = !!headers["X-Requested-With"]; // Default to false if not provided
+  userAgent = !!headers["User-Agent"]; // Default to false if not provided
   jsonParser = option["JSON-Parser"] !== undefined ? !!option["JSON-Parser"] : true; // Default to true if not provided
   defaultURL = option["Default-URL"] || null; // Default to null if not provided
 
@@ -537,9 +553,10 @@ module.exports = {
    * @param {Object} headers Optional headers to include in the request.
    * @param {number} redirectCount Optional parameter to limit the number of redirects (default: 5).
    * @param {number} timeout Optional timeout parameter for the HTTP request (default: 5000 ms).
+   * @param {AbortSignal} signal Optional AbortSignal to cancel the request.
    * @returns {Promise<{ data: *, status: number, responseHeaders: { [key: string]: string }, requestHeaders: { [key: string]: string }, responseSize: string }>} A promise that resolves with the response data.
   */
-  get: (url, headers, redirectCount, timeout) => _makeRequest(HTTP_METHODS.GET, url, null, headers, redirectCount, timeout),
+  get: (url, headers, redirectCount, timeout, signal) => _makeRequest(HTTP_METHODS.GET, url, null, headers, redirectCount, timeout, signal),
 
   /**
    * Performs an HTTP HEAD request.
@@ -547,9 +564,10 @@ module.exports = {
    * @param {Object} headers Optional headers to include in the request.
    * @param {number} redirectCount Optional parameter to limit the number of redirects (default: 5).
    * @param {number} timeout Optional timeout parameter for the HTTP request (default: 5000 ms).
+   * @param {AbortSignal} signal Optional AbortSignal to cancel the request.
    * @returns {Promise<{ data: *, status: number, responseHeaders: { [key: string]: string }, requestHeaders: { [key: string]: string }, responseSize: string }>} A promise that resolves with the response data.
   */
-  head: (url, headers, redirectCount, timeout) => _makeRequest(HTTP_METHODS.HEAD, url, null, headers, redirectCount, timeout),
+  head: (url, headers, redirectCount, timeout, signal) => _makeRequest(HTTP_METHODS.HEAD, url, null, headers, redirectCount, timeout, signal),
 
   /**
    * Performs an HTTP POST request.
@@ -557,9 +575,10 @@ module.exports = {
    * @param {Object} data The data to send in the request body (should be JSON-serializable).
    * @param {Object} headers Optional headers to include in the request.
    * @param {number} timeout Optional timeout parameter for the HTTP request (default: 5000 ms).
+   * @param {AbortSignal} signal Optional AbortSignal to cancel the request.
    * @returns {Promise<{ data: *, status: number, responseHeaders: { [key: string]: string }, requestHeaders: { [key: string]: string }, responseSize: string }>} A promise that resolves with the response data.
   */
-  post: (url, data, headers, redirectCount, timeout) => _makeRequest(HTTP_METHODS.POST, url, data, headers, redirectCount, timeout),
+  post: (url, data, headers, redirectCount, timeout, signal) => _makeRequest(HTTP_METHODS.POST, url, data, headers, redirectCount, timeout, signal),
 
   /**
    * Performs an HTTP PUT request.
@@ -567,18 +586,20 @@ module.exports = {
    * @param {Object} data The data to send in the request body (should be JSON-serializable).
    * @param {Object} headers Optional headers to include in the request.
    * @param {number} timeout Optional timeout parameter for the HTTP request (default: 5000 ms).
+   * @param {AbortSignal} signal Optional AbortSignal to cancel the request.
    * @returns {Promise<{ data: *, status: number, responseHeaders: { [key: string]: string }, requestHeaders: { [key: string]: string }, responseSize: string }>} A promise that resolves with the response data.
   */
-  put: (url, data, headers, redirectCount, timeout) => _makeRequest(HTTP_METHODS.PUT, url, data, headers, redirectCount, timeout),
+  put: (url, data, headers, redirectCount, timeout, signal) => _makeRequest(HTTP_METHODS.PUT, url, data, headers, redirectCount, timeout, signal),
 
   /**
    * Performs an HTTP DELETE request.
    * @param {string} url The URL to send the DELETE request to.
    * @param {Object} headers Optional headers to include in the request.
    * @param {number} timeout Optional timeout parameter for the HTTP request (default: 5000 ms).
+   * @param {AbortSignal} signal Optional AbortSignal to cancel the request.
    * @returns {Promise<{ data: *, status: number, responseHeaders: { [key: string]: string }, requestHeaders: { [key: string]: string }, responseSize: string }>} A promise that resolves with the response data.
   */
-  delete: (url, headers, redirectCount, timeout) => _makeRequest(HTTP_METHODS.DELETE, url, null, headers, redirectCount, timeout),
+  delete: (url, headers, redirectCount, timeout, signal) => _makeRequest(HTTP_METHODS.DELETE, url, null, headers, redirectCount, timeout, signal),
 
   /**
    * Performs an HTTP CONNECT request.
@@ -586,9 +607,10 @@ module.exports = {
    * @param {Object} headers Optional headers to include in the request.
    * @param {number} redirectCount Optional parameter to limit the number of redirects (default: 5).
    * @param {number} timeout Optional timeout parameter for the HTTP request (default: 5000 ms).
+   * @param {AbortSignal} signal Optional AbortSignal to cancel the request.
    * @returns {Promise<{ data: *, status: number, responseHeaders: { [key: string]: string }, requestHeaders: { [key: string]: string }, responseSize: string }>} A promise that resolves with the response data.
   */
-  connect: (url, headers, redirectCount, timeout) => _makeRequest(HTTP_METHODS.CONNECT, url, null, headers, redirectCount, timeout),
+  connect: (url, headers, redirectCount, timeout, signal) => _makeRequest(HTTP_METHODS.CONNECT, url, null, headers, redirectCount, timeout, signal),
 
   /**
    * Performs an HTTP OPTIONS request.
@@ -596,9 +618,10 @@ module.exports = {
    * @param {Object} headers Optional headers to include in the request.
    * @param {number} redirectCount Optional parameter to limit the number of redirects (default: 5).
    * @param {number} timeout Optional timeout parameter for the HTTP request (default: 5000 ms).
+   * @param {AbortSignal} signal Optional AbortSignal to cancel the request.
    * @returns {Promise<{ data: *, status: number, responseHeaders: { [key: string]: string }, requestHeaders: { [key: string]: string }, responseSize: string }>} A promise that resolves with the response data.
   */
-  options: (url, headers, redirectCount, timeout) => _makeRequest(HTTP_METHODS.OPTIONS, url, null, headers, redirectCount, timeout),
+  options: (url, headers, redirectCount, timeout, signal) => _makeRequest(HTTP_METHODS.OPTIONS, url, null, headers, redirectCount, timeout, signal),
 
   /**
    * Performs an HTTP TRACE request.
@@ -606,18 +629,20 @@ module.exports = {
    * @param {Object} headers Optional headers to include in the request.
    * @param {number} redirectCount Optional parameter to limit the number of redirects (default: 5).
    * @param {number} timeout Optional timeout parameter for the HTTP request (default: 5000 ms).
+   * @param {AbortSignal} signal Optional AbortSignal to cancel the request.
    * @returns {Promise<{ data: *, status: number, responseHeaders: { [key: string]: string }, requestHeaders: { [key: string]: string }, responseSize: string }>} A promise that resolves with the response data.
   */
-  trace: (url, headers, redirectCount, timeout) => _makeRequest(HTTP_METHODS.TRACE, url, null, headers, redirectCount, timeout),
+  trace: (url, headers, redirectCount, timeout, signal) => _makeRequest(HTTP_METHODS.TRACE, url, null, headers, redirectCount, timeout, signal),
 
   /**
    * Performs an HTTP PATCH request.
    * @param {string} url The URL to send the DELETE request to.
    * @param {Object} headers Optional headers to include in the request.
    * @param {number} timeout Optional timeout parameter for the HTTP request (default: 5000 ms).
+   * @param {AbortSignal} signal Optional AbortSignal to cancel the request.
    * @returns {Promise<{ data: *, status: number, headers: { [key: string]: string }, requestHeaders: { [key: string]: string }, responseSize: string }>} A promise that resolves with the response data.
   */
-  patch: (url, data, headers, timeout) => _makeRequest(HTTP_METHODS.PATCH, url, data, headers, timeout),
+  patch: (url, data, headers, timeout, signal) => _makeRequest(HTTP_METHODS.PATCH, url, data, headers, timeout, signal),
 
   /**
    * Provides an simplified interface for performing HTTP requests.
@@ -632,8 +657,9 @@ module.exports = {
     const url = object.url;
     const method = object.method || "GET"; // Default to 'GET' request if no specified method is provided
     const headers = object.headers || {}; // Ensure headers is an object
-    const data = object.body || null;
+    const data = object.body || null; // Default to null if no data is provided
     const timeout = object.timeout || 5000; // Default to the 5s timeout if not specified
+    const signal = object.signal || null; // Default to null if no signal is provided
     let redirectCount = object.limit || 5; // Default to 5 if not specified
 
     // Validate the HTTP method
@@ -646,7 +672,7 @@ module.exports = {
     }
 
     // Call the _makeRequest function and return its result
-    return _makeRequest(method, url, data, headers, redirectCount, timeout);
+    return _makeRequest(method, url, data, headers, redirectCount, timeout, signal);
   },
   parse_url,
   STATUS_CODES: status_codes,

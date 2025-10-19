@@ -2,7 +2,7 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 01/02/2025
+// Last updated: 19/10/2025
 
 "use strict";
 
@@ -76,7 +76,46 @@ const parseThisHeaderValue = (name, value) => {
     })
 }
 
+/**
+ * Converts a header name to Title-Case (e.g., 'user-agent' -> 'User-Agent')
+ * @param {string} headerName
+ * @returns {string}
+ */
+const titleCaseHeader = (headerName) => {
+    return headerName
+        .toLowerCase()
+        .split('-')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join('-');
+};
+
+/**
+ * Normalizes all headers to Title-Case format.
+ * @param {object} headers
+ * @returns {object}
+ */
+const normalizeHeaders = (headers) => {
+    const normalized = {};
+    for (const key in headers) {
+        const normalizedKey = titleCaseHeader(key);
+        normalized[normalizedKey] = headers[key];
+    }
+    return normalized;
+};
+
+/**
+ * Function to check if a specific header exists in a headers object, case-insensitively.
+ * @param {object} headers - Headers object 
+ * @param {string} targetName - Header name to search for
+ * @returns 
+ */
+const hasHeader = (headers, targetName) => {
+  return Object.keys(headers).some(key => key.toLowerCase() === targetName.toLowerCase());
+}
+
 module.exports = {
     parseThisHeaderName,
-    parseThisHeaderValue
+    parseThisHeaderValue,
+    normalizeHeaders,
+    hasHeader
 }

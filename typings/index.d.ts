@@ -2,7 +2,7 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 30/09/2025
+// Last updated: 19/10/2025
 
 // Type definitions for 'blazed.js'
 
@@ -115,6 +115,10 @@ interface RequestObject {
    * The timeout limit to set for the request. By default its set to 5000ms (5 seconds).
    */
   timeout?: number;
+  /**
+   * An AbortSignal to cancel the request.
+   */
+  signal?: AbortSignal;
 }
 
 interface URLParser {
@@ -321,6 +325,7 @@ interface blazed {
    * @param {Object} headers Optional headers to include in the request.
    * @param {number} redirectCount Optional parameter to limit the number of redirects (default: 5).
    * @param {number} timeout Optional timeout parameter for the HTTP request (default: 5000 ms).
+   * @param {AbortSignal} signal Optional AbortSignal to cancel the request.
    * @returns {Promise<ResponseObject>} A promise that resolves with the response data.
    * @example 
    * const headers = {}; // Your headers here 
@@ -343,7 +348,7 @@ interface blazed {
    *      console.log(error);
    *  });
    */
-  get(url: string, headers?: Object, redirectCount?: number, timeout?: number): Promise<ResponseObject>;
+  get(url: string, headers?: Object, redirectCount?: number, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
 
   /**
    * Performs an HTTP HEAD request.
@@ -351,6 +356,7 @@ interface blazed {
    * @param {Object} headers Optional headers to include in the request.
    * @param {number} redirectCount Optional parameter to limit the number of redirects (default: 5).
    * @param {number} timeout Optional timeout parameter for the HTTP request (default: 5000 ms).
+   * @param {AbortSignal} signal Optional AbortSignal to cancel the request.
    * @returns {Promise<ResponseObject>} A promise that resolves with the response data.
    * @example 
    * const headers = {}; // Your headers here 
@@ -373,7 +379,7 @@ interface blazed {
    *      console.log(error);
    *  });
    */
-  head(url: string, headers?: Object, redirectCount?: number, timeout?: number): Promise<ResponseObject>;
+  head(url: string, headers?: Object, redirectCount?: number, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
 
   /**
    * Performs an HTTP POST request.
@@ -381,6 +387,7 @@ interface blazed {
    * @param {Object} data The data to send in the request body (should be JSON-serializable).
    * @param {Object} headers Optional headers to include in the request.
    * @param {number} timeout Optional timeout parameter for the HTTP request (default: 5000 ms).
+   * @param {AbortSignal} signal Optional AbortSignal to cancel the request.
    * @returns {Promise<ResponseObject>} A promise that resolves with the response data.
    * @example 
    * const postData = {
@@ -409,13 +416,15 @@ interface blazed {
    *      console.log(error);
    *  });
    */
-  post(url: string, data: Object, headers?: Object, timeout?: number): Promise<ResponseObject>;
+  post(url: string, data: Object, headers?: Object, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
 
   /**
    * Performs an HTTP PUT request.
    * @param {string} url The URL to send the PUT request to.
    * @param {Object} data The data to send in the request body (should be JSON-serializable).
    * @param {Object} headers Optional headers to include in the request.
+   * @param {number} timeout Optional timeout parameter for the HTTP request (default: 5000 ms).
+   * @param {AbortSignal} signal Optional AbortSignal to cancel the request.
    * @returns {Promise<ResponseObject>} A promise that resolves with the response data.
    * @example 
    * const putData = {
@@ -444,13 +453,14 @@ interface blazed {
    *      console.log(error);
    *  });
    */
-  put(url: string, data: Object, headers?: Object): Promise<ResponseObject>;
+  put(url: string, data: Object, headers?: Object, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
 
   /**
    * Performs an HTTP DELETE request.
    * @param {string} url The URL to send the DELETE request to.
    * @param {Object} headers Optional headers to include in the request.
    * @param {number} timeout Optional timeout parameter for the HTTP request (default: 5000 ms).
+   * @param {AbortSignal} signal Optional AbortSignal to cancel the request.
    * @returns {Promise<ResponseObject>} A promise that resolves with the response data.
    * @example 
    * const headers = {}; // Your headers here 
@@ -473,7 +483,7 @@ interface blazed {
    *      console.log(error);
    *  });
    */
-  delete(url: string, headers?: Object, timeout?: number): Promise<ResponseObject>;
+  delete(url: string, headers?: Object, timeout?: number, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
 
   /**
    * Performs a HTTP CONNECT request.
@@ -486,6 +496,7 @@ interface blazed {
    * @param {Object} headers Optional headers to include in the request.
    * @param {number} redirectCount Optional parameter to limit the number of redirects (default: 5).
    * @param {number} timeout Optional timeout parameter for the HTTP request (default: 5000 ms).
+   * @param {AbortSignal} signal Optional AbortSignal to cancel the request.
    * @returns {Promise<ResponseObject>} A promise that resolves with the response data with a connection object.
    * @example 
    * const headers = {}; // Your headers here 
@@ -508,7 +519,7 @@ interface blazed {
    *      console.log(error);
    *  });
    */
-  connect(url: string, headers?: Object, redirectCount?: number, timeout?: number): Promise<ConnectionResponseObject>;
+  connect(url: string, headers?: Object, redirectCount?: number, timeout?: number, signal?: AbortSignal): Promise<ConnectionResponseObject>;
 
   /**
    * Performs a HTTP OPTIONS request.
@@ -516,6 +527,7 @@ interface blazed {
    * @param {Object} headers Optional headers to include in the request.
    * @param {number} redirectCount Optional parameter to limit the number of redirects (default: 5).
    * @param {number} timeout Optional timeout parameter for the HTTP request (default: 5000 ms).
+   * @param {AbortSignal} signal Optional AbortSignal to cancel the request.
    * @returns {Promise<ResponseObject>} A promise that resolves with the response data.
    * @example 
    * const headers = {}; // Your headers here 
@@ -538,7 +550,7 @@ interface blazed {
    *      console.log(error);
    *  });
    */
-  options(url: string, headers?: Object, redirectCount?: number, timeout?: number): Promise<ResponseObject>;
+  options(url: string, headers?: Object, redirectCount?: number, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
 
   /**
    * Performs a HTTP TRACE request.
@@ -546,6 +558,7 @@ interface blazed {
    * @param {Object} headers Optional headers to include in the request.
    * @param {number} redirectCount Optional parameter to limit the number of redirects (default: 5).
    * @param {number} timeout Optional timeout parameter for the HTTP request (default: 5000 ms).
+   * @param {AbortSignal} signal Optional AbortSignal to cancel the request.
    * @returns {Promise<ResponseObject>} A promise that resolves with the response data.
    * @example 
    * const headers = {}; // Your headers here 
@@ -568,7 +581,7 @@ interface blazed {
    *      console.log(error);
    *  });
    */
-  trace(url: string, headers?: Object, redirectCount?: number, timeout?: number): Promise<ResponseObject>;
+  trace(url: string, headers?: Object, redirectCount?: number, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
 
   /**
    * Performs a HTTP PATCH request.
@@ -576,6 +589,7 @@ interface blazed {
    * @param {Object} data The data to send in the request body (should be JSON-serializable).
    * @param {Object} headers Optional headers to include in the request.
    * @param {number} timeout Optional timeout parameter for the HTTP request (default: 5000 ms).
+   * @param {AbortSignal} signal Optional AbortSignal to cancel the request.
    * @returns {Promise<ResponseObject>} A promise that resolves with the response data.
    * @example    * @example 
    * const putData = {} // Your patch data here
@@ -600,7 +614,7 @@ interface blazed {
    *      console.log(error);
    *  });
    */
-  patch(url: string, data: Object, headers?: Object, timeout?: number): Promise<ResponseObject>;
+  patch(url: string, data: Object, headers?: Object, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
 
   /**
  * Provides a simplified way of performing HTTP requests similar to the native fetch api.
@@ -612,6 +626,7 @@ interface blazed {
  * @param {Object} request.body - Optional data to send in the request body.
  * @param {number} requestObj.limit - The limit for the number of redirects for the http request. By default it's set to 5.
  * @param {number} requestObj.timeout - Optional timeout parameter for the HTTP request (default: 5000 ms).
+ * @param {AbortSignal} requestObj.signal - Optional AbortSignal to cancel the request.
  * @returns {Promise<ResponseObject>} A promise that resolves with the response data.
  * @example 
  * // Starting the request
@@ -621,6 +636,7 @@ interface blazed {
  *   headers: {}, // Provide your custom headers here.
  *   body: null, // Optional data to include in the request body.
  *   timeout: 5000 // Adjust the request timeout as needed.
+ *   signal: null // Optional AbortSignal to cancel the request.
  * }).then(res => {
  *   return console.log(res.data);
  * }).catch(err => {

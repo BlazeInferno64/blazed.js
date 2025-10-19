@@ -403,7 +403,8 @@ blazed.request({
     method: "GET", // HTTP method.
     headers: {}, // Provide your custom headers here.
     body: null, // Optional data to include in the request body.
-    timeout: 5000 // Adjust the request timeout as needed.
+    timeout: 5000, // Adjust the request timeout as needed.
+    signal: null // Optional AbortSignal to cancel the request.
 })
 .then(response => {
     return console.log(response);
@@ -473,15 +474,19 @@ blazed.speedometer(10, 1000);
 
 # HTTP Request Cancellation
 
-`blazed.js` also offers a convenient way to cancel any ongoing HTTP requests.
+`blazed.js` supports convenient cancellation of ongoing HTTP requests in two ways:
 
-For that you need to use the `blazed.cancel()` method to achieve this.
+- Internal cancellation using `blazed.cancel()` – this will immediately abort the currently running request.
 
+- External cancellation by passing your own `AbortSignal` via the signal option in the request object. This allows fine-grained control, such as timeout-based or user-triggered cancellations.
+
+Internal cancellation example:
 ```js
 // Simple dummy request
 blazed.request({
     url: "https://jsonplaceholder.typicode.com/posts/1",
     method: "GET",
+    signal: null, // For this example it is set to null
 })
     .then(res => {
         console.log(`This request will be aborted!`);
@@ -495,6 +500,32 @@ blazed.request({
 // Will cancel the ongoing request
 blazed.cancel();
 console.log("The ongoing request has been cancelled."); // Logging a messsage
+```
+
+External cancellation example:
+```js
+// Example of using external cancellation with AbortController
+const controller = new AbortController();
+
+// Abort the request after 3 seconds
+setTimeout(() => controller.abort(), 3000);
+
+// Make a request with cancellation support
+blazed.request({
+    url: "https://httpbin.org/delay/10", // This endpoint delays the response by 10 seconds
+    method: "GET",
+    signal: controller.signal, // Pass the abort signal to cancel the request
+})
+    .then(res => {
+        console.log("Request succeeded:", res);
+    })
+    .catch(err => {
+        if (err.name === 'AbortError') {
+            console.log("Request was cancelled due to timeout.");
+        } else {
+            console.error("An error occurred:", err);
+        }
+    });
 ```
 
 # URL Parsing
@@ -835,7 +866,7 @@ blazed.validateHeaderName(headerName)
     }
   })
   .catch((error) => {
-    console.error(`Error validating header name: ${error.message}`);// The error message will be logged in the console
+    console.error(error);// The error will be logged in the console
   });
 ```
 
