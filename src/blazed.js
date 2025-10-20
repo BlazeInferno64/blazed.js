@@ -2,9 +2,9 @@
 //
 // Author(s) -> 
 // 1. BlazeInferno64 -> https://github.com/blazeinferno64
-// 2. Sud3ep -> https://github.com/Sud3ep
+// 2. Sudeep -> https://github.com/SudeepQ
 //
-// Last updated: 19/10/2025
+// Last updated: 20/10/2025
 
 "use strict";
 
@@ -73,6 +73,10 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
         if (!supportedSchemas.has(parsedURL.protocol)) {
           throw new Error(`${packageJson ? packageJson.name : 'blazed.js'} cannot load the given url '${requestUrl}'. URL scheme "${parsedURL.protocol.replace(/:$/, '')}" is not supported.`)
         }
+        // Validate every HTTP headers provided by the user
+        for (const key in headers) {
+          await headerParser.parseThisHeaderName(key);
+        }
         // Handle 'data:' URLs directly
         if (parsedURL.protocol === 'data:') {
           const myData = dataUriToBuffer(requestUrl);
@@ -88,10 +92,10 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
             responseHeaders: {
               'Content-Type': contentType
             },
-            requestHeaders: headers
+            requestHeaders: headerParser.normalizeHeaders(headers)
           };
           // How to decode it ?
-          // Its easy just follow below steps -
+          // Its easy just follow the steps below -
           //
           // const parsed = new TextDecoder(response.data.buffer.ArrayBuffer);
           //
@@ -100,9 +104,9 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
           return resolve(responseObject);
         }
         // Validate every HTTP headers provided by the user
-        for (const key in headers) {
-          await headerParser.parseThisHeaderName(key);
-        }
+        /*for (const key in headers) {
+          await headerParser.parseThisHeaderName(key); <-- This part has been moved up!
+        }*/
         // Set the HTTP module depending upon the url protocol provided
         const httpModule = parsedURL.protocol === 'https:' ? https : http;
         // Create a 'keep-alive' connection to improve performance.
@@ -134,7 +138,7 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
           requestOptions.headers['User-Agent'] = packageJson ? `${packageJson.name}/v${packageJson.version}` : 'blazed.js';
         }
         // Optionally add another HTTP header named 'X-Requested-With'
-        if (!headerParser.hasHeader(requestOptions.headers['X-Requested-With'] && !xReqWith)) {
+        if (!headerParser.hasHeader(requestOptions.headers, 'X-Requested-With') && !xReqWith) {
           requestOptions.headers['X-Requested-With'] = `${packageJson ? packageJson.name : 'blazed.js'}`;
         }
         // If 'Content-Type' header is not present and method is not GET or HEAD, add it as 'application/json' by default
