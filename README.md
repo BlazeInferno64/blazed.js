@@ -437,6 +437,7 @@ Here's a basic usage example:
 ```js
 //Configure 'blazed.js'
 blazed.configure({
+    'Keep-Alive': true, // Configure keep-alive connections,
     'Default-URL': "https://api.github.com/users", // Will set default HTTP request URL to Github API unless another url is provided.
     'JSON-Parser': true, // JSON response will be automatically parsed.
     //Configuring some header options.

@@ -2,7 +2,7 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 19/10/2025
+// Last updated: 24/10/2025
 
 // Type definitions for 'blazed.js'
 
@@ -38,6 +38,10 @@ interface ConfigObject {
    * Configure the default URL.
    */
   'Default-URL': String;
+  /**
+   * Configure keep-alive connections.
+   */
+  'Keep-Alive': boolean;
   /**
    * Configure header object.
    * 
@@ -704,6 +708,7 @@ interface blazed {
    * @example 
    * // Basic example
    * blazed.configure({
+   *    'Keep-Alive': true, // Enable keep-alive connections,
    *    'Default-URL': 'https://api.github.com/users', // Set the default url to Github API
    *    'JSON-Parser': true, // True indicates that the response will be formatted if its json
    *     headers: {

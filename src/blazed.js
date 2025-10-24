@@ -4,7 +4,7 @@
 // 1. BlazeInferno64 -> https://github.com/blazeinferno64
 // 2. Sudeep -> https://github.com/SudeepQ
 //
-// Last updated: 20/10/2025
+// Last updated: 24/10/2025
 
 "use strict";
 
@@ -32,13 +32,15 @@ let custom;
 
 let currentController = null; // Global variable to hold the current AbortController
 
-let xReqWith = false;
-let userAgent = false;
+let xReqWith = true;
+let userAgent = true;
 let jsonParser = true;
 
 let defaultURL = null;
 
 let startTime = null;
+
+let keepAlive = true;
 
 // Compare version
 compareNodeVersion();
@@ -107,17 +109,21 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
         /*for (const key in headers) {
           await headerParser.parseThisHeaderName(key); <-- This part has been moved up!
         }*/
+        // Create an Agent. Disable keepAlive automatically on serverless platforms,
+        // else use configured keepAlive value.
+        const isServerless = !!(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.FUNCTIONS_WORKER_RUNTIME);
         // Set the HTTP module depending upon the url protocol provided
         const httpModule = parsedURL.protocol === 'https:' ? https : http;
         // Create a 'keep-alive' connection to improve performance.
         const agent = new httpModule.Agent({
-          keepAlive: true
+          keepAlive: !isServerless && !!keepAlive
         });
+
         // Define 'requestOptions' object.
         const requestOptions = {
           method,
           headers: {
-            'Connection': 'keep-alive',
+            'Connection': keepAlive && !isServerless ? 'keep-alive' : 'close',
             'Cache-Control': 'no-cache',
             'Content-Length': 0,
             ...headerParser.normalizeHeaders(headers), // Spread the user-provided headers
@@ -134,11 +140,11 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
 
         // Since some web servers block HTTP requests without 'User-Agent' header
         // Therefore add a custom User-Agent header by default if not provided
-        if (!headerParser.hasHeader(requestOptions.headers, 'User-Agent') && !userAgent) {
+        if (!headerParser.hasHeader(requestOptions.headers, 'User-Agent') && userAgent) {
           requestOptions.headers['User-Agent'] = packageJson ? `${packageJson.name}/v${packageJson.version}` : 'blazed.js';
         }
         // Optionally add another HTTP header named 'X-Requested-With'
-        if (!headerParser.hasHeader(requestOptions.headers, 'X-Requested-With') && !xReqWith) {
+        if (!headerParser.hasHeader(requestOptions.headers, 'X-Requested-With') && xReqWith) {
           requestOptions.headers['X-Requested-With'] = `${packageJson ? packageJson.name : 'blazed.js'}`;
         }
         // If 'Content-Type' header is not present and method is not GET or HEAD, add it as 'application/json' by default
@@ -172,6 +178,14 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
 
         // Set Request timeout
         request.setTimeout(timeout);
+        request.on("timeout", async () => {
+          // destroy the request/socket, then surface a timeout error via utilErrors
+          try {
+            request.destroy(new Error(`Request_Timeout_Error: The request has timed out after ${timeout} ms`));
+          } catch (error) {
+            await utilErrors.processError(new Error('Request timed out'), requestUrl, null, null, null, method, reject).catch(() => { /* ignore secondary errors */ });
+          }
+        })
 
         // Define a request object named 'reqObj' which will be used to control the requests in a more efficient way
         const reqObject = {
@@ -343,7 +357,9 @@ const handleResponse = (response, resolve, reject, redirectCount = 5, originalUr
         "OriginalURL": originalUrl,
         "RedirectURL": redirectUrl
       }
-
+      try { if (request && typeof request.destroy === 'function') request.destroy(); } catch (e) { /* ignore */ }
+      try { if (response && typeof response.destroy === 'function') response.destroy(); } catch (e) { /* ignore */ }
+      
       // Emitter for the 'redirect' event
       emitter.emit("redirect", redirObj);
 
@@ -519,6 +535,8 @@ const configure = (option = {}) => {
   validateBooleanOption(headers, 'User-Agent');
   // Check if 'JSON-Parser' is provided and is a boolean
   validateBooleanOption(option, 'JSON-Parser');
+  // Check if 'Keep-Alive' is provided and is a boolean
+  validateBooleanOption(option, 'Keep-Alive');
 
 
   // Use optional chaining to safely access headers
@@ -526,9 +544,11 @@ const configure = (option = {}) => {
   userAgent = !!headers["User-Agent"]; // Default to false if not provided
   jsonParser = option["JSON-Parser"] !== undefined ? !!option["JSON-Parser"] : true; // Default to true if not provided
   defaultURL = option["Default-URL"] || null; // Default to null if not provided
+  keepAlive = option["Keep-Alive"] !== undefined ? !!option["Keep-Alive"] : true;  // Allow override, default true
 
   // Resolve the promise
   return {
+    'Keep-Alive': keepAlive,
     'Default-URL': defaultURL,
     'JSON-Parser': jsonParser,
     headers: {
