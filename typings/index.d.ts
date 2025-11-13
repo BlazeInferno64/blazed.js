@@ -2,9 +2,19 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 24/10/2025
+// Last updated: 13/11/2025
 
 // Type definitions for 'blazed.js'
+
+/// <reference types="node" />
+
+// Strongly type HTTP Methods
+type HTTPMethod =
+  | 'ACL' | 'BIND' | 'CHECKOUT' | 'CONNECT' | 'COPY' | 'DELETE' | 'GET' | 'HEAD'
+  | 'LINK' | 'LOCK' | 'M-SEARCH' | 'MERGE' | 'MKACTIVITY' | 'MKCALENDAR' | 'MKCOL'
+  | 'MOVE' | 'NOTIFY' | 'OPTIONS' | 'PATCH' | 'POST' | 'PROPFIND' | 'PROPPATCH'
+  | 'PURGE' | 'PUT' | 'QUERY' | 'REBIND' | 'REPORT' | 'SEARCH' | 'SOURCE'
+  | 'SUBSCRIBE' | 'TRACE' | 'UNBIND' | 'UNLINK' | 'UNLOCK' | 'UNSUBSCRIBE';
 
 
 interface IpObject {
@@ -15,7 +25,7 @@ interface IpObject {
   /**
    * The ip address which has been resolved (Present in array)
    */
-  Addresses: String[];
+  Addresses: string[];
 }
 
 interface OptionsObject {
@@ -37,7 +47,7 @@ interface ConfigObject {
   /**
    * Configure the default URL.
    */
-  'Default-URL': String;
+  'Default-URL': string;
   /**
    * Configure keep-alive connections.
    */
@@ -102,7 +112,7 @@ interface RequestObject {
   /**
    * The HTTP method you want to use.
    */
-  method?: string;
+  method?: HTTPMethod;
   /**
    * The headers you want to include in your request.
    */
@@ -196,7 +206,7 @@ interface AboutObject {
   /**
    * Repository of the package.
    */
-  Respository: string;
+  Repository: string;
 }
 
 interface ResponseObject {
@@ -487,7 +497,7 @@ interface blazed {
    *      console.log(error);
    *  });
    */
-  delete(url: string, headers?: Object, timeout?: number, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
+  delete(url: string, headers?: Object, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
 
   /**
    * Performs a HTTP CONNECT request.
@@ -699,7 +709,7 @@ interface blazed {
    *       console.error(error); // Catch any errors
    *   })
    */
-  fileURL(path: string): Promise<String>;
+  fileURL(path: string): Promise<string>;
 
   /**
    * Disables some default settings of 'blazed.js'.
@@ -781,7 +791,7 @@ interface blazed {
   * console.log(blazed.maxHeaderSize)
   * // Will log 16.0 KB to the console.
   */
-  maxHeaderSize: String;
+  maxHeaderSize: string;
 
   /**
    * Validates header name.
@@ -928,7 +938,19 @@ interface blazed {
    *    return response.pipe(writeStream); // Pipe the response to the 'writeStream'
    * });
    */
-  on(event: "response", callback: (object: { pipe: Function, destroy: Function, resume: Function, pause: Function }) => void): void;
+  on(
+    event: "response",
+    callback: (
+      response: {
+        pipe: (dest: NodeJS.WritableStream, options?: { end?: boolean }) => NodeJS.WritableStream;
+        destroy: (err?: any) => void;
+        resume: () => void;
+        pause: () => void;
+        // allow additional properties present on the response object
+        [key: string]: any;
+      }
+    ) => void
+  ): void;
 }
 /**
  *  blazed.js is a blazing fast, light weight, high performance, promise based HTTP and DNS client for the Node.

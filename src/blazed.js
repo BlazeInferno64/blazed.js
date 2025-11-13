@@ -4,7 +4,7 @@
 // 1. BlazeInferno64 -> https://github.com/blazeinferno64
 // 2. Sudeep -> https://github.com/SudeepQ
 //
-// Last updated: 24/10/2025
+// Last updated: 13/11/2025
 
 "use strict";
 
@@ -41,6 +41,8 @@ let defaultURL = null;
 let startTime = null;
 
 let keepAlive = true;
+
+// let currentTime = null;
 
 // Compare version
 compareNodeVersion();
@@ -177,11 +179,14 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
         });
 
         // Set Request timeout
+        // currentTime = timeout;
         request.setTimeout(timeout);
         request.on("timeout", async () => {
+         // controller.abort() // Abort the controller
           // destroy the request/socket, then surface a timeout error via utilErrors
           try {
-            request.destroy(new Error(`Request_Timeout_Error: The request has timed out after ${timeout} ms`));
+            const err = "Req_Timeout";
+            request.destroy(await utilErrors.processError(err, requestUrl, null , null, timeout, method, reject));
           } catch (error) {
             await utilErrors.processError(new Error('Request timed out'), requestUrl, null, null, null, method, reject).catch(() => { /* ignore secondary errors */ });
           }
@@ -255,7 +260,12 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
 // Response handler function
 const handleResponse = (response, resolve, reject, redirectCount = 5, originalUrl, data, method, headers, reqOptions, request, connectionInfoObject, timeout) => {
   const resObject = {
-    pipe: (stream) => response.pipe(stream),
+    pipe: (stream) => {
+      if (response && typeof response.pipe === 'function') {
+        return response.pipe(stream);
+      }
+      throw new Error("Response stream not available for piping!");
+    },
     destroy: () => response.destroy(),
     pause: () => response.pause(),
     resume: () => response.resume()
@@ -359,7 +369,7 @@ const handleResponse = (response, resolve, reject, redirectCount = 5, originalUr
       }
       try { if (request && typeof request.destroy === 'function') request.destroy(); } catch (e) { /* ignore */ }
       try { if (response && typeof response.destroy === 'function') response.destroy(); } catch (e) { /* ignore */ }
-      
+
       // Emitter for the 'redirect' event
       emitter.emit("redirect", redirObj);
 

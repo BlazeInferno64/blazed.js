@@ -2,7 +2,7 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 19/10/2025
+// Last updated: 13/11/2025
 
 "use strict";
 
@@ -136,9 +136,21 @@ const processError = async (error, url, dns = false, header = {}, custom, method
         Error, "Undefined_Redirect_Error", "ERR_UNDEFINED_REDIRECT",
         `Undefined redirect encountered making HTTP request to ${url} with ${method}`
       );
+    } else if (error === "Req_Timeout") {
+      err = makeError(
+        Error, "Request_Timeout_Error", "REQ_TIMEOUT",
+        `The request to ${url} has been timed out after ${custom}ms`
+      )
     }
-  } else if (error && error.code && errMap[error.code]) {
-    err = errMap[error.code]();
+  } else if (
+    error &&
+    typeof error.code === "string" &&
+    Object.prototype.hasOwnProperty.call(errMap, error.code)
+  ) {
+    const fn = errMap[error.code];
+    if (typeof fn === "function") {
+      err = fn();
+    }
   }
 
   // Handle unmatched error types
