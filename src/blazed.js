@@ -4,7 +4,7 @@
 // 1. BlazeInferno64 -> https://github.com/blazeinferno64
 // 2. Sudeep -> https://github.com/SudeepQ
 //
-// Last updated: 13/11/2025
+// Last updated: 29/11/2025
 
 "use strict";
 
@@ -23,7 +23,7 @@ const { lookupForIp, reverseLookupForIp } = require("./utils/dns/dns");
 
 const { mapStatusCodes } = require("./utils/plugins/status-mapper");
 const { formatBytes } = require("./utils/plugins/math");
-const { HTTP_METHODS, supportedSchemas, validateBooleanOption, compareNodeVersion } = require("./utils/plugins/base");
+const { HTTP_METHODS, supportedSchemas, validateBooleanOption, compareNodeVersion, buildQueryString } = require("./utils/plugins/base");
 
 const packageJson = require("../package.json");
 
@@ -548,13 +548,21 @@ const configure = (option = {}) => {
   // Check if 'Keep-Alive' is provided and is a boolean
   validateBooleanOption(option, 'Keep-Alive');
 
+  // Only update if explicitly provided in the config
+  if ('X-Requested-With' in headers) {
+    xReqWith = !!headers["X-Requested-With"];
+  }
+  if ('User-Agent' in headers) {
+    userAgent = !!headers["User-Agent"];
+  }
+  if ('JSON-Parser' in option) {
+    jsonParser = !!option["JSON-Parser"];
+  }
+  if ('Keep-Alive' in option) {
+    keepAlive = !!option["Keep-Alive"];
+  }
 
-  // Use optional chaining to safely access headers
-  xReqWith = !!headers["X-Requested-With"]; // Default to false if not provided
-  userAgent = !!headers["User-Agent"]; // Default to false if not provided
-  jsonParser = option["JSON-Parser"] !== undefined ? !!option["JSON-Parser"] : true; // Default to true if not provided
-  defaultURL = option["Default-URL"] || null; // Default to null if not provided
-  keepAlive = option["Keep-Alive"] !== undefined ? !!option["Keep-Alive"] : true;  // Allow override, default true
+    defaultURL = option["Default-URL"] || null; // Default to null if not provided
 
   // Resolve the promise
   return {
@@ -695,6 +703,7 @@ module.exports = {
     const timeout = object.timeout || 5000; // Default to the 5s timeout if not specified
     const signal = object.signal || null; // Default to null if no signal is provided
     let redirectCount = object.limit || 5; // Default to 5 if not specified
+    const params = object.params || null; // <-- Params object like axios
 
     // Validate the HTTP method
     if (!http.METHODS.includes(method.toUpperCase())) {
@@ -706,7 +715,8 @@ module.exports = {
     }
 
     // Call the _makeRequest function and return its result
-    return _makeRequest(method, url, data, headers, redirectCount, timeout, signal);
+    const finalUrl = params ? `${url || defaultURL}${buildQueryString(params)}` : (url || defaultURL);
+    return _makeRequest(method, finalUrl, data, headers, redirectCount, timeout, signal);
   },
   parse_url,
   STATUS_CODES: status_codes,

@@ -399,12 +399,15 @@ Heres a simple example demonstrating a `GET` HTTP request method using the `blaz
 ```js
 // Starting the request
 blazed.request({
-    url: "https://api.github.com/users", // URL to send the HTTP request.
+    url: "https://httpbin.org/anything", // URL to send the HTTP request.
     method: "GET", // HTTP method.
     headers: {}, // Provide your custom headers here.
     body: null, // Optional data to include in the request body.
     timeout: 5000, // Adjust the request timeout as needed.
-    signal: null // Optional AbortSignal to cancel the request.
+    signal: null, // Optional AbortSignal to cancel the request.
+    limit: 5, // Optional limit for the number of redirects (default is 5).
+    params: { q: "hello", tags: ["a","b"], meta: { x: 1 } } // Optional params object to include in the url as query strings. 
+    // Note: This appends ?q=hello&tags=a&tags=b&meta=%7B%22x%22%3A1%7D to the URL.
 })
 .then(response => {
     return console.log(response);

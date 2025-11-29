@@ -2,7 +2,7 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 13/11/2025
+// Last updated: 29/11/2025
 
 // Type definitions for 'blazed.js'
 
@@ -125,6 +125,10 @@ interface RequestObject {
    * The no of redirects to accept. By default its set to 5
    */
   limit?: number;
+  /**
+   * The params to be included in the url as query strings.
+   */
+  params?: Object;
   /**
    * The timeout limit to set for the request. By default its set to 5000ms (5 seconds).
    */
@@ -641,16 +645,21 @@ interface blazed {
  * @param {number} requestObj.limit - The limit for the number of redirects for the http request. By default it's set to 5.
  * @param {number} requestObj.timeout - Optional timeout parameter for the HTTP request (default: 5000 ms).
  * @param {AbortSignal} requestObj.signal - Optional AbortSignal to cancel the request.
+ * @param {Object} requestObj.params - Optional params object to include in the url as query strings.
  * @returns {Promise<ResponseObject>} A promise that resolves with the response data.
  * @example 
  * // Starting the request
  * blazed.request({
- *   url: "https://api.github.com/users", // URL to send the HTTP request.
+ *   url: "https://httpbin.org/anything", // URL to send the HTTP request.
  *   method: "GET", // HTTP method.
  *   headers: {}, // Provide your custom headers here.
  *   body: null, // Optional data to include in the request body.
- *   timeout: 5000 // Adjust the request timeout as needed.
- *   signal: null // Optional AbortSignal to cancel the request.
+ *   timeout: 5000, // Adjust the request timeout as needed.
+ *   signal: null, // Optional AbortSignal to cancel the request.
+ *   limit: 5, // Optional limit for the number of redirects (default is 5).
+ *   params: { q: "hello", tags: ["a","b"], meta: { x: 1 } } // Optional params object to include in the url as query strings. 
+ *   // Note: This appends ?q=hello&tags=a&tags=b&meta=%7B%22x%22%3A1%7D to the URL.
+ *   
  * }).then(res => {
  *   return console.log(res.data);
  * }).catch(err => {
