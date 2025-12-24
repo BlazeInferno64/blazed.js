@@ -2,7 +2,7 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 29/11/2025
+// Last updated: 24/12/2025
 
 // Type definitions for 'blazed.js'
 
@@ -16,6 +16,37 @@ type HTTPMethod =
   | 'PURGE' | 'PUT' | 'QUERY' | 'REBIND' | 'REPORT' | 'SEARCH' | 'SOURCE'
   | 'SUBSCRIBE' | 'TRACE' | 'UNBIND' | 'UNLINK' | 'UNLOCK' | 'UNSUBSCRIBE';
 
+// Define Headers type
+type Headers = Record<string, string>;
+
+interface InstanceConfig {
+  // The base URL for all requests made through this instance.
+  baseURL?: string;
+  // The timeout for requests made through this instance, in milliseconds.
+  timeout?: number;
+  // Default headers to include with every request made through this instance.
+  headers?: Headers;
+  // The default HTTP method for requests made through this instance.
+  method?: HTTPMethod;
+}
+
+interface BlazedInstance {
+  get(url: string, headers?: Headers, redirectCount?: number, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
+  head(url: string, headers?: Headers, redirectCount?: number, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
+  post(url: string, data: Object, headers?: Headers, redirectCount?: number, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
+  put(url: string, data: Object, headers?: Headers, redirectCount?: number, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
+  delete(url: string, headers?: Headers, redirectCount?: number, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
+  patch(url: string, data: Object, headers?: Headers, redirectCount?: number, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
+  options(url: string, headers?: Headers, redirectCount?: number, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
+  trace(url: string, headers?: Headers, redirectCount?: number, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
+  connect(url: string, headers?: Headers, redirectCount?: number, timeout?: number, signal?: AbortSignal): Promise<ConnectionResponseObject>;
+
+  request(requestObj: RequestObject): Promise<ResponseObject>;
+
+  cancel(reason?: string): void;
+
+  on: blazed["on"];
+}
 
 interface IpObject {
   /**
@@ -233,6 +264,10 @@ interface ResponseObject {
    */
   statusText: string;
   /**
+   * The average transfer speed in bytes per second for the entire response
+   */
+  transferSpeed: string
+  /**
    * Contains the headers which the server has sent.
    */
   responseHeaders: { [key: string]: string };
@@ -331,12 +366,14 @@ interface blazed {
    * 
    * **Important:** Calling this method will abort the current request and throw an error with the code 'ABORT_ERR'.
    * This error can be caught in the promise chain of the request.
+   * 
+   * @param {string} reason - Optional reason for cancellation.
    * @example
    * 
    * // Run the .cancel() method
-   * blazed.cancel()
+   * blazed.cancel("Test reason for cancellation");
    */
-  cancel(): void;
+  cancel(reason?: String): void;
   /**
    * Performs an HTTP GET request.
    * @param {Object} url The URL to request.
@@ -361,6 +398,7 @@ interface blazed {
    *      // - statusText
    *      // - requestHeaders
    *      // - responseSize
+   *      // - transferSpeed
    *  })
    *  .catch(error => {
    *      console.log(error);
@@ -392,6 +430,7 @@ interface blazed {
    *      // - statusText
    *      // - requestHeaders
    *      // - responseSize
+   *      // - transferSpeed
    *  })
    *  .catch(error => {
    *      console.log(error);
@@ -429,6 +468,7 @@ interface blazed {
    *      // - statusText
    *      // - requestHeaders
    *      // - responseSize
+   *      // - transferSpeed
    *  })
    *  .catch(error => {
    *      console.log(error);
@@ -466,6 +506,7 @@ interface blazed {
    *      // - statusText
    *      // - requestHeaders
    *      // - responseSize
+   *      // - transferSpeed
    *  })
    *  .catch(error => {
    *      console.log(error);
@@ -496,6 +537,7 @@ interface blazed {
    *      // - statusText
    *      // - requestHeaders
    *      // - responseSize
+   *      // - transferSpeed
    *  })
    *  .catch(error => {
    *      console.log(error);
@@ -532,6 +574,7 @@ interface blazed {
    *      // - statusText
    *      // - requestHeaders
    *      // - responseSize
+   *      // - transferSpeed
    *  })
    *  .catch(error => {
    *      console.log(error);
@@ -563,6 +606,7 @@ interface blazed {
    *      // - statusText
    *      // - requestHeaders
    *      // - responseSize
+   *      // - transferSpeed
    *  })
    *  .catch(error => {
    *      console.log(error);
@@ -594,6 +638,7 @@ interface blazed {
    *      // - statusText
    *      // - requestHeaders
    *      // - responseSize
+   *      // - transferSpeed
    *  })
    *  .catch(error => {
    *      console.log(error);
@@ -627,6 +672,7 @@ interface blazed {
    *      // - statusText
    *      // - requestHeaders
    *      // - responseSize
+   *      // - transferSpeed
    *  })
    *  .catch(error => {
    *      console.log(error);
@@ -669,6 +715,44 @@ interface blazed {
  * // be sent in the request body is set to null.
  */
   request(requestObj: RequestObject): Promise<ResponseObject>;
+
+  /**
+   * Creates a new blazed instance with its own default configuration.
+   *
+   * @example
+   * // Simulating a POST request with custom instance
+   * 
+   * const postData = {
+   *   title: 'foo',
+   *   body: 'bar',
+   *   userId: 1
+   * };
+   * 
+   * const api = blazed.createInstance({
+   *   baseURL: 'https://jsonplaceholder.typicode.com',
+   *   timeout: 8000,
+   *   headers: {
+   *     Authorization: 'Bearer token',
+   *     'X-My-Header': 'CustomValue'
+   *   }
+   * });
+   *
+   * api.post("/posts", postData)
+   *  .then(response => {
+   *     console.log(response);
+   *     // Response object contains:
+   *     // - data
+   *     // - duration
+   *     // - responseHeaders
+   *     // - status
+   *     // - statusText
+   *     // - requestHeaders
+   *     // - responseSize
+   *      // - transferSpeed
+   * })
+   */
+  createInstance(config?: InstanceConfig): BlazedInstance;
+
 
   /**
    * Checks return whether a provided URL is valid or not.

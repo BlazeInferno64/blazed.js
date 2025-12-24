@@ -1,6 +1,6 @@
 {
   "name": "blazed.js",
-  "version": "2.9.0",
+  "version": "2.9.5",
   "main": "index.js",
   "types": "typings/index.d.ts",
   "scripts": {
@@ -60,7 +60,12 @@
     "dns-client",
     "light-weight",
     "fast-http-client",
-    "promise-based-http-client"
+    "promise-based-http-client",
+    "eslint",
+    "openjs",
+    "regex",
+    "light-weight",
+    "babel__core"
   ],
   "jest": {
     "testMatch": [
@@ -76,9 +81,9 @@
   },
   "description": "Blazing fast, light weight, high performance, promise based HTTP and DNS client for the Node",
   "devDependencies": {
-    "@eslint/js": "^9.39.1",
+    "@eslint/js": "^9.39.2",
     "@jest/globals": "^30.2.0",
-    "eslint": "^9.39.1",
+    "eslint": "^9.39.2",
     "jest": "^30.2.0"
   },
   "dependencies": {

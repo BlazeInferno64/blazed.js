@@ -476,11 +476,70 @@ blazed.speedometer(10, 1000);
 // 10 samples per second (1000 ms)
 ```
 
+# Creating Custom Instances
+
+`blazed.js` allows you to create **isolated instances** with their own default configuration.
+
+Each instance object contains the following 👇
+
+```js
+{
+    "baseURL": string, // Base URL for all requests (e.g. "https://www.google.com")
+    "timeout": number, // Default timeout (in milliseconds)instance.
+    "headers": object, // Default headers applied to every request
+}
+```
+
+This is useful when working with **multiple APIs** or **different configurations** in the same application.
+
+## Creating an Instance
+
+Use `blazed.createInstance()` to create a new instance:
+
+```js
+const postData = {
+  title: 'foo',
+  body: 'bar',
+  userId: 1
+};
+
+const api = blazed.createInstance({
+  baseURL: 'https://jsonplaceholder.typicode.com',
+  timeout: 8000,
+  headers: {
+    'Content-Type': 'application/json'
+  }
+});
+```
+
+## Making Requests with an instance
+
+Once created, the instance supports all HTTP methods just like the main `blazed.js` object.
+
+```js
+api.post("/posts", postData)
+  .then(res => {
+    console.log(res);
+        // Response object contains:
+        // - data
+        // - duration
+        // - responseHeaders
+        // - status
+        // - statusText
+        // - requestHeaders
+        // - responseSize
+  })
+  .catch(err => {
+    console.error(err);
+  });
+
+```
+
 # HTTP Request Cancellation
 
 `blazed.js` supports convenient cancellation of ongoing HTTP requests in two ways:
 
-- Internal cancellation using `blazed.cancel()` – this will immediately abort the currently running request.
+- Internal cancellation with reason using `blazed.cancel()` – this will immediately abort the currently running request.
 
 - External cancellation by passing your own `AbortSignal` via the signal option in the request object. This allows fine-grained control, such as timeout-based or user-triggered cancellations.
 
@@ -502,7 +561,7 @@ blazed.request({
     })
 
 // Will cancel the ongoing request
-blazed.cancel();
+blazed.cancel("Test reason for cancellation"); // Any reason
 console.log("The ongoing request has been cancelled."); // Logging a messsage
 ```
 

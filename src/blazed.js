@@ -4,7 +4,7 @@
 // 1. BlazeInferno64 -> https://github.com/blazeinferno64
 // 2. Sudeep -> https://github.com/SudeepQ
 //
-// Last updated: 29/11/2025
+// Last updated: 24/12/2025
 
 "use strict";
 
@@ -21,16 +21,20 @@ const headerParser = require("./utils/plugins/headers");
 const utilErrors = require("./utils/errors/errors");
 const { lookupForIp, reverseLookupForIp } = require("./utils/dns/dns");
 
+const { speedoMeter } = require("./utils/plugins/speedometer");
 const { mapStatusCodes } = require("./utils/plugins/status-mapper");
 const { formatBytes } = require("./utils/plugins/math");
 const { HTTP_METHODS, supportedSchemas, validateBooleanOption, compareNodeVersion, buildQueryString } = require("./utils/plugins/base");
+const { BlazedCancelError } = require("./utils/plugins/classes");
 
 const packageJson = require("../package.json");
 
-
 let custom;
 
+let transferSpeed = null;
+
 let currentController = null; // Global variable to hold the current AbortController
+let cancelledReason = null; // Global variable to hold the cancellation reason
 
 let xReqWith = true;
 let userAgent = true;
@@ -182,11 +186,11 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
         // currentTime = timeout;
         request.setTimeout(timeout);
         request.on("timeout", async () => {
-         // controller.abort() // Abort the controller
+          // controller.abort() // Abort the controller
           // destroy the request/socket, then surface a timeout error via utilErrors
           try {
             const err = "Req_Timeout";
-            request.destroy(await utilErrors.processError(err, requestUrl, null , null, timeout, method, reject));
+            request.destroy(await utilErrors.processError(err, requestUrl, null, null, timeout, method, reject));
           } catch (error) {
             await utilErrors.processError(new Error('Request timed out'), requestUrl, null, null, null, method, reject).catch(() => { /* ignore secondary errors */ });
           }
@@ -220,6 +224,14 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
         });
 
         request.on('error', async (error) => {
+          // AbortController cancellation
+          if (error?.name === 'AbortError') {
+            return reject(new BlazedCancelError({
+              url: url,
+              method: method,
+              reason: cancelledReason || error.message
+            }));
+          }
           // Process the http error using the 'utilErrors' util tool.
           return await utilErrors.processError(error, requestUrl, null, null, null, method, reject);
         });
@@ -279,6 +291,7 @@ const handleResponse = (response, resolve, reject, redirectCount = 5, originalUr
     "status": "",
     "statusText": "",
     "responseSize": "0 Bytes",
+    "transferSpeed": transferSpeed,
     "responseHeaders": {},
     "duration": "",
     "requestHeaders": reqOptions.headers
@@ -288,6 +301,7 @@ const handleResponse = (response, resolve, reject, redirectCount = 5, originalUr
     responseObject.data = connectionInfoObject;
     responseObject.status = null;
     responseObject.statusText = null;
+    responseObject.transferSpeed = formatBytes(transferSpeed);
     responseObject.duration = Date.now() - startTime; // <-- This indicates the response time duration in ms.
     for (const key in response.headers) {
       responseObject.responseHeaders[key] = response.headers[key];
@@ -343,6 +357,8 @@ const handleResponse = (response, resolve, reject, redirectCount = 5, originalUr
     responseObject.status = response.statusCode;
     responseObject.statusText = mapStatusCodes(response.statusCode).message;
     responseObject.duration = Date.now() - startTime; // <-- This indicates the response time duration in ms.
+    // Calculate the transferSpeed based on the duration
+    responseObject.transferSpeed = responseObject.duration > 0 ? formatBytes(Math.round(totalBytes * 1000 / responseObject.duration)) : null;
     // Emitter for the 'afterRequest' event
     emitter.emit("afterRequest", originalUrl, responseObject);
     // Resolve with the 'responseObject' finally
@@ -395,9 +411,10 @@ const handleRedirect = (method, redirectUrl, data, headers, redirectCount, timeo
 /**
  * Cancels any ongoing HTTP request.
  */
-const cancel = () => {
+const cancel = (reason) => {
   if (currentController) {
-    currentController.abort(); // Abort the ongoing request
+    cancelledReason = reason || null;
+    currentController.abort(reason); // Abort the ongoing request
     currentController = null; // Reset the controller
   }
 }
@@ -529,6 +546,78 @@ const maxHeaderSize = Object.freeze({
   }
 }).value;
 
+
+const createInstance = (defaultConfig = {}) => {
+  const {
+    baseURL = null,
+    timeout = 5000,
+    headers = {},
+    method = null
+  } = defaultConfig;
+
+  const instanceRequest = (methodOverride, url, data, hdrs, redirectCount, t, signal) => {
+    const finalMethod = methodOverride || method || HTTP_METHODS.GET;
+    const finalURL =
+      url
+        ? (baseURL ? baseURL.replace(/\/$/, '') + '/' + url.replace(/^\//, '') : url)
+        : baseURL;
+
+    return _makeRequest(
+      finalMethod,
+      finalURL,
+      data,
+      { ...headers, ...hdrs },
+      redirectCount ?? 5,
+      t ?? timeout,
+      signal
+    );
+  };
+
+  return {
+    get: (url, headers, redirectCount, timeout, signal) =>
+      instanceRequest(HTTP_METHODS.GET, url, null, headers, redirectCount, timeout, signal),
+
+    post: (url, data, headers, redirectCount, timeout, signal) =>
+      instanceRequest(HTTP_METHODS.POST, url, data, headers, redirectCount, timeout, signal),
+
+    put: (url, data, headers, redirectCount, timeout, signal) =>
+      instanceRequest(HTTP_METHODS.PUT, url, data, headers, redirectCount, timeout, signal),
+
+    delete: (url, headers, redirectCount, timeout, signal) =>
+      instanceRequest(HTTP_METHODS.DELETE, url, null, headers, redirectCount, timeout, signal),
+
+    patch: (url, data, headers, redirectCount, timeout, signal) =>
+      instanceRequest(HTTP_METHODS.PATCH, url, data, headers, redirectCount, timeout, signal),
+
+    head: (url, headers, redirectCount, timeout, signal) =>
+      instanceRequest(HTTP_METHODS.HEAD, url, null, headers, redirectCount, timeout, signal),
+
+    options: (url, headers, redirectCount, timeout, signal) =>
+      instanceRequest(HTTP_METHODS.OPTIONS, url, null, headers, redirectCount, timeout, signal),
+
+    request: (config = {}) => {
+      const finalURL =
+        config.url
+          ? (baseURL ? baseURL.replace(/\/$/, '') + '/' + config.url.replace(/^\//, '') : config.url)
+          : baseURL;
+
+      return _makeRequest(
+        config.method || method || HTTP_METHODS.GET,
+        finalURL,
+        config.body || null,
+        { ...headers, ...(config.headers || {}) },
+        config.limit ?? 5,
+        config.timeout ?? timeout,
+        config.signal || null
+      );
+    },
+
+    cancel,          // reuse global cancel
+    on: emitter.on.bind(emitter)
+  };
+};
+
+
 /**
  * Function to configure options.
  * 
@@ -562,7 +651,7 @@ const configure = (option = {}) => {
     keepAlive = !!option["Keep-Alive"];
   }
 
-    defaultURL = option["Default-URL"] || null; // Default to null if not provided
+  defaultURL = option["Default-URL"] || null; // Default to null if not provided
 
   // Resolve the promise
   return {
@@ -719,6 +808,7 @@ module.exports = {
     return _makeRequest(method, finalUrl, data, headers, redirectCount, timeout, signal);
   },
   parse_url,
+  createInstance,
   STATUS_CODES: status_codes,
   methods,
   ABOUT: about,
