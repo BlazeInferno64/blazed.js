@@ -461,21 +461,6 @@ blazed.get() // Will send GET request to the Github Api.
 
 The above function will throw an error if the values aren't boolean ,i.e, true/false.
 
-# HTTP Request Speedometer
-
-
-`blazed.js` offers a user-friendly way to measure the maximum data flow rate during HTTP requests.
-
-While you can customize the speedometer by calling the `blazed.speedometer()` method, it's important to note that a default speedometer is already set up for you. This method is primarily intended for customization.
-
-Once configured, you can easily monitor the data flow rate by accessing the `transferSpeed` property of the `response object`.
-
-
-```js
-blazed.speedometer(10, 1000);
-// 10 samples per second (1000 ms)
-```
-
 # Creating Custom Instances
 
 `blazed.js` allows you to create **isolated instances** with their own default configuration.
