@@ -520,6 +520,116 @@ api.post("/posts", postData)
 
 ```
 
+## Instance Fetch API
+
+In addition to the global `blazed.fetch()`, each custom instance created with `blazed.createInstance()` also provides its own Fetch API.
+
+This allows you to use a browser-compatible `fetch()` with instance-specific defaults such as `baseURL`, `headers`, and `timeout`.
+
+This is ideal when working with multiple APIs, different authentication tokens, or isolated configurations in the same application.
+
+### Creating an Instance with Fetch
+
+```js
+// Creating an instance
+const api = blazed.createInstance({
+  baseURL: "https://jsonplaceholder.typicode.com",
+  timeout: 8000,
+  headers: {
+    "Content-Type": "application/json"
+  }
+});
+```
+
+### Using `instance.fetch()`
+
+The instance exposes a `fetch()` method that follows the standard Fetch API specification (browser / undici compatible).
+
+```js
+// Using the instance to fetch data
+const response = await api.fetch("/posts/1");
+
+console.log("Status:", response.status);
+console.log("OK:", response.ok);
+
+const data = await response.json();
+console.log("Data:", data);
+```
+
+> Because a `baseURL` is defined, relative paths like `"/posts/1"` are automatically resolved to: https://jsonplaceholder.typicode.com/posts/1
+
+### Fetch with Options
+
+You can pass the same options you would normally pass to `fetch()`:
+
+```js
+// POST request using the instance
+const response = await api.fetch("/posts", {
+  method: "POST",
+  headers: {
+    "Authorization": "Bearer YOUR_TOKEN" // Include the token if any
+  },
+  body: JSON.stringify({
+    title: "foo",
+    body: "bar",
+    userId: 1
+  })
+});
+
+const result = await response.json(); // or .text() for text based response
+console.log(result);
+```
+
+### Handling HTTP Errors
+
+Like the native Fetch API, the promise only rejects on network errors.
+For HTTP errors (e.g., 404, 500), you must check `response.ok`:
+
+```js
+const response = await api.fetch("/invalid-endpoint");
+
+if (!response.ok) {
+  throw new Error(`HTTP Error: ${response.status}`);
+}
+```
+
+### Redirect Behavior
+
+`instance.fetch()` supports standard Fetch redirect modes:
+
+```js
+await api.fetch("/redirect", {
+  redirect: "follow" // "follow" | "manual" | "error"
+});
+```
+
+You can also configure redirect limits internally using instance options when supported.
+
+## Why Use instance.fetch()?
+
+Using `createInstance().fetch()` gives you:
+
+- Scoped configuration (base URL, headers, timeout)
+
+- Browser-compatible Fetch API
+
+- Undici-style behavior for Node.js
+
+- Cleaner code for multi-API projects
+
+Instead of repeating config:
+
+```js
+await blazed.fetch("https://api.example.com/users", { headers: {...} });
+```
+
+You can simply write:
+
+```js
+const api = blazed.createInstance({ baseURL: "https://api.example.com" });
+await api.fetch("/users");
+```
+
 # HTTP Request Cancellation
 
 `blazed.js` supports convenient cancellation of ongoing HTTP requests in two ways:
@@ -574,6 +684,51 @@ blazed.request({
             console.error("An error occurred:", err);
         }
     });
+
+```
+
+# Fetch Api
+
+`blazed.js` provides a Fetch API compatible with the browser’s native `fetch()` (and Node.js / undici), allowing you to make HTTP requests using the same familiar interface.
+
+You can use it via the `blazed.fetch()` function.
+
+## Basic Example
+
+```js
+const { fetch } = blazed;
+
+const url = "https://httpbin.org/anything";
+
+const response = await fetch(url);
+
+console.log("Status:", response.status);
+console.log("Status Text:", response.statusText);
+console.log("Headers:", response.headers);
+
+const data = await response.json(); // or use .text()
+console.log("Data:", data);
+
+```
+
+### Notes
+- `blazed.fetch()` follows the standard Fetch API specification, just like in modern browsers.
+
+- The API is compatible with Node.js (undici-style fetch), making your code cross-platform.
+
+- Like native `fetch`, the promise only rejects on network errors.
+For HTTP errors (e.g., 404, 500), you should check `response.ok`.
+
+## Handling HTTP errors
+
+```js
+const url = "https://httpbin.org/anything";
+
+const response = await fetch(url);
+
+if (!response.ok) {
+  throw new Error(`HTTP Error: ${response.status}`);
+}
 ```
 
 # URL Parsing

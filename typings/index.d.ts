@@ -1,12 +1,17 @@
-// Copyright (c) 2025 BlazeInferno64 --> https://github.com/blazeinferno64.
+// Copyright (c) 2026 BlazeInferno64 --> https://github.com/blazeinferno64.
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 24/12/2025
+// Last updated: 06/01/2026
 
 // Type definitions for 'blazed.js'
 
+import type { RequestInit, HeadersInit, BodyInit } from "undici";
+
+
 /// <reference types="node" />
+/// <reference lib="dom" />
+/// <reference lib="dom.iterable" />
 
 // Strongly type HTTP Methods
 type HTTPMethod =
@@ -18,6 +23,13 @@ type HTTPMethod =
 
 // Define Headers type
 type Headers = Record<string, string>;
+
+interface FetchRequestInit extends Request {
+}
+
+interface FetchResponse extends Response {
+  
+}
 
 interface InstanceConfig {
   // The base URL for all requests made through this instance.
@@ -42,6 +54,8 @@ interface BlazedInstance {
   connect(url: string, headers?: Headers, redirectCount?: number, timeout?: number, signal?: AbortSignal): Promise<ConnectionResponseObject>;
 
   request(requestObj: RequestObject): Promise<ResponseObject>;
+
+  fetch(input: string | URL | Request, init?: FetchRequestInit): Promise<FetchResponse>;
 
   cancel(reason?: string): void;
 
@@ -715,6 +729,28 @@ interface blazed {
  * // be sent in the request body is set to null.
  */
   request(requestObj: RequestObject): Promise<ResponseObject>;
+
+  /**
+   * Performs an HTTP request using a Fetch-compatible API.
+   * 
+   * @param input - The resource to fetch. Can be a URL string, URL object, or a Request object.
+   * @param init - Optional configuration object
+   * 
+   * @returns A promise that resolves to a Fetch-compatible response object.
+   * 
+   * @example 
+   * const { fetch } = blazed;
+   * const response = await fetch("https://httpbin.org/anything");
+   * 
+   * if (!response.ok) {
+   *    throw new Error(`HTTP Error with status ${response.status}!`);
+   * }
+   * 
+   * console.log(response.status);
+   * const data = await response.text(); // alternatively .json() can be used for parsing JSON based responses.
+   * console.log(data);
+   */
+  fetch(input: string | URL | Request, init?: FetchRequestInit): Promise<FetchResponse>;
 
   /**
    * Creates a new blazed instance with its own default configuration.

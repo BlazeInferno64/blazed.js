@@ -1,10 +1,10 @@
-// Copyright (c) 2025 BlazeInferno64 --> https://github.com/blazeinferno64.
+// Copyright (c) 2026 BlazeInferno64 --> https://github.com/blazeinferno64.
 //
 // Author(s) -> 
 // 1. BlazeInferno64 -> https://github.com/blazeinferno64
 // 2. Sudeep -> https://github.com/SudeepQ
 //
-// Last updated: 24/12/2025
+// Last updated: 08/01/2026
 
 "use strict";
 
@@ -26,6 +26,11 @@ const { mapStatusCodes } = require("./utils/plugins/status-mapper");
 const { formatBytes } = require("./utils/plugins/math");
 const { HTTP_METHODS, supportedSchemas, validateBooleanOption, compareNodeVersion, buildQueryString } = require("./utils/plugins/base");
 const { BlazedCancelError } = require("./utils/plugins/classes");
+
+const { Request } = require("./utils/plugins/fetch/request");
+const { Response } = require("./utils/plugins/fetch/response");
+const { Body } = require("./utils/plugins/fetch/body");
+const { Headers } = require("./utils/plugins/fetch/headers");
 
 const packageJson = require("../package.json");
 
@@ -63,7 +68,7 @@ compareNodeVersion();
 */
 
 // Make request function to perform the HTTP request!
-const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeout = 5000, externalSignal = null) => {
+const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeout = 5000, externalSignal = null, mode = 'default', redirectMode = 'follow') => {
   // Create a new AbortController instance for each request
   currentController = new AbortController();
   const controller = currentController;
@@ -122,7 +127,7 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
         const httpModule = parsedURL.protocol === 'https:' ? https : http;
         // Create a 'keep-alive' connection to improve performance.
         const agent = new httpModule.Agent({
-          keepAlive: !isServerless && !!keepAlive
+          keepAlive: !isServerless && !!keepAlive,
         });
 
         // Define 'requestOptions' object.
@@ -135,7 +140,8 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
             ...headerParser.normalizeHeaders(headers), // Spread the user-provided headers
           },
           agent, // Add the 'keep-alive' connection here.
-          signal // Add the signal to the request options.
+          signal, // Add the signal to the request options.
+          redirect: redirectMode // Add the redirect mode to the request options.
         };
 
         // Remove Content-Length and Content-Type headers for GET or HEAD requests
@@ -179,7 +185,7 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
 
         // Main request part of blazed.js for handling any ongoing requests
         const request = httpModule.request(parsedURL, requestOptions, (response) => {
-          handleResponse(response, resolve, reject, redirectCount = 5, requestUrl, data, method, headers, requestOptions, request, parsedURL, timeout);
+          handleResponse(response, resolve, reject, redirectCount, requestUrl, data, method, headers, requestOptions, request, parsedURL, timeout, mode, redirectMode);
         });
 
         // Set Request timeout
@@ -270,7 +276,7 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
  */
 
 // Response handler function
-const handleResponse = (response, resolve, reject, redirectCount = 5, originalUrl, data, method, headers, reqOptions, request, connectionInfoObject, timeout) => {
+const handleResponse = (response, resolve, reject, redirectCount = 5, originalUrl, data, method, headers, reqOptions, request, connectionInfoObject, timeout, mode, redirectMode) => {
   const resObject = {
     pipe: (stream) => {
       if (response && typeof response.pipe === 'function') {
@@ -326,9 +332,16 @@ const handleResponse = (response, resolve, reject, redirectCount = 5, originalUr
 
   // Handling the ending of response
   response.on('end', async () => {
+    //let body;
+    let concatedBuffers;
+    if (buffers.length === 1) {
+      concatedBuffers = buffers[0];
+    } else {
+      concatedBuffers = Buffer.concat(buffers, totalBytes);
+    }
     // Commenting out the 'contentType' variable to reduce memory usage and thus improve performance
     // const contentType = response.headers['content-type'];
-    const concatedBuffers = Buffer.concat(buffers);
+    //const concatedBuffers = Buffer.concat(buffers);
 
     // Checks for 'content-type' header for 'application/json' data method has been deprecated
     // Since checking can sometimes hinder with the performance while processing requests and might eventually slow it down
@@ -336,7 +349,7 @@ const handleResponse = (response, resolve, reject, redirectCount = 5, originalUr
     //
     // if (contentType?.includes('application/json')) <-- This piece has been commented out for the above reason.
     //
-    if (jsonParser) {
+    /*if (jsonParser) {
       try {
         const parsedData = JSON.parse(concatedBuffers.toString());
         responseObject.data = parsedData;
@@ -348,11 +361,32 @@ const handleResponse = (response, resolve, reject, redirectCount = 5, originalUr
     } else {
       // Send it as a string if its not getting parsed only if 'jsonParser' variable is set to 'false'
       responseObject.data = concatedBuffers.toString();
+    }*/
+
+    if (mode === 'fetch') {
+      responseObject.data = concatedBuffers;
+    } else {
+      const contentType = response.headers['content-type'] || '';
+      const text = concatedBuffers.toString();
+
+      if (jsonParser && contentType?.includes('application/json')) {
+        try {
+          responseObject.data = JSON.parse(text);
+        } catch (e) {
+          // Fallback if the JSON is malformed despite the header
+          responseObject.data = text;
+        }
+      } else {
+        // Send it as a string if its not getting parsed only if 'jsonParser' variable is set to 'false'
+        responseObject.data = text;
+      }
     }
-    // responseObject.data = concatedBuffers.toString();
+
+    // Loop through the response headers
     for (const key in response.headers) {
       responseObject.responseHeaders[key] = response.headers[key];
     }
+
     responseObject.responseSize = response.headers['content-length'] ? formatBytes(response.headers['content-length']) : formatBytes(totalBytes);
     responseObject.status = response.statusCode;
     responseObject.statusText = mapStatusCodes(response.statusCode).message;
@@ -367,22 +401,47 @@ const handleResponse = (response, resolve, reject, redirectCount = 5, originalUr
 
   response.on('error', reject);
   if (response.statusCode >= 300 && response.statusCode < 400 && response.headers.location) {
-    if (redirectCount > 0) {
-      // Check if the response has an location header or not.
-      // If its present then construct another HTTP redirect URL using it.
-      const redirectUrl = response.headers['location'] || response.headers.location;
+    // Check if the response has an location header or not.
+    // If its present then construct another HTTP redirect URL using it.
+    const location = response.headers['location'] || response.headers.location;
 
-      if (!redirectUrl) {
-        const err = `Undefined_Redirect_Location`;
-        // Process the undefined redirect error.
-        return reject(async () => {
-          await utilErrors.processError(err, originalUrl, false, false, false, method, reject);
-        });
-      }
+    if (!location) {
+      const err = `Undefined_Redirect_Location`;
+      // Process the undefined redirect error.
+      return utilErrors.processError(err, originalUrl, false, false, false, method, reject);
+    }
+    // Build redirect URL safely handles both relative as well as absolute
+    const redirectUrl = new URL(location, originalUrl);
+
+    // Preserve given query string if redirect doesn't define one
+    if (!redirectUrl.search || redirectUrl.search === '') {
+      const original = new URL(originalUrl);
+      redirectUrl.search = original.search;
+    }
+
+    /*if (redirectMode === 'error') {
+      //console.log(`REDIRECT ${redirectMode}`);
+      return reject(new Error(`Redirect not allowed in ${redirectMode} mode!`))
+    }*/
+    if (redirectMode === 'manual') {
+      //console.log(`${redirectMode} is manual!`);
+      responseObject.responseSize = response.headers['content-length'] ? formatBytes(response.headers['content-length']) : formatBytes(totalBytes);
+      responseObject.status = response.statusCode;
+      responseObject.statusText = mapStatusCodes(response.statusCode).message;
+      responseObject.duration = Date.now() - startTime; // <-- This indicates the response time duration in ms.
+      // Calculate the transferSpeed based on the duration
+      responseObject.transferSpeed = responseObject.duration > 0 ? formatBytes(Math.round(totalBytes * 1000 / responseObject.duration)) : null;
+      // Emitter for the 'afterRequest' event
+      emitter.emit("afterRequest", originalUrl, responseObject);
+      // Resolve with the 'responseObject' finally
+      return resolve(responseObject);
+    }
+
+    if (redirectCount > 0) {
       const redirObj = {
         "OriginalURL": originalUrl,
-        "RedirectURL": redirectUrl
-      }
+        "RedirectURL": redirectUrl.href
+      };
       try { if (request && typeof request.destroy === 'function') request.destroy(); } catch (e) { /* ignore */ }
       try { if (response && typeof response.destroy === 'function') response.destroy(); } catch (e) { /* ignore */ }
 
@@ -391,21 +450,26 @@ const handleResponse = (response, resolve, reject, redirectCount = 5, originalUr
 
       // Redirect logic
       // Use the handleRedirect function
-      return resolve(handleRedirect(method, redirectUrl, data, headers, redirectCount, timeout));
-    } else {
+      return resolve(handleRedirect(method, redirectUrl.href, data, headers, redirectCount, timeout, null, mode, redirectMode));
+    }
+    else {
+      console.log(`REDIRECTCOUNT IS ${redirectCount}`)
+      if (redirectMode === 'error') {
+        const err = "REDIRECT_NOT_ALLOWED";
+        return utilErrors.processError(err, false, false, false, redirectCount, method, reject, redirectMode);
+      }
       const error = 'REDIRECT_ERR';
       custom = true;
-      return reject(async () => {
-        await utilErrors.processError(error, false, false, false, redirectCount, method, reject)
-      });
+      return utilErrors.processError(error, false, false, false, redirectCount, method, reject);
+
     }
 
   }
 };
 
 // Function to handle redirects
-const handleRedirect = (method, redirectUrl, data, headers, redirectCount, timeout) => {
-  return _makeRequest(method, redirectUrl, data, headers, redirectCount - 1, timeout);
+const handleRedirect = (method, redirectUrl, data, headers, redirectCount, timeout, signal, mode, redirectMode) => {
+  return _makeRequest(method, redirectUrl, data, headers, redirectCount - 1, timeout, signal, mode, redirectMode);
 };
 
 /**
@@ -416,6 +480,34 @@ const cancel = (reason) => {
     cancelledReason = reason || null;
     currentController.abort(reason); // Abort the ongoing request
     currentController = null; // Reset the controller
+  }
+}
+
+const fetch = async (input, init = {}) => {
+  const request = input instanceof Request ? input : new Request(input, init);
+  const redirectLimit = request.redirect === 'follow' ? 5 : request.redirect === 'error' ? 0 : 0;
+
+  try {
+    const res = await _makeRequest(
+      request.method,
+      request.url,
+      request.body,
+      request.headers.raw(),
+      redirectLimit,
+      init.timeout ?? 5000,
+      request.signal,
+      "fetch",
+      request.redirect
+    );
+
+    return new Response(res.data, {
+      status: res.status,
+      statusText: res.statusText,
+      headers: res.responseHeaders,
+      url: request.url,
+    });
+  } catch (error) {
+    throw error;
   }
 }
 
@@ -552,8 +644,11 @@ const createInstance = (defaultConfig = {}) => {
     baseURL = null,
     timeout = 5000,
     headers = {},
-    method = null
+    method = null,
+    redirectCount: defaultRedirectCount = 5
   } = defaultConfig;
+
+  const redirectMode = defaultConfig.redirect || "follow";
 
   const instanceRequest = (methodOverride, url, data, hdrs, redirectCount, t, signal) => {
     const finalMethod = methodOverride || method || HTTP_METHODS.GET;
@@ -567,9 +662,11 @@ const createInstance = (defaultConfig = {}) => {
       finalURL,
       data,
       { ...headers, ...hdrs },
-      redirectCount ?? 5,
+      redirectCount ?? defaultRedirectCount,
       t ?? timeout,
-      signal
+      signal,
+      'default',
+      redirectMode
     );
   };
 
@@ -601,6 +698,15 @@ const createInstance = (defaultConfig = {}) => {
           ? (baseURL ? baseURL.replace(/\/$/, '') + '/' + config.url.replace(/^\//, '') : config.url)
           : baseURL;
 
+              /*    config.method || method || HTTP_METHODS.GET,
+        finalURL,
+        config.body || null,
+        { ...headers, ...(config.headers || {}) },
+        config.redirect === "follow" ? 5 : config.redirect === "error" ? 0 : 0,
+        config.limit ?? 5,
+        config.timeout ?? timeout,
+        config.signal || null,*/
+
       return _makeRequest(
         config.method || method || HTTP_METHODS.GET,
         finalURL,
@@ -608,11 +714,53 @@ const createInstance = (defaultConfig = {}) => {
         { ...headers, ...(config.headers || {}) },
         config.limit ?? 5,
         config.timeout ?? timeout,
-        config.signal || null
+        config.signal || null,
       );
     },
 
-    cancel,          // reuse global cancel
+    cancel,
+    fetch: async (input, init = {}) => {
+      let request;
+
+      if (input instanceof Request) {
+        request = input;
+      } else {
+        const finalURL = input ? (baseURL ? baseURL.replace(/\/$/, '') + '/' + input.replace(/^\//, '') : input) : baseURL;
+
+        request = new Request(finalURL, {
+          method: init.method || method || HTTP_METHODS.GET,
+          headers: { ...headers, ...(init.headers || {}) },
+          body: init.body || null,
+          signal: init.signal || null,
+          redirect: init.redirect || "follow"
+        });
+
+        const redirectLimit = redirectMode === "follow" ? 5 : redirectMode === "error" ? 0 : 0;
+
+        try {
+          const res = await _makeRequest(
+            request.method || method || HTTP_METHODS.GET,
+            request.url,
+            request.body,
+            request.headers.raw(),
+            redirectLimit,
+            init.timeout ?? 5000,
+            request.signal,
+            "fetch",
+            redirectMode
+          );
+
+          return new Response(res.data, {
+            status: res.status,
+            statusText: res.statusText,
+            headers: res.responseHeaders,
+            url: request.url,
+          });
+        } catch (error) {
+          throw error;
+        }
+      }
+    }, // reuse global cancel
     on: emitter.on.bind(emitter)
   };
 };
@@ -821,6 +969,7 @@ module.exports = {
   resolve_dns,
   fileURL,
   cancel,
+  fetch,
   reverse_dns,
   /**
    * Attaches a listener to the on event

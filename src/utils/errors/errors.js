@@ -1,8 +1,8 @@
-// Copyright (c) 2025 BlazeInferno64 --> https://github.com/blazeinferno64.
+// Copyright (c) 2026 BlazeInferno64 --> https://github.com/blazeinferno64.
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 13/11/2025
+// Last updated: 06/01/2026
 
 "use strict";
 
@@ -36,7 +36,7 @@ const makeError = (type, name, code, message, extra = {}) => {
  * @param {(err: Error) => void} [reject] - Optional reject callback.
  * @returns {Promise<Error>|Error} Returns or rejects a standardized error object.
  */
-const processError = async (error, url, dns = false, header = {}, custom, method = "GET", reject) => {
+const processError = async (error, url, dns = false, header = {}, custom, method = "GET", reject, mode) => {
   const errMap = {
     ENOTFOUND: () => makeError(
       Error, "DNS_Resolution_Error", "ENOTFOUND",
@@ -141,6 +141,11 @@ const processError = async (error, url, dns = false, header = {}, custom, method
         Error, "Request_Timeout_Error", "REQ_TIMEOUT",
         `The request to ${url} has been timed out after ${custom}ms`
       )
+    } else if (error === "REDIRECT_NOT_ALLOWED") {
+      err = makeError(
+        Error, "Redirect_Not_Allowed", "ERR_REDIRECT_NOT_ALLOWED",
+        `Redirects are not allowed in error mode for request to ${url} in ${mode}`
+      );
     }
   } else if (
     error &&
