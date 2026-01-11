@@ -3,14 +3,16 @@
 // Author(s) -> 
 // 1. BlazeInferno64 -> https://github.com/blazeinferno64
 //
-// Last updated: 08/01/2026
+// Last updated: 10/01/2026
 "use strict";
 
 const { createRequire } = require("node:module");
 const require2 = createRequire(__filename);
 
 const { Buffer } = require2("buffer");
-const { formData } = require2("./formdata");
+const { FormData } = require2("./formdata");
+
+//console.log(FormData);
 
 class Body {
     constructor(body = null, headers = null) {

@@ -2,11 +2,12 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 06/01/2026
+// Last updated: 11/01/2026
 
 // Type definitions for 'blazed.js'
 
 import type { RequestInit, HeadersInit, BodyInit } from "undici";
+import { Body } from "../src/utils/plugins/fetch/body";
 
 
 /// <reference types="node" />
@@ -30,6 +31,71 @@ interface FetchRequestInit extends Request {
 interface FetchResponse extends Response {
   
 }
+
+declare class Headers {
+  constructor(init?: HeadersInit);
+  append(name: string, value: string): void;
+  delete(name: string): void;
+  get(name: string): string | null;
+  has(name: string): boolean;
+  set(name: string, value: string): void;
+  forEach(
+    callback: (value: string, key: string, parent: Headers) => void,
+    thisArg?: any
+  ): void;
+  entries(): IterableIterator<[string, string]>;
+  keys(): IterableIterator<string>;
+  values(): IterableIterator<string>;
+  [Symbol.iterator](): IterableIterator<[string, string]>;
+}
+
+declare class Request {
+  constructor(input: RequestInfo | URL, init?: RequestInit);
+  readonly method: string;
+  readonly url: string;
+  readonly headers: Headers;
+  readonly redirect: "follow" | "error" | "manual";
+  readonly signal: AbortSignal | null;
+  clone(): Request;
+}
+
+declare class Response {
+  constructor(body?: BodyInit | null, init?: ResponseInit);
+  readonly status: number;
+  readonly statusText: string;
+  readonly ok: boolean;
+  readonly redirected: boolean;
+  readonly type: ResponseType;
+  readonly url: string;
+  readonly headers: Headers;
+  clone(): Response;
+
+  arrayBuffer(): Promise<ArrayBuffer>;
+  text(): Promise<string>;
+  json(): Promise<any>;
+  formData(): Promise<FormData>;
+  blob(): Promise<Blob>;
+
+  static error(): Response;
+  static redirect(url: string, status?: number): Response;
+}
+
+declare class FormData {
+  constructor();
+  append(name: string, value: string | Blob | Buffer, fileName?: string): void;
+  delete(name: string): void;
+  get(name: string): FormDataEntryValue | null;
+  getAll(name: string): FormDataEntryValue[];
+  has(name: string): boolean;
+  set(name: string, value: string | Blob | Buffer, fileName?: string): void;
+  entries(): IterableIterator<[string, FormDataEntryValue]>;
+  keys(): IterableIterator<string>;
+  values(): IterableIterator<FormDataEntryValue>;
+  [Symbol.iterator](): IterableIterator<[string, FormDataEntryValue]>;
+}
+
+type FormDataEntryValue = string | Blob | Buffer;
+
 
 interface InstanceConfig {
   // The base URL for all requests made through this instance.
@@ -824,6 +890,42 @@ interface blazed {
    * });
    */
   parse_url(url: string): Promise<URLParser>;
+  
+
+  /**
+   * Fetch API's global Response class
+   * 
+   * [MDN Reference](https://developer.mozilla.org/en-US/docs/Web/API/Response)
+   */
+  Response: typeof Response;
+  
+  /**
+   * Fetch API's global Request class
+   * 
+   * [MDN Reference](https://developer.mozilla.org/en-US/docs/Web/API/Request)
+   */
+  Request: typeof Request;
+
+  /**
+   * Fetch API's global FormData class
+   * 
+   * [MDN Reference](https://developer.mozilla.org/en-US/docs/Web/API/FormData)
+   */
+  FormData: typeof FormData;
+
+  /**
+   * Fetch API's global Headers class
+   * 
+   * [MDN Reference](https://developer.mozilla.org/en-US/docs/Web/API/Headers)
+   */
+  Headers: typeof Headers;
+
+  /**
+   * Fetch API's global Body class
+   * 
+   * [MDN Reference](https://developer.mozilla.org/en-US/docs/Glossary/Payload_body)
+   */
+  Body: typeof Body;
 
   /**
    * File paths resolved absolutely, and the URL control characters are correctly encoded when converting into a File URL.

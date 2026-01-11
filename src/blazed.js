@@ -31,6 +31,7 @@ const { Request } = require("./utils/plugins/fetch/request");
 const { Response } = require("./utils/plugins/fetch/response");
 const { Body } = require("./utils/plugins/fetch/body");
 const { Headers } = require("./utils/plugins/fetch/headers");
+const { FormData } = require('./utils/plugins/fetch/formdata');
 
 const packageJson = require("../package.json");
 
@@ -970,6 +971,11 @@ module.exports = {
   fileURL,
   cancel,
   fetch,
+  Request,
+  Response,
+  Headers,
+  Body,
+  FormData,
   reverse_dns,
   /**
    * Attaches a listener to the on event
