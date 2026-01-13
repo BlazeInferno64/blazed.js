@@ -2,7 +2,7 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 11/01/2026
+// Last updated: 13/01/2026
 
 // Type definitions for 'blazed.js'
 
@@ -29,7 +29,7 @@ interface FetchRequestInit extends Request {
 }
 
 interface FetchResponse extends Response {
-  
+
 }
 
 declare class Headers {
@@ -164,6 +164,10 @@ interface ConfigObject {
    */
   'Keep-Alive': boolean;
   /**
+   * Configure Serverless mode.
+   */
+  'Serverless': boolean;
+  /**
    * Configure header object.
    * 
    * True indicates it has been disabled and False indicated it hasn't been disabled.
@@ -250,7 +254,7 @@ interface RequestObject {
   signal?: AbortSignal;
 }
 
-interface URLParser {
+interface URLParser extends URL {
   /**
    * The hash of the parsed url.
    */
@@ -890,7 +894,7 @@ interface blazed {
    * });
    */
   parse_url(url: string): Promise<URLParser>;
-  
+
 
   /**
    * Fetch API's global Response class
@@ -898,7 +902,7 @@ interface blazed {
    * [MDN Reference](https://developer.mozilla.org/en-US/docs/Web/API/Response)
    */
   Response: typeof Response;
-  
+
   /**
    * Fetch API's global Request class
    * 
@@ -932,7 +936,7 @@ interface blazed {
    * @param path - The path of the file eg.('file:///C:/path/something'). 
    * @returns {Promise<URLParser>} Returns a promise which contains the resolved path data.
    * @example
-   * blazed.fileURL('file:///C:/path/something')
+   * blazed.file_url_to_path(`file:///${__dirname}`)
    *   .then(result => {
    *       console.log(result); // Prints resolved value to the console
    *   })
@@ -940,7 +944,23 @@ interface blazed {
    *       console.error(error); // Catch any errors
    *   })
    */
-  fileURL(path: string): Promise<string>;
+  file_url_to_path(path: string): Promise<string>;
+
+  /**
+   * Converts a file system path to a file URL.
+   * @param {string} param - The file path to convert (eg: './file.txt').
+   * @returns {Promise<URLParser>} A promise that resolves with the file URL.
+   * 
+   * @example
+   * blazed.path_to_file_url(`/some/foo.txt`)
+   *   .then(result => {
+   *       console.log(result); // Prints resolved value to the console
+   *   })
+   *   .catch(error => {
+   *       console.error(error); // Catch any errors
+   *   })
+   */
+  path_to_file_url(param: string): Promise<URLParser>;
 
   /**
    * Disables some default settings of 'blazed.js'.
@@ -950,8 +970,9 @@ interface blazed {
    * // Basic example
    * blazed.configure({
    *    'Keep-Alive': true, // Enable keep-alive connections,
-   *    'Default-URL': 'https://api.github.com/users', // Set the default url to Github API
-   *    'JSON-Parser': true, // True indicates that the response will be formatted if its json
+   *    'Default-URL': 'https://api.github.com/users', // Set the default url to Github API,
+   *    'JSON-Parser': true, // True indicates that the response will be formatted if its json,
+   *    'Serverless': false, // For local env set this to false to increase performance.
    *     headers: {
    *        'User-Agent': false, // Disables the 'User-Agent' header.
    *        'X-Requested-With': false, // Disables the 'X-Requested-With' header.

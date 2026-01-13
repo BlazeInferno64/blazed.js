@@ -1,10 +1,10 @@
-// Copyright (c) 2025 BlazeInferno64 --> https://github.com/blazeinferno64.
+// Copyright (c) 2026 BlazeInferno64 --> https://github.com/blazeinferno64.
 //
 // Author(s) -> 
 // 1. BlazeInferno64 -> https://github.com/blazeinferno64
 // 2. Sud3ep -> https://github.com/Sud3ep
 //
-// Last updated: 29/11/2025
+// Last updated: 13/01/2026
 
 "use strict";
 
@@ -90,10 +90,17 @@ const buildQueryString = (params) => {
     return s ? `?${s}` : '';
 };
 
+const autoDetectServerless = !!(
+    process.env.VERCEL ||
+    process.env.AWS_LAMBDA_FUNCTION_NAME ||
+    process.env.FUNCTIONS_WORKER_RUNTIME
+);
+
 module.exports = {
     HTTP_METHODS,
     supportedSchemas,
     validateBooleanOption,
     compareNodeVersion,
-    buildQueryString
+    buildQueryString,
+    autoDetectServerless,
 }

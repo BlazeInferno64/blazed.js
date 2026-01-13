@@ -440,7 +440,8 @@ Here's a basic usage example:
 ```js
 //Configure 'blazed.js'
 blazed.configure({
-    'Keep-Alive': true, // Configure keep-alive connections,
+    'Keep-Alive': true, // Configure keep-alive connections.
+    'Serverless': false, // Configure serverless behaviour.
     'Default-URL': "https://api.github.com/users", // Will set default HTTP request URL to Github API unless another url is provided.
     'JSON-Parser': true, // JSON response will be automatically parsed.
     //Configuring some header options.
@@ -753,11 +754,13 @@ blazed.parse_url('https://example.com:3000/path?a=1&b=2')
 
 After running this code, the parsed URL values will be logged to the console. 
 
-# File Path Parsing
+# File Paths Parsing
 
-The `blazed.fileURL()` function can be used to  resolve file paths absolutely. 
+## 1. File URL → Path
 
-Simply pass the file URL as a parameter to this function.
+The `blazed.path_to_file_url()` function converts a file URL into an absolute file system path.
+
+Simply pass a valid `file://` URL as a parameter, and it will return a Promise resolving to the corresponding file path.
 
 Here's an simple example with `.then() and .catch()` statements
 
@@ -765,18 +768,42 @@ Here's an simple example with `.then() and .catch()` statements
 ```js
 const blazed = require('blazed.js'); // or import blazed from 'blazed.js'; for ES Module
 
-blazed.fileURL('file:///C:/path/something')
+blazed.file_url_to_path(`file:///${__dirname}`)
   .then((data) => {
-    console.log(data); // prints the value of the parsed url to the console.
+    console.log(data); /// → Outputs the resolved file system path
   })
   .catch((err) => {
-    console.error(err); // handling error(s).
+    console.error(err); // → Handles any errors during parsing
   });
 ```
 
-After running this code, the parsed file URL values will be logged to the console. 
+After running this code, the resolved file path will be logged to the console.
 
->If any errors occur, the `catch` block will catch and print them to the console. 
+## 2. Path → File URL
+
+The `blazed.path_to_file_url()` function converts a local file system path into a file URL (`file://` format).
+
+Simply pass an absolute or relative file path as a parameter, and it will return a Promise resolving to the corresponding file URL.
+
+Here's an simple example with `.then() and .catch()` statements
+
+```js
+const blazed = require('blazed.js'); // or import blazed from 'blazed.js'; for ES Module
+
+// Convert a local path to a file URL
+blazed.path_to_file_url(`/some/foo.txt`)
+  .then(result => {
+    console.log(result); 
+    // → Outputs: 'file:///some/foo.txt' (or platform-specific URL)
+  })
+  .catch(err => {
+    console.error(err); 
+    // → Handles any errors during conversion
+  });
+
+```
+
+>If an error occurs (for example, an invalid URL), the catch block will handle it and print the error. 
 
 >Alternatively, you can use `async/await` syntax for more concise and readable code.
 

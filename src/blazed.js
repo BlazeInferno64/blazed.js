@@ -4,7 +4,7 @@
 // 1. BlazeInferno64 -> https://github.com/blazeinferno64
 // 2. Sudeep -> https://github.com/SudeepQ
 //
-// Last updated: 08/01/2026
+// Last updated: 13/01/2026
 
 "use strict";
 
@@ -24,7 +24,7 @@ const { lookupForIp, reverseLookupForIp } = require("./utils/dns/dns");
 const { speedoMeter } = require("./utils/plugins/speedometer");
 const { mapStatusCodes } = require("./utils/plugins/status-mapper");
 const { formatBytes } = require("./utils/plugins/math");
-const { HTTP_METHODS, supportedSchemas, validateBooleanOption, compareNodeVersion, buildQueryString } = require("./utils/plugins/base");
+const { HTTP_METHODS, supportedSchemas, validateBooleanOption, compareNodeVersion, buildQueryString, autoDetectServerless } = require("./utils/plugins/base");
 const { BlazedCancelError } = require("./utils/plugins/classes");
 
 const { Request } = require("./utils/plugins/fetch/request");
@@ -51,6 +51,15 @@ let defaultURL = null;
 let startTime = null;
 
 let keepAlive = true;
+
+let serverlessSafe = null; // null = auto-detect, true/false
+
+//const isServerless = !!(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.FUNCTIONS_WORKER_RUNTIME);
+
+const isServerlessEnv = () => {
+  return serverlessSafe !== null ? serverlessSafe : autoDetectServerless;
+}
+
 
 // let currentTime = null;
 
@@ -123,19 +132,18 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
         }*/
         // Create an Agent. Disable keepAlive automatically on serverless platforms,
         // else use configured keepAlive value.
-        const isServerless = !!(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.FUNCTIONS_WORKER_RUNTIME);
         // Set the HTTP module depending upon the url protocol provided
         const httpModule = parsedURL.protocol === 'https:' ? https : http;
         // Create a 'keep-alive' connection to improve performance.
         const agent = new httpModule.Agent({
-          keepAlive: !isServerless && !!keepAlive,
+          keepAlive: !isServerlessEnv() && !!keepAlive,
         });
 
         // Define 'requestOptions' object.
         const requestOptions = {
           method,
           headers: {
-            'Connection': keepAlive && !isServerless ? 'keep-alive' : 'close',
+            'Connection': keepAlive && !isServerlessEnv() ? 'keep-alive' : 'close',
             'Cache-Control': 'no-cache',
             'Content-Length': 0,
             ...headerParser.normalizeHeaders(headers), // Spread the user-provided headers
@@ -200,6 +208,10 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
             request.destroy(await utilErrors.processError(err, requestUrl, null, null, timeout, method, reject));
           } catch (error) {
             await utilErrors.processError(new Error('Request timed out'), requestUrl, null, null, null, method, reject).catch(() => { /* ignore secondary errors */ });
+          } finally {
+            if (isServerlessEnv()) {
+              try { agent?.destroy(); } catch { }
+            }
           }
         })
 
@@ -231,16 +243,22 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
         });
 
         request.on('error', async (error) => {
-          // AbortController cancellation
-          if (error?.name === 'AbortError') {
-            return reject(new BlazedCancelError({
-              url: url,
-              method: method,
-              reason: cancelledReason || error.message
-            }));
+          try {
+            // AbortController cancellation
+            if (error?.name === 'AbortError') {
+              return reject(new BlazedCancelError({
+                url: url,
+                method: method,
+                reason: cancelledReason || error.message
+              }));
+            }
+            // Process the http error using the 'utilErrors' util tool.
+            return await utilErrors.processError(error, requestUrl, null, null, null, method, reject);
+          } finally {
+            if (isServerlessEnv()) {
+              try { agent?.destroy(); } catch { }
+            }
           }
-          // Process the http error using the 'utilErrors' util tool.
-          return await utilErrors.processError(error, requestUrl, null, null, null, method, reject);
         });
 
         // If any data is present then write it to the request options body
@@ -315,6 +333,10 @@ const handleResponse = (response, resolve, reject, redirectCount = 5, originalUr
     }
     // Emitter for the 'afterRequest' event
     emitter.emit("afterRequest", originalUrl, responseObject);
+    if (isServerlessEnv()) {
+      try { request?.destroy(); } catch { }
+      try { reqOptions?.agent?.destroy(); } catch { }
+    }
     return resolve(responseObject)
   }
   // Collecting response data inside the 'responseData' variable is a memory heavy process for large server responses
@@ -396,6 +418,11 @@ const handleResponse = (response, resolve, reject, redirectCount = 5, originalUr
     responseObject.transferSpeed = responseObject.duration > 0 ? formatBytes(Math.round(totalBytes * 1000 / responseObject.duration)) : null;
     // Emitter for the 'afterRequest' event
     emitter.emit("afterRequest", originalUrl, responseObject);
+    if (isServerlessEnv()) {
+      try { response.socket?.destroy(); } catch { }
+      try { request?.destroy(); } catch { }
+      try { reqOptions?.agent?.destroy(); } catch { }
+    }
     // Resolve with the 'responseObject' finally
     return resolve(responseObject);
   });
@@ -445,6 +472,9 @@ const handleResponse = (response, resolve, reject, redirectCount = 5, originalUr
       };
       try { if (request && typeof request.destroy === 'function') request.destroy(); } catch (e) { /* ignore */ }
       try { if (response && typeof response.destroy === 'function') response.destroy(); } catch (e) { /* ignore */ }
+      if (isServerlessEnv()) {
+        try { reqOptions?.agent?.destroy(); } catch (e) {/* ignore */ }
+      }
 
       // Emitter for the 'redirect' event
       emitter.emit("redirect", redirObj);
@@ -515,23 +545,30 @@ const fetch = async (input, init = {}) => {
 /**
  * Checks and return whether a provided URL is valid or not.
  * @param {string} url The URL to check.
- * @typedef {Object} URL-Parser
- * @property {string} hash
- * @property {string} host
- * @property {string} hostname
- * @property {string} href
- * @property {string} origin
- * @property {string} password
- * @property {string} pathname
- * @property {string} protocol
- * @property {string} search
- * @property {URLSearchParams} searchParams
  */
 
 // URL parser and validator
 const parse_url = async (url) => {
   return await urlParser.parseThisURL(url);
 };
+
+/**
+ * File paths resolved absolutely, and the URL control characters are correctly encoded when converting into a File URL.
+ * @param {string} path - The path of the file. 
+ * @returns {Promise<Object>} Returns a promise which contains the resolved path data.
+ */
+const file_url_to_path = async (path) => {
+  return await urlParser.file_url_to_path(path);
+}
+
+/**
+ * Converts a file system path to a file URL using the native URL module.
+ * @param {*} param - The file path to convert (eg: './file.txt').
+ * @returns {Promise<Object>} A promise that resolves with the file URL.
+ */
+const path_to_file_url = async(param) => {
+  return await urlParser.path_to_file_url(param)
+}
 
 /**
  * @returns {Object} Returns all the valid HTTP status codes as an object
@@ -586,15 +623,6 @@ const resolve_dns = async (hostObject) => {
   const format = hostObject.format;
   const parsedURL = await urlParser.parseThisURL(url);
   return await lookupForIp(parsedURL.hostname, format, url);
-}
-
-/**
- * File paths resolved absolutely, and the URL control characters are correctly encoded when converting into a File URL.
- * @param {string} path - The path of the file. 
- * @returns {Promise<Object>} Returns a promise which contains the resolved path data.
- */
-const fileURL = async (path) => {
-  return await urlParser.fileURL(path);
 }
 
 /**
@@ -699,15 +727,6 @@ const createInstance = (defaultConfig = {}) => {
           ? (baseURL ? baseURL.replace(/\/$/, '') + '/' + config.url.replace(/^\//, '') : config.url)
           : baseURL;
 
-              /*    config.method || method || HTTP_METHODS.GET,
-        finalURL,
-        config.body || null,
-        { ...headers, ...(config.headers || {}) },
-        config.redirect === "follow" ? 5 : config.redirect === "error" ? 0 : 0,
-        config.limit ?? 5,
-        config.timeout ?? timeout,
-        config.signal || null,*/
-
       return _makeRequest(
         config.method || method || HTTP_METHODS.GET,
         finalURL,
@@ -785,6 +804,8 @@ const configure = (option = {}) => {
   validateBooleanOption(option, 'JSON-Parser');
   // Check if 'Keep-Alive' is provided and is a boolean
   validateBooleanOption(option, 'Keep-Alive');
+  // Check if 'Serverless' is provided and is a boolean
+  validateBooleanOption(option, 'Serverless');
 
   // Only update if explicitly provided in the config
   if ('X-Requested-With' in headers) {
@@ -799,6 +820,9 @@ const configure = (option = {}) => {
   if ('Keep-Alive' in option) {
     keepAlive = !!option["Keep-Alive"];
   }
+  if ('Serverless' in option) {
+    serverlessSafe = !!option["Serverless"];
+  }
 
   defaultURL = option["Default-URL"] || null; // Default to null if not provided
 
@@ -807,6 +831,7 @@ const configure = (option = {}) => {
     'Keep-Alive': keepAlive,
     'Default-URL': defaultURL,
     'JSON-Parser': jsonParser,
+    'Serverless': isServerlessEnv(),
     headers: {
       'X-Requested-With': xReqWith,
       'User-Agent': userAgent,
@@ -968,7 +993,8 @@ module.exports = {
   maxHeaderSize,
   configure,
   resolve_dns,
-  fileURL,
+  file_url_to_path,
+  path_to_file_url,
   cancel,
   fetch,
   Request,
