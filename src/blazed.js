@@ -4,7 +4,7 @@
 // 1. BlazeInferno64 -> https://github.com/blazeinferno64
 // 2. Sudeep -> https://github.com/SudeepQ
 //
-// Last updated: 13/01/2026
+// Last updated: 18/01/2026
 
 "use strict";
 
@@ -390,9 +390,10 @@ const handleResponse = (response, resolve, reject, redirectCount = 5, originalUr
       responseObject.data = concatedBuffers;
     } else {
       const contentType = response.headers['content-type'] || '';
-      const text = concatedBuffers.toString();
+      //const text = concatedBuffers.toString();
 
       if (jsonParser && contentType?.includes('application/json')) {
+        const text = concatedBuffers.toString();
         try {
           responseObject.data = JSON.parse(text);
         } catch (e) {
@@ -401,7 +402,7 @@ const handleResponse = (response, resolve, reject, redirectCount = 5, originalUr
         }
       } else {
         // Send it as a string if its not getting parsed only if 'jsonParser' variable is set to 'false'
-        responseObject.data = text;
+        responseObject.data = concatedBuffers.toString();
       }
     }
 
@@ -519,6 +520,7 @@ const fetch = async (input, init = {}) => {
   const redirectLimit = request.redirect === 'follow' ? 5 : request.redirect === 'error' ? 0 : 0;
 
   try {
+    const bodyBuffer = await request.consume();
     const res = await _makeRequest(
       request.method,
       request.url,
@@ -566,7 +568,7 @@ const file_url_to_path = async (path) => {
  * @param {*} param - The file path to convert (eg: './file.txt').
  * @returns {Promise<Object>} A promise that resolves with the file URL.
  */
-const path_to_file_url = async(param) => {
+const path_to_file_url = async (param) => {
   return await urlParser.path_to_file_url(param)
 }
 
@@ -721,64 +723,66 @@ const createInstance = (defaultConfig = {}) => {
     options: (url, headers, redirectCount, timeout, signal) =>
       instanceRequest(HTTP_METHODS.OPTIONS, url, null, headers, redirectCount, timeout, signal),
 
-    request: (config = {}) => {
-      const finalURL =
-        config.url
+request: (config = {}) => {
+      const rawURL = config.url
           ? (baseURL ? baseURL.replace(/\/$/, '') + '/' + config.url.replace(/^\//, '') : config.url)
           : baseURL;
+      
+      const finalURL = config.params 
+          ? `${rawURL}${buildQueryString(config.params)}` 
+          : rawURL;
 
       return _makeRequest(
         config.method || method || HTTP_METHODS.GET,
         finalURL,
         config.body || null,
         { ...headers, ...(config.headers || {}) },
-        config.limit ?? 5,
+        config.limit ?? defaultRedirectCount,
         config.timeout ?? timeout,
         config.signal || null,
+        'default',
+        config.redirect || redirectMode
       );
     },
 
     cancel,
     fetch: async (input, init = {}) => {
-      let request;
-
-      if (input instanceof Request) {
-        request = input;
-      } else {
-        const finalURL = input ? (baseURL ? baseURL.replace(/\/$/, '') + '/' + input.replace(/^\//, '') : input) : baseURL;
-
-        request = new Request(finalURL, {
+      const request = input instanceof Request ? input : new Request(
+        input ? (baseURL ? baseURL.replace(/\/$/, '') + '/' + input.replace(/^\//, '') : input) : baseURL,
+        {
           method: init.method || method || HTTP_METHODS.GET,
           headers: { ...headers, ...(init.headers || {}) },
           body: init.body || null,
           signal: init.signal || null,
-          redirect: init.redirect || "follow"
-        });
-
-        const redirectLimit = redirectMode === "follow" ? 5 : redirectMode === "error" ? 0 : 0;
-
-        try {
-          const res = await _makeRequest(
-            request.method || method || HTTP_METHODS.GET,
-            request.url,
-            request.body,
-            request.headers.raw(),
-            redirectLimit,
-            init.timeout ?? 5000,
-            request.signal,
-            "fetch",
-            redirectMode
-          );
-
-          return new Response(res.data, {
-            status: res.status,
-            statusText: res.statusText,
-            headers: res.responseHeaders,
-            url: request.url,
-          });
-        } catch (error) {
-          throw error;
+          redirect: init.redirect || redirectMode || "follow"
         }
+      );
+
+      const redirectLimit = request.redirect === "follow" ? 5 : 0;
+
+      try {
+        const bodyBuffer = await request.consume();
+
+        const res = await _makeRequest(
+          request.method,
+          request.url,
+          bodyBuffer,
+          request.headers.raw(),
+          redirectLimit,
+          init.timeout ?? timeout ?? 5000,
+          request.signal,
+          "fetch",
+          request.redirect
+        );
+
+        return new Response(res.data, {
+          status: res.status,
+          statusText: res.statusText,
+          headers: res.responseHeaders,
+          url: request.url,
+        });
+      } catch (error) {
+        throw error;
       }
     }, // reuse global cancel
     on: emitter.on.bind(emitter)

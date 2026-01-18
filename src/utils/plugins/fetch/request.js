@@ -1,9 +1,9 @@
-// Copyright (c) 2025 BlazeInferno64 --> https://github.com/blazeinferno64.
+// Copyright (c) 2026 BlazeInferno64 --> https://github.com/blazeinferno64.
 //
 // Author(s) -> 
 // 1. BlazeInferno64 -> https://github.com/blazeinferno64
 //
-// Last updated: 04/01/2026
+// Last updated: 18/01/2026
 "use strict";
 
 const { Body } = require("./body");
@@ -21,13 +21,22 @@ class Request extends Body {
             url = String(input);
         }
 
+        const method = (init.method || "GET").toUpperCase();
+
+        if (body !== null && ["GET", "HEAD"].includes(method)) {
+            throw new TypeError("Request with GET/HEAD method cannot have a body");
+        }
+
         super(body);
 
         this.url = url;
-        this.method = (init.method || "GET").toUpperCase();
-        this.headers = new Headers(init.headers);
+        this.method = method;
+
+        this.headers = new Headers(init.headers || (input instanceof Request ? input.headers : {}));
+
         this.signal = init.signal || null;
         this.redirect = init.redirect || "follow";
+        
         if (!["follow", "error", "manual"].includes(this.redirect)) {
             throw new TypeError(`Invalid redirect mode: ${this.redirect}`);
         }
@@ -39,14 +48,11 @@ class Request extends Body {
 
         return new Request(this.url, {
             method: this.method,
-            headers: this.headers,
+            headers: new Headers(this.headers),
             body: this.body,
             signal: this.signal,
             redirect: this.redirect
         });
-    }
-    async formData() {
-        return Body.prototype.formData.call(this);
     }
 }
 

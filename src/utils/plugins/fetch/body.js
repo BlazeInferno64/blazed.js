@@ -1,4 +1,4 @@
-// Copyright (c) 2025 BlazeInferno64 --> https://github.com/blazeinferno64.
+// Copyright (c) 2026 BlazeInferno64 --> https://github.com/blazeinferno64.
 //
 // Author(s) -> 
 // 1. BlazeInferno64 -> https://github.com/blazeinferno64
@@ -23,7 +23,14 @@ class Body {
     }
 
     async consume() {
-        if (this._bufferCache) return this._bufferCache; // use cached buffer
+        // If we already have the cache, we've already "used" the body.
+        // According to WHATWG, we should throw if the user tries to consume again.
+        if (this.bodyUsed && !this._bufferCache) {
+            throw new TypeError("Body has already been consumed!");
+        }
+
+        // Return cache if it exists
+        if (this._bufferCache) return this._bufferCache;
 
         let buf;
         if (this.body == null) {
@@ -32,8 +39,10 @@ class Body {
             buf = this.body;
         } else if (typeof this.body === "string") {
             buf = Buffer.from(this.body, "utf-8");
+        } else if (typeof this.body.toString === 'function' && this.body.constructor.name !== 'Object') {
+            // Support for URLSearchParams or other objects with toString
+            buf = Buffer.from(this.body.toString());
         } else {
-            // Fallback for objects
             buf = Buffer.from(JSON.stringify(this.body), "utf-8");
         }
 
@@ -43,7 +52,7 @@ class Body {
     }
 
     async text() {
-        this.consume();
+        const buffer = await this.consume();
 
         if (this.body == null) return "";
 
@@ -57,7 +66,7 @@ class Body {
 
         // object fallback (browser does NOT auto-stringify,
         // but node-fetch does — this is acceptable)
-        return JSON.stringify(this.body);
+        return buffer.toString() || JSON.stringify(this.body);
     }
 
     async json() {
@@ -66,20 +75,20 @@ class Body {
     }
 
     async arrayBuffer() {
-        this.consume();
-
-        if (Buffer.isBuffer(this.body)) {
+        //this.consume();
+        /*if (Buffer.isBuffer(this.body)) {
             return this.body.buffer.slice(
                 this.body.byteOffset,
                 this.body.byteOffset + this.body.byteLength
             );
         }
-
         const buf = Buffer.from(
             typeof this.body === "string"
                 ? this.body
                 : JSON.stringify(this.body)
-        );
+        );*/
+
+        const buf = await this.consume();
 
         return buf.buffer.slice(
             buf.byteOffset,
@@ -105,28 +114,37 @@ class Body {
 
         // multipart/form-data
         if (contentType.includes("multipart/form-data")) {
-            const boundaryMatch = contentType.match(/boundary=(.+)$/);
+            const boundaryMatch = contentType.match(/boundary=(?:"([^"]+)"|([^; ]+))/);
             if (!boundaryMatch) {
                 throw new TypeError("Invalid multipart/form-data boundary");
             }
 
-            const boundary = boundaryMatch[1];
-            const parts = buffer
-                .toString()
-                .split(`--${boundary}`)
-                .slice(1, -1);
+            const boundary = boundaryMatch[1] || boundaryMatch[2];
+            const parts = buffer.toString().split(`--${boundary}`);
 
             const fd = new FormData();
 
             for (const part of parts) {
-                const [rawHeaders, body] = part.split("\r\n\r\n");
-                if (!body) continue;
+                const trimmed = part.trim();
+                if (!trimmed || trimmed === "--") continue;
+
+                const headerEndIndex = part.indexOf("\r\n\r\n");
+                if (headerEndIndex === -1) continue;
+
+                const rawHeaders = part.slice(0, headerEndIndex);
+                let body = part.slice(headerEndIndex + 4);
+                if (body.endsWith("\r\n")) {
+                    body = body.slice(0, -2);
+                }
+
+                //const [rawHeaders, body] = part.split("\r\n\r\n");
+                //if (!body) continue;
 
                 const nameMatch = rawHeaders.match(/name="([^"]+)"/);
                 if (!nameMatch) continue;
 
                 const name = nameMatch[1];
-                const value = body.trimEnd();
+                const value = body;
 
                 fd.append(name, value);
             }
@@ -141,13 +159,14 @@ class Body {
         const buffer = await this.arrayBuffer(); // consumes body ONCE
 
         // Extract content-type
-        let type = "";
+        const type = this.headers?.get("content-type") || "";
+        /*let type = "";
         if (this.headers && this.headers.get) {
             type = this.headers.get("content-type") || "";
-        }
+        }*/
 
         // Normalize 
-        type = type.toLowerCase().replace(/\s+/g, "");
+        //type = type.toLowerCase().replace(/\s+/g, "");
 
         return new Blob([buffer], { type });
     }

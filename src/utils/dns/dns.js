@@ -1,8 +1,8 @@
-// Copyright (c) 2025 BlazeInferno64 --> https://github.com/blazeinferno64.
+// Copyright (c) 2026 BlazeInferno64 --> https://github.com/blazeinferno64.
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 09/03/2025
+// Last updated: 18/01/2025
 
 "use strict";
 
@@ -25,70 +25,48 @@ const { processError } = require("../errors/errors");
  * 
  * console.log(result);
  */
-const lookupForIp = async (hostname, type) => {
-    return await new Promise((resolve, reject) => {
-        (async () => {
+const lookupForIp = (hostname, type) => {
+    return new Promise((resolve, reject) => {
+        const ipObj = {
+            Format: "",
+            Addresses: []
+        };
 
-            //Define an ip object
-            const ipObj = {
-                Format: "",
-                Addresses: []
-            }
+        if (!type) {
+            dns.lookup(hostname, async (err, address) => {
+                if (err) return reject({ error: await processError(err, hostname, 'Yes', false, false, false, reject) });
+                
+                ipObj.Addresses.push(address);
+                if (net.isIPv4(address)) ipObj.Format = "IPv4";
+                else if (net.isIPv6(address)) ipObj.Format = "IPv6";
+                else ipObj.Format = 'Unknown Format';
+                
+                resolve(ipObj);
+            });
+            return;
+        }
 
-            if (!type && typeof type === 'undefined') {
-                try {
-                    return dns.lookup(hostname, async (err, address) => {
-                        if (err) return reject({ error: await processError(err, hostname, 'Yes', false, false, false, reject) });
-                        ipObj.Addresses.push(address);
-                        if (net.isIPv4(address)) {
-                            ipObj.Format = "IPv4";
-                            return resolve(ipObj);
-                        }
-                        else if (net.isIPv6(address)) {
-                            ipObj.Format = "IPv6";
-                            return resolve(ipObj);
-                        }
-                        else {
-                            ipObj.Format = 'Unknown Format';
-                            return resolve(ipObj);
-                        }
-                    })
-                } catch (error) {
-                    return reject(await processError(error, hostname, 'Yes', false, false, false, reject));
-                }
-            }
-            else if (type !== '' && typeof type !== 'undefined') {
-                if (type === 'IPv4') {
-                    try {
-                        return dns.resolve4(hostname, async (err, addresses) => {
-                            if (err) return reject({ error: await processError(err, hostname, 'Yes', false, false, false, reject) });
-                            ipObj.Format = 'IPv4';
-                            ipObj.Addresses = addresses;
-                            return resolve(ipObj);
-                        })
-                    } catch (error) {
-                        return reject(await processError(error, hostname, 'Yes', false, false, false, reject));
-                    }
-                } else if (type === "IPv6") {
-                    try {
-                        return dns.resolve6(hostname, async (err, addresses) => {
-                            if (err) return reject({ error: await processError(err, hostname, 'Yes', false, false, false, reject) });
-                            ipObj.Format = 'IPv6';
-                            ipObj.Addresses = addresses;
-                            return resolve(ipObj);
-                        })
-                    } catch (error) {
-                        return reject(await processError(error, hostname, 'Yes', false, false, false, reject));
-                    }
-                } else {
-                    return reject({
-                        error: `Unknown ip address format specified!\nAvailable formats - IPv4, IPv6`
-                    });
-                }
-            }
-        })();
-    })
-}
+        if (type === 'IPv4') {
+            dns.resolve4(hostname, async (err, addresses) => {
+                if (err) return reject({ error: await processError(err, hostname, 'Yes', false, false, false, reject) });
+                ipObj.Format = 'IPv4';
+                ipObj.Addresses = addresses;
+                resolve(ipObj);
+            });
+        } else if (type === "IPv6") {
+            dns.resolve6(hostname, async (err, addresses) => {
+                if (err) return reject({ error: await processError(err, hostname, 'Yes', false, false, false, reject) });
+                ipObj.Format = 'IPv6';
+                ipObj.Addresses = addresses;
+                resolve(ipObj);
+            });
+        } else {
+            reject({
+                error: `Unknown ip address format specified!\nAvailable formats - IPv4, IPv6`
+            });
+        }
+    });
+};
 
 /**
  * 
@@ -103,22 +81,18 @@ const lookupForIp = async (hostname, type) => {
  * console.log(result);
  */
 
-const reverseLookupForIp = async (ip) => {
-    return await new Promise((resolve, reject) => {
-        (async () => {
-            if (!net.isIP(ip)) {
-                return reject({
-                    input: ip,
-                    error: `Not a valid IP format!`
-                });
-            };
-            return dns.reverse(ip, async (err, hostnames) => {
-                if (err) return reject({ error: await processError(err, ip, 'Yes', false, false, false, reject) });
-                return resolve(hostnames);
-            });
-        })()
-    })
-}
+const reverseLookupForIp = (ip) => {
+    return new Promise((resolve, reject) => {
+        if (!net.isIP(ip)) {
+            return reject({ input: ip, error: `Not a valid IP format!` });
+        }
+
+        dns.reverse(ip, async (err, hostnames) => {
+            if (err) return reject({ error: await processError(err, ip, 'Yes', false, false, false, reject) });
+            resolve(hostnames);
+        });
+    });
+};
 
 module.exports = {
     lookupForIp,

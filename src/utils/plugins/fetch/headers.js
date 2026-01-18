@@ -3,7 +3,7 @@
 // Author(s) -> 
 // 1. BlazeInferno64 -> https://github.com/blazeinferno64
 //
-// Last updated: 04/01/2026
+// Last updated: 18/01/2026
 "use strict";
 
 const util = require('util');
@@ -27,16 +27,29 @@ class Headers {
 
     append(name, value) {
         name = this._normalize(name);
-        const val = this.map.get(name);
-        this.map.set(name, val ? `${val}, ${value}` : String(value));
+        const stringValue = String(value);
+        if (!this.map.has(name)) {
+            this.map.set(name, [stringValue]);
+        } else {
+            this.map.get(name).push(stringValue);
+        }
+        //const val = this.map.get(name);
+        //this.map.set(name, val ? `${val}, ${value}` : String(value));
     }
 
     set(name, value) {
-        this.map.set(this._normalize(name), String(value));
+        this.map.set(this._normalize(name), [String(value)]);
     }
 
     get(name) {
-        return this.map.get(this._normalize(name)) ?? null;
+        const values = this.map.get(this._normalize(name));
+        if (!values) return null;
+        return values.join(', ');
+        //return this.map.get(this._normalize(name)) ?? null;
+    }
+
+    getSetCookie() {
+        return this.map.get('set-cookie') || [];
     }
 
     has(name) {
@@ -48,11 +61,22 @@ class Headers {
     }
 
     forEach(cb) {
-        for (const [k, v] of this.map) cb(v, k, this);
+        //for (const [k, v] of this.map) cb(v, k, this);
+        for (const [k, v] of this.map) {
+            cb(v.join(', '), k, this);
+        }
     }
 
-    entries() {
-        return this.map.entries();
+    *entries() {
+        //return this.map.entries();
+        /*for (const [k, v] of this.map) {
+            yield[k, v.join(', ')];
+        }*/
+       
+        const sortedKeys = Array.from(this.map.keys()).sort();
+        for (const k of sortedKeys) {
+            yield [k, this.get(k)];
+        }
     }
 
     keys() {
@@ -68,7 +92,12 @@ class Headers {
     }
 
     raw() {
-        return Object.fromEntries(this.map);
+        //return Object.fromEntries(this.map);
+        const obj = {};
+        for (const [k, v] of this.map) {
+            obj[k] = v.join(', ');
+        }
+        return obj;
     }
     [util.inspect.custom]() {
         return this.raw(); // shows just the plain object

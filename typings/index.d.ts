@@ -2,7 +2,7 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 13/01/2026
+// Last updated: 18/01/2026
 
 // Type definitions for 'blazed.js'
 
@@ -23,9 +23,10 @@ type HTTPMethod =
   | 'SUBSCRIBE' | 'TRACE' | 'UNBIND' | 'UNLINK' | 'UNLOCK' | 'UNSUBSCRIBE';
 
 // Define Headers type
-type Headers = Record<string, string>;
+type _Headers = Record<string, string>;
 
 interface FetchRequestInit extends Request {
+
 }
 
 interface FetchResponse extends Response {
@@ -37,6 +38,7 @@ declare class Headers {
   append(name: string, value: string): void;
   delete(name: string): void;
   get(name: string): string | null;
+  getSetCookie(): string[] | null;
   has(name: string): boolean;
   set(name: string, value: string): void;
   forEach(
@@ -51,13 +53,32 @@ declare class Headers {
 
 declare class Request {
   constructor(input: RequestInfo | URL, init?: RequestInit);
-  readonly method: string;
-  readonly url: string;
-  readonly headers: Headers;
-  readonly redirect: "follow" | "error" | "manual";
-  readonly signal: AbortSignal | null;
+  readonly method?: string;
+  readonly url?: string;
+  readonly headers?: Headers;
+  readonly destination?: string;
+  readonly referrer?: string;
+  readonly referrerPolicy?: string;
+  readonly mode?: string;
+  readonly credentials?: string;
+  readonly cache?: string;
+  readonly redirect?: "follow" | "error" | "manual";
+  readonly integrity?: string;
+  readonly keepalive?: boolean;
+  readonly signal?: AbortSignal | null;
+  readonly bodyUsed?: boolean;
+  readonly body?: ReadableStream<Uint8Array> | null;
+
   clone(): Request;
+  arrayBuffer(): Promise<ArrayBuffer>;
+  blob(): Promise<Blob>;
+  formData(): Promise<FormData>;
+  json(): Promise<any>;
+  text(): Promise<string>;
 }
+
+// Helper type for the Request constructor
+type RequestInfo = string | Request;
 
 declare class Response {
   constructor(body?: BodyInit | null, init?: ResponseInit);
@@ -80,6 +101,12 @@ declare class Response {
   static redirect(url: string, status?: number): Response;
 }
 
+/**
+ * Fetch API's global FormData class
+ * 
+ * [MDN Reference](https://developer.mozilla.org/en-US/docs/Web/API/FormData)
+ */
+
 declare class FormData {
   constructor();
   append(name: string, value: string | Blob | Buffer, fileName?: string): void;
@@ -88,6 +115,10 @@ declare class FormData {
   getAll(name: string): FormDataEntryValue[];
   has(name: string): boolean;
   set(name: string, value: string | Blob | Buffer, fileName?: string): void;
+  forEach(
+    callback: (value: FormDataEntryValue, key: string, parent: FormData) => void,
+    thisArg?: any
+  ): void;
   entries(): IterableIterator<[string, FormDataEntryValue]>;
   keys(): IterableIterator<string>;
   values(): IterableIterator<FormDataEntryValue>;
@@ -103,21 +134,21 @@ interface InstanceConfig {
   // The timeout for requests made through this instance, in milliseconds.
   timeout?: number;
   // Default headers to include with every request made through this instance.
-  headers?: Headers;
+  headers?: _Headers | Headers;
   // The default HTTP method for requests made through this instance.
   method?: HTTPMethod;
 }
 
 interface BlazedInstance {
-  get(url: string, headers?: Headers, redirectCount?: number, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
-  head(url: string, headers?: Headers, redirectCount?: number, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
-  post(url: string, data: Object, headers?: Headers, redirectCount?: number, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
-  put(url: string, data: Object, headers?: Headers, redirectCount?: number, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
-  delete(url: string, headers?: Headers, redirectCount?: number, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
-  patch(url: string, data: Object, headers?: Headers, redirectCount?: number, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
-  options(url: string, headers?: Headers, redirectCount?: number, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
-  trace(url: string, headers?: Headers, redirectCount?: number, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
-  connect(url: string, headers?: Headers, redirectCount?: number, timeout?: number, signal?: AbortSignal): Promise<ConnectionResponseObject>;
+  get(url: string, headers?: _Headers, redirectCount?: number, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
+  head(url: string, headers?: _Headers, redirectCount?: number, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
+  post(url: string, data: Object, headers?: _Headers, redirectCount?: number, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
+  put(url: string, data: Object, headers?: _Headers, redirectCount?: number, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
+  delete(url: string, headers?: _Headers, redirectCount?: number, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
+  patch(url: string, data: Object, headers?: _Headers, redirectCount?: number, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
+  options(url: string, headers?: _Headers, redirectCount?: number, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
+  trace(url: string, headers?: _Headers, redirectCount?: number, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
+  connect(url: string, headers?: _Headers, redirectCount?: number, timeout?: number, signal?: AbortSignal): Promise<ConnectionResponseObject>;
 
   request(requestObj: RequestObject): Promise<ResponseObject>;
 
@@ -231,7 +262,7 @@ interface RequestObject {
   /**
    * The headers you want to include in your request.
    */
-  headers?: Object;
+  headers?: _Headers;
   /**
    * The data you want to include in the body while performing requests like POST,PUT,etc.
    */
@@ -401,7 +432,77 @@ interface HeaderObject {
   value: string;
 }
 
-interface blazed {
+interface blazedEmitter {
+  /** **Check the docs [here](https://github.com/BlazeInferno64/blazed.js/tree/main?tab=readme-ov-file#events) or [in the README.md file](./README.md) regarding about the 'events'emitted**
+   * 
+   * Fires before a HTTP request is initiated.
+   * @param url The target URL.
+   * @param options The merged configuration object.
+   * @example
+   * // beforeRequest event example usage
+   * blazed.on("beforeRequest", (url, options) => {
+   *    console.log(`beforeRequest event fired!`); // Logging for the 'beforeRequest' event
+   *    console.log(`HTTP Request URL: ${url}`); // Logs the HTTP request url
+   *    return console.log(options) // Logs the request options(including headers and data(if any)) to the console.
+   * });
+   */
+  on(event: "beforeRequest", callback: (url: string, options: object) => void): void;
+  /**
+   * Fires when the HTTP request ends and the response is fully processed.
+   * @param url The target URL.
+   * @param response The final response object containing status, data, and duration.
+   * @example
+   * // afterRequest event example usage
+   * blazed.on("afterRequest", (url, response) => {
+   *    console.log(`afterRequest event fired!`); // Logging for the 'afterRequest' event
+   *    console.log(`HTTP Request URL: ${url}`); // Logs the HTTP request url
+   *    return console.log(response) // Logs the request response object to the console
+   * });
+   */
+  on(event: "afterRequest", callback: (url: string, response: ResponseObject) => void): void;
+  /**
+   * Fires when a 3xx redirect occurs.
+   * @param redirectObject Contains OriginalURL and RedirectURL.
+   * @example
+   * // redirect event example usage
+   * blazed.on("redirect", (redirectObject) => {
+   *    console.log(`Redirect event fired!`); // Logging for the 'redirect' event
+   *    return console.log(redirectObject) // Logs the redirect object to the console
+   * });
+   */
+  on(event: "redirect", callback: (redirectObject: { OriginalURL: string, RedirectURL: string }) => void): void;
+  /**
+   * Fires when the underlying Node.js request is created.
+   * // request event example usage
+   * blazed.on("request", (req) => {
+   *    console.log(`Request event fired!`); // Logging for the 'request' event
+   *    return console.log(req); // Logging the 'req' object
+   * });
+   */
+  on(event: "request", callback: (req: { destroy: Function, message: string, host: string }) => void): void;
+  /**
+   * Fires when the response stream is available for piping.
+   * @example
+   * // response event example usage
+   * const writeStream = fs.createWriteStream("response.txt", "utf-8");
+   * blazed.on("response", (response) => {
+   *    console.log(`Response event fired!`); // Logging for the 'response' event
+   *    return response.pipe(writeStream); // Pipe the response to the 'writeStream'
+   * });
+   */
+  on(
+    event: "response",
+    callback: (response: {
+      pipe: (dest: NodeJS.WritableStream, options?: { end?: boolean }) => NodeJS.WritableStream;
+      destroy: (err?: any) => void;
+      resume: () => void;
+      pause: () => void;
+      [key: string]: any;
+    }) => void
+  ): void;
+}
+
+interface blazedStatic extends blazedEmitter {
   /**
    * Check the docs for more info.
    * 
@@ -461,7 +562,7 @@ interface blazed {
   /**
    * Performs an HTTP GET request.
    * @param {Object} url The URL to request.
-   * @param {Object} headers Optional headers to include in the request.
+   * @param {_Headers} headers Optional headers to include in the request.
    * @param {number} redirectCount Optional parameter to limit the number of redirects (default: 5).
    * @param {number} timeout Optional timeout parameter for the HTTP request (default: 5000 ms).
    * @param {AbortSignal} signal Optional AbortSignal to cancel the request.
@@ -488,12 +589,12 @@ interface blazed {
    *      console.log(error);
    *  });
    */
-  get(url: string, headers?: Object, redirectCount?: number, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
+  get(url: string, headers?: _Headers, redirectCount?: number, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
 
   /**
    * Performs an HTTP HEAD request.
    * @param {string} url The URL to request.
-   * @param {Object} headers Optional headers to include in the request.
+   * @param {_Headers} headers Optional headers to include in the request.
    * @param {number} redirectCount Optional parameter to limit the number of redirects (default: 5).
    * @param {number} timeout Optional timeout parameter for the HTTP request (default: 5000 ms).
    * @param {AbortSignal} signal Optional AbortSignal to cancel the request.
@@ -520,13 +621,13 @@ interface blazed {
    *      console.log(error);
    *  });
    */
-  head(url: string, headers?: Object, redirectCount?: number, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
+  head(url: string, headers?: _Headers, redirectCount?: number, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
 
   /**
    * Performs an HTTP POST request.
    * @param {string} url The URL to send the POST request to.
    * @param {Object} data The data to send in the request body (should be JSON-serializable).
-   * @param {Object} headers Optional headers to include in the request.
+   * @param {_Headers} headers Optional headers to include in the request.
    * @param {number} timeout Optional timeout parameter for the HTTP request (default: 5000 ms).
    * @param {AbortSignal} signal Optional AbortSignal to cancel the request.
    * @returns {Promise<ResponseObject>} A promise that resolves with the response data.
@@ -558,13 +659,13 @@ interface blazed {
    *      console.log(error);
    *  });
    */
-  post(url: string, data: Object, headers?: Object, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
+  post(url: string, data: Object, headers?: _Headers, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
 
   /**
    * Performs an HTTP PUT request.
    * @param {string} url The URL to send the PUT request to.
    * @param {Object} data The data to send in the request body (should be JSON-serializable).
-   * @param {Object} headers Optional headers to include in the request.
+   * @param {_Headers} headers Optional headers to include in the request.
    * @param {number} timeout Optional timeout parameter for the HTTP request (default: 5000 ms).
    * @param {AbortSignal} signal Optional AbortSignal to cancel the request.
    * @returns {Promise<ResponseObject>} A promise that resolves with the response data.
@@ -596,12 +697,12 @@ interface blazed {
    *      console.log(error);
    *  });
    */
-  put(url: string, data: Object, headers?: Object, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
+  put(url: string, data: Object, headers?: _Headers, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
 
   /**
    * Performs an HTTP DELETE request.
    * @param {string} url The URL to send the DELETE request to.
-   * @param {Object} headers Optional headers to include in the request.
+   * @param {_Headers} headers Optional headers to include in the request.
    * @param {number} timeout Optional timeout parameter for the HTTP request (default: 5000 ms).
    * @param {AbortSignal} signal Optional AbortSignal to cancel the request.
    * @returns {Promise<ResponseObject>} A promise that resolves with the response data.
@@ -627,7 +728,7 @@ interface blazed {
    *      console.log(error);
    *  });
    */
-  delete(url: string, headers?: Object, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
+  delete(url: string, headers?: _Headers, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
 
   /**
    * Performs a HTTP CONNECT request.
@@ -637,7 +738,7 @@ interface blazed {
    * 
    * **Please check the [here](https://github.com/BlazeInferno64/blazed.js/tree/main/lib/node#connect-request) or [in the README.md file](./README.md) for more info!**
    * @param {string} url The URL to request.
-   * @param {Object} headers Optional headers to include in the request.
+   * @param {_Headers} headers Optional headers to include in the request.
    * @param {number} redirectCount Optional parameter to limit the number of redirects (default: 5).
    * @param {number} timeout Optional timeout parameter for the HTTP request (default: 5000 ms).
    * @param {AbortSignal} signal Optional AbortSignal to cancel the request.
@@ -664,12 +765,12 @@ interface blazed {
    *      console.log(error);
    *  });
    */
-  connect(url: string, headers?: Object, redirectCount?: number, timeout?: number, signal?: AbortSignal): Promise<ConnectionResponseObject>;
+  connect(url: string, headers?: _Headers, redirectCount?: number, timeout?: number, signal?: AbortSignal): Promise<ConnectionResponseObject>;
 
   /**
    * Performs a HTTP OPTIONS request.
    * @param {string} url The URL to request.
-   * @param {Object} headers Optional headers to include in the request.
+   * @param {_Headers} headers Optional headers to include in the request.
    * @param {number} redirectCount Optional parameter to limit the number of redirects (default: 5).
    * @param {number} timeout Optional timeout parameter for the HTTP request (default: 5000 ms).
    * @param {AbortSignal} signal Optional AbortSignal to cancel the request.
@@ -696,12 +797,12 @@ interface blazed {
    *      console.log(error);
    *  });
    */
-  options(url: string, headers?: Object, redirectCount?: number, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
+  options(url: string, headers?: _Headers, redirectCount?: number, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
 
   /**
    * Performs a HTTP TRACE request.
    * @param {string} url The URL to request.
-   * @param {Object} headers Optional headers to include in the request.
+   * @param {_Headers} headers Optional headers to include in the request.
    * @param {number} redirectCount Optional parameter to limit the number of redirects (default: 5).
    * @param {number} timeout Optional timeout parameter for the HTTP request (default: 5000 ms).
    * @param {AbortSignal} signal Optional AbortSignal to cancel the request.
@@ -728,13 +829,13 @@ interface blazed {
    *      console.log(error);
    *  });
    */
-  trace(url: string, headers?: Object, redirectCount?: number, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
+  trace(url: string, headers?: _Headers, redirectCount?: number, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
 
   /**
    * Performs a HTTP PATCH request.
    * @param {string} url The URL to send the PATCH request to.
    * @param {Object} data The data to send in the request body (should be JSON-serializable).
-   * @param {Object} headers Optional headers to include in the request.
+   * @param {_Headers} headers Optional headers to include in the request.
    * @param {number} timeout Optional timeout parameter for the HTTP request (default: 5000 ms).
    * @param {AbortSignal} signal Optional AbortSignal to cancel the request.
    * @returns {Promise<ResponseObject>} A promise that resolves with the response data.
@@ -762,7 +863,7 @@ interface blazed {
    *      console.log(error);
    *  });
    */
-  patch(url: string, data: Object, headers?: Object, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
+  patch(url: string, data: Object, headers?: _Headers, timeout?: number, signal?: AbortSignal): Promise<ResponseObject>;
 
   /**
  * Provides a simplified way of performing HTTP requests similar to the native fetch api.
@@ -770,7 +871,7 @@ interface blazed {
  * @param {Object} requestObj - The Object contaning the HTTP request info.
  * @param {string} requestObj.url - The URL you want to send request.
  * @param {string} requestObj.method - The HTTP method to use (e.g. GET, POST, PUT, DELETE, etc.).
- * @param {Object} requestObj.headers - Optional headers to include in the request.
+ * @param {_Headers} requestObj.headers - Optional headers to include in the request.
  * @param {Object} request.body - Optional data to send in the request body.
  * @param {number} requestObj.limit - The limit for the number of redirects for the http request. By default it's set to 5.
  * @param {number} requestObj.timeout - Optional timeout parameter for the HTTP request (default: 5000 ms).
@@ -894,42 +995,6 @@ interface blazed {
    * });
    */
   parse_url(url: string): Promise<URLParser>;
-
-
-  /**
-   * Fetch API's global Response class
-   * 
-   * [MDN Reference](https://developer.mozilla.org/en-US/docs/Web/API/Response)
-   */
-  Response: typeof Response;
-
-  /**
-   * Fetch API's global Request class
-   * 
-   * [MDN Reference](https://developer.mozilla.org/en-US/docs/Web/API/Request)
-   */
-  Request: typeof Request;
-
-  /**
-   * Fetch API's global FormData class
-   * 
-   * [MDN Reference](https://developer.mozilla.org/en-US/docs/Web/API/FormData)
-   */
-  FormData: typeof FormData;
-
-  /**
-   * Fetch API's global Headers class
-   * 
-   * [MDN Reference](https://developer.mozilla.org/en-US/docs/Web/API/Headers)
-   */
-  Headers: typeof Headers;
-
-  /**
-   * Fetch API's global Body class
-   * 
-   * [MDN Reference](https://developer.mozilla.org/en-US/docs/Glossary/Payload_body)
-   */
-  Body: typeof Body;
 
   /**
    * File paths resolved absolutely, and the URL control characters are correctly encoded when converting into a File URL.
@@ -1092,118 +1157,18 @@ interface blazed {
     * }
    */
   validateHeaderValue(name: string, value: string): Promise<HeaderObject>
-  /**
-   * Attaches a listener to the on event
-   * Fires up whenever the event is triggered 
-   * @memberof Blazed
-   * @param {"beforeRequest" | "redirect"} event - The event to listen to.
-   * @param {(url: string) => void | (object: { OriginalURL: string, RedirectURL: string }) => void} callback - The callback function
-   */
-  /**
-   * **Check the docs [here]("https://github.com/BlazeInferno64/blazed.js/tree/main?tab=readme-ov-file#events") or [in the README.md file](./README.md) regarding about the 'events'emitted**
-   * @param event (beforeRequest) Fires up before firing a HTTP request
-   * @param callback returns two parameters for the callback function named url and the options(headers)
-   * @example 
-   * // beforeRequest event example usage
-   * blazed.on("beforeRequest", (url, options) => {
-   *    console.log(`beforeRequest event fired!`); // Logging for the 'beforeRequest' event
-   *    console.log(`HTTP Request URL: ${url}`); // Logs the HTTP request url
-   *    return console.log(options) // Logs the request options(including headers and data(if any)) to the console.
-   * });
-   * 
-   * 
-   * // afterRequest event example usage
-   * blazed.on("afterRequest", (url, response) => {
-   *    console.log(`afterRequest event fired!`); // Logging for the 'afterRequest' event
-   *    console.log(`HTTP Request URL: ${url}`); // Logs the HTTP request url
-   *    return console.log(response) // Logs the request response object to the console
-   * });
-   * 
-   * 
-   * // redirect event example usage
-   * blazed.on("redirect", (redirectObject) => {
-   *    console.log(`Redirect event fired!`); // Logging for the 'redirect' event
-   *    return console.log(redirectObject) // Logs the redirect object to the console
-   * });
-   * 
-   * 
-   * // request event example usage
-   * blazed.on("request", (req) => {
-   *    console.log(`Request event fired!`); // Logging for the 'request' event
-   *    return console.log(req); // Logging the 'req' object
-   * });
-   * 
-   * 
-   * // response event example usage
-   * const writeStream = fs.createWriteStream("response.txt", "utf-8");
-   * blazed.on("response", (response) => {
-   *    console.log(`Response event fired!`); // Logging for the 'response' event
-   *    return response.pipe(writeStream); // Pipe the response to the 'writeStream'
-   * });
-   */
-  on(event: "beforeRequest", callback: (url: string, options: object) => void): void;
-  /**
-   * 
-   * @param event (afterRequest) Fires up when the HTTP request ends
-   * @param callback returns two parameters which is the url and the response object
-   * @example
-   * // afterRequest event example usage
-   * blazed.on("afterRequest", (url, response) => {
-   *    console.log(`afterRequest event fired!`); // Logging for the afterRequest event
-   *    console.log(`HTTP Request URL: ${url}`); // Logs the HTTP request url
-   *    return console.log(response) // Logs the request response object to the console
-   * });
-   */
-  on(event: "afterRequest", callback: (url: string, response: object) => void): void;
-  /**
-   * 
-   * @param event (redirect) Fires up when a redirect occurs when sending HTTP request to the server
-   * @param callback returns an object as the parameter for the callback function which contains the original url and the redirect url
-   * @example 
-   * // redirect event example usage
-   * blazed.on("redirect", (redirectObject) => {
-   *    console.log(`Redirect event fired!`); // Logging for the 'redirect' event
-   *    return console.log(redirectObject) // Logs the redirect object to the console
-   * });
-   */
-  on(event: "redirect", callback: (object: { OriginalURL: string, RedirectURL: string }) => void): void;
-  /**
-   * 
-   * @param event (request) Fires up when the http request is sent to the server
-   * @param callback returns an object as the parameter for the callback function which contains the redirect object
-   * // request event example usage
-   * blazed.on("request", (req) => {
-   *    console.log(`Request event fired!`); // Logging for the 'request' event
-   *    return console.log(req); // Logging the 'req' object
-   * });
-   */
-  on(event: "request", callback: (object: { destroy: Function, message: string, host: string }) => void): void;
-  /**
-   * 
-   * @param event (response) Fires up when the http request's response is received from the server
-   * @param callback returns an object as the parameter for the callback function which contains the response object
-   * @example
-   * // response event example usage
-   * const writeStream = fs.createWriteStream("response.txt", "utf-8");
-   * blazed.on("response", (response) => {
-   *    console.log(`Response event fired!`); // Logging for the 'response' event 'response' object.
-   *    return response.pipe(writeStream); // Pipe the response to the 'writeStream'
-   * });
-   */
-  on(
-    event: "response",
-    callback: (
-      response: {
-        pipe: (dest: NodeJS.WritableStream, options?: { end?: boolean }) => NodeJS.WritableStream;
-        destroy: (err?: any) => void;
-        resume: () => void;
-        pause: () => void;
-        // allow additional properties present on the response object
-        [key: string]: any;
-      }
-    ) => void
-  ): void;
 }
+
+declare namespace blazedJs {
+  export {
+    Request,
+    Response,
+    FormData,
+    Headers,
+    Body
+  };
+}
+
 /**
  *  blazed.js is a blazing fast, light weight, high performance, promise based HTTP and DNS client for the Node.
  * 
@@ -1217,5 +1182,5 @@ interface blazed {
  * // Or import it to your project if its an ES module by doing -
  * import blazed from "blazed.js";
  */
-declare const blazed: blazed;
+declare const blazed: blazedStatic & typeof blazedJs;
 export = blazed;
