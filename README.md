@@ -1,4 +1,3 @@
-
 [![NPM Downloads](https://img.shields.io/npm/dm/blazed.js.svg?style=round-square)](https://npm-stat.com/charts.html?package=blazed.js)
 [![NPM Version](http://img.shields.io/npm/v/blazed.js.svg?style=flat)](https://npmjs.com/package/blazed.js)
 [![install size](https://packagephobia.com/badge?p=blazed.js)](https://packagephobia.com/result?p=blazed.js)
@@ -1207,3 +1206,4 @@ Report issues and request features on the [blazed.js issue tracker](https://gith
 
 
 `Have a great day ahead :D`
+
