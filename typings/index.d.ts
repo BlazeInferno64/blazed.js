@@ -2,7 +2,7 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 18/01/2026
+// Last updated: 27/03/2026
 
 // Type definitions for 'blazed.js'
 
@@ -33,6 +33,49 @@ interface FetchResponse extends Response {
 
 }
 
+declare class Body {
+  constructor(body?: BodyInit | null, headers?: Headers | null);
+
+  /**
+   * The raw body source passed to the constructor.
+   * Use `.body` to get the streamable ReadableStream instead.
+   */
+  bodySource: BodyInit | null;
+
+  /**
+   * Whether the body has already been consumed.
+   * Once true, calling any consumption method will throw a TypeError.
+   */
+  bodyUsed: boolean;
+
+  /**
+   * Returns the body as a ReadableStream<Uint8Array>.
+   * Returns null for empty bodies.
+   * Always returns the same stream instance on repeated access (cached).
+   * 
+   * Supports all ReadableStream operations:
+   * - `.getReader()` — manual chunk reading
+   * - `.pipeTo(writable)` — pipe to a WritableStream
+   * - `.pipeThrough(transform)` — transform while streaming
+   * - `.tee()` — split into two independent streams
+   * - `.cancel(reason?)` — abort the stream
+   * - `.values()` — async iterator for use with `for await...of`
+   * - `.locked` — whether a reader has been acquired
+   * 
+   * @example
+   * const stream = response.body;
+   * const reader = stream.getReader();
+   * const decoder = new TextDecoder();
+   * while (true) {
+   *   const { done, value } = await reader.read();
+   *   if (done) break;
+   *   console.log(decoder.decode(value, { stream: true }));
+   * }
+   */
+  readonly body: ReadableStream<Uint8Array> | null;
+  readonly bodyUsed: boolean;
+}
+
 declare class Headers {
   constructor(init?: HeadersInit);
   append(name: string, value: string): void;
@@ -51,7 +94,7 @@ declare class Headers {
   [Symbol.iterator](): IterableIterator<[string, string]>;
 }
 
-declare class Request {
+declare class Request extends Body {
   constructor(input: RequestInfo | URL, init?: RequestInit);
   readonly method?: string;
   readonly url?: string;
@@ -80,24 +123,41 @@ declare class Request {
 // Helper type for the Request constructor
 type RequestInfo = string | Request;
 
-declare class Response {
+declare class Response extends Body {
   constructor(body?: BodyInit | null, init?: ResponseInit);
   readonly status: number;
   readonly statusText: string;
+  /** True if status is in the range 200–299. */
   readonly ok: boolean;
   readonly redirected: boolean;
   readonly type: ResponseType;
   readonly url: string;
   readonly headers: Headers;
+
+  /**
+   * Creates a copy of this Response.
+   * Throws if the body has already been consumed.
+   */
   clone(): Response;
 
-  arrayBuffer(): Promise<ArrayBuffer>;
-  text(): Promise<string>;
-  json(): Promise<any>;
-  formData(): Promise<FormData>;
-  blob(): Promise<Blob>;
+  /**
+   * Creates a Response with a JSON-serialized body and
+   * `Content-Type: application/json` header.
+   * @param data - Any JSON-serializable value.
+   * @param init - Optional ResponseInit options.
+   */
+  static json(data: any, init?: ResponseInit): Response;
 
+  /**
+   * Creates a network error Response (status 0).
+   */
   static error(): Response;
+
+  /**
+   * Creates a redirect Response with the given URL and status code.
+   * @param url - The URL to redirect to.
+   * @param status - The redirect status code (301, 302, 303, 307, 308). Defaults to 302.
+   */
   static redirect(url: string, status?: number): Response;
 }
 
@@ -168,6 +228,36 @@ interface IpObject {
    * The ip address which has been resolved (Present in array)
    */
   Addresses: string[];
+}
+
+/**
+ * Represents a single hop in a redirect chain.
+ */
+interface RedirectHop {
+  /** The URL of the hop */
+  url: string;
+  /** HTTP status code (e.g., 301, 302, 200) */
+  status: number;
+  /** HTTP status text */
+  statusText: string;
+  /** Total time taken for this specific hop in milliseconds */
+  duration: number;
+  /** The resolved IP address of the host for this hop */
+  ip: string;
+}
+
+/**
+ * Options for the trace_redirects method.
+ */
+interface TraceOptions {
+  /** Maximum number of redirects to follow. Defaults to 5. */
+  limit?: number;
+  /** Timeout in milliseconds for each request. Defaults to 5000. */
+  timeout?: number;
+  /** Custom headers to send with each probe. */
+  headers?: Record<string, string>;
+  /** An AbortSignal to cancel the trace. */
+  signal?: AbortSignal | null;
 }
 
 interface OptionsObject {
@@ -959,6 +1049,29 @@ interface blazedStatic extends blazedEmitter {
    * })
    */
   createInstance(config?: InstanceConfig): BlazedInstance;
+
+  /**
+   * **Traces the redirect path of a URL, providing IP resolution and timing for each hop.**
+   * @param url The starting URL to trace.
+   * @param options Configuration for the trace (limit, timeout, etc.)
+   * @returns A promise that resolves to an array of RedirectHop objects.
+   * * @example
+   * blazed.trace_redirects("https://bit.ly/Wa-Dm", {
+   *    headers: {
+   *        'X-Method-From': 'blazed.js_trace_redirects',
+   *    },
+   *    limit: 50, // Max redirects to follow (Default: 5)
+   *    timeout: 8000, // Timeout for each request (Default: 5000ms)
+   * })
+   *    .then(hops => {
+   *        console.table(hops) // If you want a nice formatted response in a table
+   *        // Or else run this -> console.log(hops);
+   *    })
+   *    .catch(error => {
+   *        console.error(error);
+   *    })
+   */
+  trace_redirects(url: string, options?: TraceOptions): Promise<RedirectHop[]>;
 
 
   /**

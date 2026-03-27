@@ -462,6 +462,53 @@ blazed.get() // Will send GET request to the Github Api.
 
 The above function will throw an error if the values aren't boolean ,i.e, true/false.
 
+# Fetch Api
+
+`blazed.js` provides a Fetch API compatible with the browser’s native `fetch()` (and Node.js / undici), allowing you to make HTTP requests using the same familiar interface.
+
+You can use it via the `blazed.fetch()` function.
+
+## Basic Example
+
+```js
+const { fetch } = blazed;
+
+const url = "https://httpbin.org/anything";
+
+const response = await fetch(url);
+
+console.log("Status:", response.status);
+console.log("Status Text:", response.statusText);
+console.log("Headers:", response.headers);
+
+const data = await response.json(); // or use .text()
+console.log("Data:", data);
+
+```
+
+# Trace Redirects
+
+`blazed.js` provides a powerful `trace_redirects` utility that allows you to follow a URL's redirect path (hop-by-hop), providing status codes, timing, and resolved IP addresses for every step.
+
+```js
+blazed.trace_redirects("https://bit.ly/Wa-Dm", {
+   headers: {
+       'X-Method-From': 'blazed.js_trace_redirects',
+   },
+   limit: 50, // Max redirects to follow (Default: 5)
+   timeout: 8000, // Timeout for each request (Default: 5000ms)
+})
+   .then(hops => {
+       console.table(hops) // If you want a nice formatted response in a table
+       // Or else run this -> console.log(hops);
+   })
+   .catch(error => {
+       console.error(error);
+   })
+
+
+```
+
 # Creating Custom Instances
 
 `blazed.js` allows you to create **isolated instances** with their own default configuration.
@@ -685,30 +732,6 @@ blazed.request({
             console.error("An error occurred:", err);
         }
     });
-
-```
-
-# Fetch Api
-
-`blazed.js` provides a Fetch API compatible with the browser’s native `fetch()` (and Node.js / undici), allowing you to make HTTP requests using the same familiar interface.
-
-You can use it via the `blazed.fetch()` function.
-
-## Basic Example
-
-```js
-const { fetch } = blazed;
-
-const url = "https://httpbin.org/anything";
-
-const response = await fetch(url);
-
-console.log("Status:", response.status);
-console.log("Status Text:", response.statusText);
-console.log("Headers:", response.headers);
-
-const data = await response.json(); // or use .text()
-console.log("Data:", data);
 
 ```
 
@@ -1204,6 +1227,4 @@ Report issues and request features on the [blazed.js issue tracker](https://gith
 
 `Thanks for reading!`
 
-
 `Have a great day ahead :D`
-

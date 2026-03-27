@@ -3,7 +3,7 @@
 // Author(s) -> 
 // 1. BlazeInferno64 -> https://github.com/blazeinferno64
 //
-// Last updated: 04/01/2026
+// Last updated: 05/03/2026
 "use strict";
 
 const { Body } = require("./body");
@@ -11,7 +11,7 @@ const { Headers } = require("./headers");
 
 class Response extends Body {
     constructor(body, options = {}) {
-        super(body);
+        super(body, new Headers(options.header));
         this.status = options.status ?? 200;
         this.statusText = options.statusText ?? "";
         this.headers = new Headers(options.headers);
@@ -20,7 +20,7 @@ class Response extends Body {
         this.type = "basic";
         this.redirected = false;
 
-        if (this.status < 200 || this.status > 599) {
+        if (this.status !== 0 && (this.status < 200 || this.status > 599)) {
             throw new RangeError(`Invalid status code: ${this.status}`);
         }
     }
@@ -51,6 +51,10 @@ class Response extends Body {
     }
 
     clone() {
+        if (this.bodyUsed) {
+            throw new TypeError("Cannot clone a body that has already been used");
+        }
+
         return new Response(this.body, {
             status: this.status,
             statusText: this.statusText,

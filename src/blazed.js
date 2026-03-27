@@ -4,7 +4,7 @@
 // 1. BlazeInferno64 -> https://github.com/blazeinferno64
 // 2. Sudeep -> https://github.com/SudeepQ
 //
-// Last updated: 18/01/2026
+// Last updated: 27/03/2026
 
 "use strict";
 
@@ -520,11 +520,11 @@ const fetch = async (input, init = {}) => {
   const redirectLimit = request.redirect === 'follow' ? 5 : request.redirect === 'error' ? 0 : 0;
 
   try {
-    const bodyBuffer = await request.consume();
+    // bodyBuffer = await request.consume();
     const res = await _makeRequest(
       request.method,
       request.url,
-      request.body,
+      request.bodySource,
       request.headers.raw(),
       redirectLimit,
       init.timeout ?? 5000,
@@ -543,6 +543,85 @@ const fetch = async (input, init = {}) => {
     throw error;
   }
 }
+
+/**
+ * Traces the redirect path of a URL, falling back to GET if HEAD is blocked.
+ * @param {string} url - The starting URL.
+ * @param {Object} options - Configuration (limit, timeout, headers, signal).
+ * @returns {Promise<Array>} - An array of redirect hops.
+ */
+
+// Redirect tracer
+const trace_redirects = async (url, options = {}) => {
+  try {
+    const hops = [];
+    const visited = new Set();
+    let currentURL = url;
+    const maxHops = options.limit || 5;
+    const timeout = options.timeout || 5000;
+
+    for (let i = 0; i < maxHops; i++) {
+      if (visited.has(currentURL)) break;
+      visited.add(currentURL);
+
+      let ip = 'unknown';
+      try {
+        const dnsInfo = await resolve_dns({ url: currentURL });
+
+        if (dnsInfo && Array.isArray(dnsInfo.Addresses) && dnsInfo.Addresses.length > 0) {
+          ip = dnsInfo.Addresses[0];
+        }
+      } catch (e) {
+        // IP remains 'unknown' on DNS failure
+      }
+
+      let response = await _makeRequest(
+        'HEAD',
+        currentURL,
+        null,
+        options.headers || {},
+        0,
+        timeout,
+        options.signal || null,
+        'default',
+        'manual'
+      );
+
+      if (response.status === 405 || response.status === 403) {
+        response = await _makeRequest(
+          'GET',
+          currentURL,
+          null,
+          options.headers || {},
+          0,
+          timeout,
+          options.signal || null,
+          'default',
+          'manual'
+        );
+      }
+
+      hops.push({
+        url: currentURL,
+        status: response.status,
+        statusText: response.statusText,
+        duration: response.duration,
+        ip: ip
+      });
+
+      const location = response.responseHeaders?.location;
+      if (response.status >= 300 && response.status < 400 && location) {
+        currentURL = new URL(location, currentURL).href;
+      } else {
+        break;
+      }
+    }
+
+    return hops;
+  } catch (error) {
+    throw error;
+  }
+};
 
 /**
  * Checks and return whether a provided URL is valid or not.
@@ -723,14 +802,14 @@ const createInstance = (defaultConfig = {}) => {
     options: (url, headers, redirectCount, timeout, signal) =>
       instanceRequest(HTTP_METHODS.OPTIONS, url, null, headers, redirectCount, timeout, signal),
 
-request: (config = {}) => {
+    request: (config = {}) => {
       const rawURL = config.url
-          ? (baseURL ? baseURL.replace(/\/$/, '') + '/' + config.url.replace(/^\//, '') : config.url)
-          : baseURL;
-      
-      const finalURL = config.params 
-          ? `${rawURL}${buildQueryString(config.params)}` 
-          : rawURL;
+        ? (baseURL ? baseURL.replace(/\/$/, '') + '/' + config.url.replace(/^\//, '') : config.url)
+        : baseURL;
+
+      const finalURL = config.params
+        ? `${rawURL}${buildQueryString(config.params)}`
+        : rawURL;
 
       return _makeRequest(
         config.method || method || HTTP_METHODS.GET,
@@ -761,12 +840,12 @@ request: (config = {}) => {
       const redirectLimit = request.redirect === "follow" ? 5 : 0;
 
       try {
-        const bodyBuffer = await request.consume();
+        //const bodyBuffer = await request.consume();
 
         const res = await _makeRequest(
           request.method,
           request.url,
-          bodyBuffer,
+          request.bodySource,
           request.headers.raw(),
           redirectLimit,
           init.timeout ?? timeout ?? 5000,
@@ -1006,6 +1085,7 @@ module.exports = {
   Headers,
   Body,
   FormData,
+  trace_redirects,
   reverse_dns,
   /**
    * Attaches a listener to the on event
