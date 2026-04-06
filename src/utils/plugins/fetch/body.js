@@ -3,7 +3,7 @@
 // Author(s) -> 
 // 1. BlazeInferno64 -> https://github.com/blazeinferno64
 //
-// Last updated: 06/03/2026
+// Last updated: 06/04/2026
 "use strict";
 
 const { createRequire } = require("node:module");
@@ -16,23 +16,22 @@ const { FormData } = require2("./formdata");
 class Body {
     constructor(body = null, headers = null) {
         this.bodySource = body;
-        this.bodyUsed = false;
+        this._bodyUsed = false; // Internal tracking
         this.headers = headers;
         this._bufferCache = null;
-        this._streamCache = null; // caches the created ReadableStream for repeated .body access
+        this._streamCache = null;
+    }
+
+    // Official Fetch API read-only property
+    get bodyUsed() {
+        return this._bodyUsed;
     }
 
     async consume() {
-        // Return cache if it exists — allows text(), json(), etc. to be called
-        // after .body was accessed (since _bufferCache is populated from the stream)
         if (this._bufferCache) return this._bufferCache;
+        if (this._bodyUsed) throw new TypeError("Body has already been consumed!");
 
-        if (this.bodyUsed) {
-            throw new TypeError("Body has already been consumed!");
-        }
-
-        // Mark as used immediately to "disturb" the body (WHATWG spec)
-        this.bodyUsed = true;
+        this._bodyUsed = true;
 
         if (this.bodySource instanceof ReadableStream) {
             const reader = this.bodySource.getReader();
@@ -41,11 +40,7 @@ class Body {
                 while (true) {
                     const { done, value } = await reader.read();
                     if (done) break;
-                    if (value instanceof Uint8Array) {
-                        chunks.push(Buffer.from(value.buffer, value.byteOffset, value.byteLength));
-                    } else {
-                        chunks.push(Buffer.from(value));
-                    }
+                    chunks.push(Buffer.from(value.buffer || value, value.byteOffset || 0, value.byteLength || value.length));
                 }
                 this._bufferCache = Buffer.concat(chunks);
             } finally {
@@ -68,19 +63,20 @@ class Body {
         return JSON.parse(text);
     }
 
+    async bytes() {
+        const buffer = await this.consume();
+        return new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength);
+    }
+
     async arrayBuffer() {
         const buf = await this.consume();
-        return buf.buffer.slice(
-            buf.byteOffset,
-            buf.byteOffset + buf.byteLength
-        );
+        return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
     }
 
     async formData() {
         const contentType = this.headers?.get("content-type") ?? "";
-        const buffer = Buffer.from(await this.arrayBuffer());
+        const buffer = await this.consume();
 
-        // application/x-www-form-urlencoded
         if (contentType.includes("application/x-www-form-urlencoded")) {
             const fd = new FormData();
             const params = new URLSearchParams(buffer.toString());
@@ -90,80 +86,90 @@ class Body {
             return fd;
         }
 
-        // multipart/form-data
         if (contentType.includes("multipart/form-data")) {
             const boundaryMatch = contentType.match(/boundary=(?:"([^"]+)"|([^; ]+))/);
-            if (!boundaryMatch) {
-                throw new TypeError("Invalid multipart/form-data boundary");
-            }
+            if (!boundaryMatch) throw new TypeError("Invalid multipart/form-data boundary");
 
-            const boundary = boundaryMatch[1] || boundaryMatch[2];
-            const parts = buffer.toString().split(`--${boundary}`);
+            const boundary = `--${boundaryMatch[1] || boundaryMatch[2]}`;
+            const boundaryBuffer = Buffer.from(boundary);
             const fd = new FormData();
 
-            for (const part of parts) {
-                const trimmed = part.trim();
-                if (!trimmed || trimmed === "--") continue;
+            let cursor = buffer.indexOf(boundaryBuffer);
+            
+            while (cursor !== -1) {
+                cursor += boundaryBuffer.length;
 
-                const headerEndIndex = part.indexOf("\r\n\r\n");
-                if (headerEndIndex === -1) continue;
+                // Check for terminal boundary "--"
+                if (buffer[cursor] === 0x2d && buffer[cursor + 1] === 0x2d) break;
 
-                const rawHeaders = part.slice(0, headerEndIndex);
-                let myBody = part.slice(headerEndIndex + 4);
-                if (myBody.endsWith("\r\n")) {
-                    myBody = myBody.slice(0, -2);
-                }
+                // Move past CRLF after boundary
+                cursor += 2; 
 
+                const headerEndIndex = buffer.indexOf("\r\n\r\n", cursor);
+                if (headerEndIndex === -1) break;
+
+                const rawHeaders = buffer.subarray(cursor, headerEndIndex).toString();
                 const nameMatch = rawHeaders.match(/name="([^"]+)"/);
-                if (!nameMatch) continue;
+                const filenameMatch = rawHeaders.match(/filename="([^"]+)"/);
 
-                fd.append(nameMatch[1], myBody);
+                cursor = headerEndIndex + 4; // Move past \r\n\r\n
+                const nextBoundaryIndex = buffer.indexOf(boundaryBuffer, cursor);
+                
+                if (nextBoundaryIndex !== -1) {
+                    // Extract payload (subtracting 2 for the \r\n before next boundary)
+                    const payload = buffer.subarray(cursor, nextBoundaryIndex - 2);
+                    
+                    if (nameMatch) {
+                        const name = nameMatch[1];
+                        if (filenameMatch) {
+                            // It's a file! Pass the raw buffer/Blob
+                            const type = rawHeaders.match(/Content-Type:\s*([^\s\r\n]+)/i)?.[1] || "application/octet-stream";
+                            fd.append(name, new Blob([payload], { type }), filenameMatch[1]);
+                        } else {
+                            // It's a text field
+                            fd.append(name, payload.toString());
+                        }
+                    }
+                    cursor = nextBoundaryIndex;
+                } else {
+                    break;
+                }
             }
-
             return fd;
         }
 
-        throw new TypeError("Response body is not form data");
+        throw new TypeError('Content-Type was not one of "multipart/form-data" or "application/x-www-form-urlencoded"');
     }
 
     async blob() {
-        const buffer = await this.arrayBuffer();
+        const buffer = await this.consume();
         const type = this.headers?.get("content-type") || "";
         return new Blob([buffer], { type });
     }
 
     get body() {
-        // 1. If the source is already a ReadableStream, return it directly.
-        //    Lock it immediately since we can't guarantee its external state.
         if (this.bodySource instanceof ReadableStream) {
-            if (this.bodyUsed) throw new TypeError("Body has already been consumed!");
-            this.bodyUsed = true;
+            if (this._bodyUsed) throw new TypeError("Body has already been consumed!");
+            this._bodyUsed = true;
             return this.bodySource;
         }
 
-        // 2. Return the cached stream if we already created one.
-        //    This mirrors browser behavior where .body always returns the same instance.
         if (this._streamCache) return this._streamCache;
 
-        // 3. Null body → return null (matches the spec)
         const buffer = this._bufferCache || this._serializeCurrentBody();
         if (buffer.length === 0) return null;
 
-        // 4. Guard against double consumption before creating the stream
-        if (this.bodyUsed) throw new TypeError("Body has already been consumed!");
-        this.bodyUsed = true;
+        if (this._bodyUsed) throw new TypeError("Body has already been consumed!");
+        this._bodyUsed = true;
 
-        // 5. Build and cache the stream — gives .body all ReadableStream methods:
-        //    getReader(), locked, pipeTo(), pipeThrough(), tee(), cancel(), values()
         let offset = 0;
-        const chunkSize = 16384; // 16KB chunks
+        const chunkSize = 16384;
 
         this._streamCache = new ReadableStream({
             pull(controller) {
                 const remaining = buffer.length - offset;
                 if (remaining > 0) {
                     const currentChunkSize = Math.min(chunkSize, remaining);
-                    // subarray avoids memory copy (no new allocation)
                     controller.enqueue(new Uint8Array(buffer.subarray(offset, offset + currentChunkSize)));
                     offset += currentChunkSize;
                 } else {
@@ -176,19 +182,17 @@ class Body {
     }
 
     clone() {
-        if (this.bodyUsed && !this._bufferCache) {
+        if (this._bodyUsed && !this._bufferCache) {
             throw new TypeError("Failed to execute 'clone': Body has already been consumed.");
         }
 
-        // If already buffered, clone can share the buffer directly
         if (this._bufferCache) {
             const cloned = new this.constructor(this._bufferCache, this.headers);
-            cloned._bufferCache = this._bufferCache; // share the cache
+            cloned._bufferCache = this._bufferCache;
             return cloned;
         }
 
         let newBodySource = this.bodySource;
-
         if (this.bodySource instanceof ReadableStream) {
             const [s1, s2] = this.bodySource.tee();
             this.bodySource = s1;

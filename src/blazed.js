@@ -4,16 +4,19 @@
 // 1. BlazeInferno64 -> https://github.com/blazeinferno64
 // 2. Sudeep -> https://github.com/SudeepQ
 //
-// Last updated: 27/03/2026
+// Last updated: 01/04/2026
 
 "use strict";
 
-const http = require('http');
-const https = require('https');
+const http = require('node:http');
+const https = require('node:https');
 
-const { dataUriToBuffer } = require("data-uri-to-buffer");
-const { Buffer } = require("buffer");
-const { EventEmitter } = require("events");
+const { createRequire } = require("node:module");
+const require2 = createRequire(__filename);
+
+const { dataUriToBuffer } = require2("data-uri-to-buffer");
+const { Buffer } = require('node:buffer');
+const { EventEmitter } = require('node:events');
 const emitter = new EventEmitter();
 
 const urlParser = require("./utils/plugins/url");
@@ -102,11 +105,13 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
         }
         // Handle 'data:' URLs directly
         if (parsedURL.protocol === 'data:') {
-          const myData = dataUriToBuffer(requestUrl);
-          const contentType = myData.typeFull || 'application/octet-stream'; // a generic binary data type
-          const dataSize = myData.buffer?.byteLength || myData.length || 0;
+          const myData = parse_data_url(requestUrl);
+          
+          const contentType = myData.contentType || 'application/octet-stream'; // a generic binary data type
+          const dataSize = myData.byteLength || 0;
+
           const responseObject = {
-            data: myData,
+            data: myData.data,
             status: 200,
             statusText: mapStatusCodes(200).message,
             responseSize: formatBytes(dataSize),
@@ -485,7 +490,7 @@ const handleResponse = (response, resolve, reject, redirectCount = 5, originalUr
       return resolve(handleRedirect(method, redirectUrl.href, data, headers, redirectCount, timeout, null, mode, redirectMode));
     }
     else {
-      console.log(`REDIRECTCOUNT IS ${redirectCount}`)
+      //console.log(`REDIRECTCOUNT IS ${redirectCount}`)
       if (redirectMode === 'error') {
         const err = "REDIRECT_NOT_ALLOWED";
         return utilErrors.processError(err, false, false, false, redirectCount, method, reject, redirectMode);
@@ -516,8 +521,12 @@ const cancel = (reason) => {
 }
 
 const fetch = async (input, init = {}) => {
+  let redirectLimit = 20; // Default redirect limit for fetch requests
   const request = input instanceof Request ? input : new Request(input, init);
-  const redirectLimit = request.redirect === 'follow' ? 5 : request.redirect === 'error' ? 0 : 0;
+  //redirectLimit = request.redirect === 'follow' ? 5 : request.redirect === 'error' ? 0 : 0;
+  if (request.redirect === 'manual' || request.redirect === 'error') {
+    redirectLimit = 0;
+  }
 
   try {
     // bodyBuffer = await request.consume();
@@ -530,7 +539,7 @@ const fetch = async (input, init = {}) => {
       init.timeout ?? 5000,
       request.signal,
       "fetch",
-      request.redirect
+      request.redirect // the redirect mode (follow/manual/error)
     );
 
     return new Response(res.data, {
@@ -826,6 +835,7 @@ const createInstance = (defaultConfig = {}) => {
 
     cancel,
     fetch: async (input, init = {}) => {
+      let redirectLimit = 20;
       const request = input instanceof Request ? input : new Request(
         input ? (baseURL ? baseURL.replace(/\/$/, '') + '/' + input.replace(/^\//, '') : input) : baseURL,
         {
@@ -837,7 +847,10 @@ const createInstance = (defaultConfig = {}) => {
         }
       );
 
-      const redirectLimit = request.redirect === "follow" ? 5 : 0;
+      //const redirectLimit = request.redirect === "follow" ? 5 : 0;
+      if (request.redirect === 'manual' || request.redirect === 'error') {
+        redirectLimit = 0;
+      }
 
       try {
         //const bodyBuffer = await request.consume();
@@ -851,7 +864,7 @@ const createInstance = (defaultConfig = {}) => {
           init.timeout ?? timeout ?? 5000,
           request.signal,
           "fetch",
-          request.redirect
+          request.redirect // the redirect mode (follow/manual/error)
         );
 
         return new Response(res.data, {
@@ -868,6 +881,24 @@ const createInstance = (defaultConfig = {}) => {
   };
 };
 
+/**
+ * Synchronously parses a data URI into a buffer and metadata.
+ * @param {string} uri - The data URI to parse.
+ * @returns {Object} Parsed data containing buffer, type, and charset.
+ */
+const parse_data_url = (uri) => {
+  try {
+    const parsed = dataUriToBuffer(uri); // This is already a Buffer-like object
+    return {
+      data: parsed, 
+      contentType: parsed.typeFull || 'application/octet-stream',
+      charset: parsed.charset || 'utf-8',
+      byteLength: parsed.length || 0
+    };
+  } catch (error) {
+    throw error;
+  }
+};
 
 /**
  * Function to configure options.
@@ -1087,6 +1118,7 @@ module.exports = {
   FormData,
   trace_redirects,
   reverse_dns,
+  parse_data_url,
   /**
    * Attaches a listener to the on event
    * Fires up whenever a request is ready to send

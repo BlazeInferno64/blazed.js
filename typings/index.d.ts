@@ -2,7 +2,7 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 27/03/2026
+// Last updated: 06/04/2026
 
 // Type definitions for 'blazed.js'
 
@@ -159,6 +159,38 @@ declare class Response extends Body {
    * @param status - The redirect status code (301, 302, 303, 307, 308). Defaults to 302.
    */
   static redirect(url: string, status?: number): Response;
+
+  /**
+   * Returns a promise that resolves with an ArrayBuffer representation of the response body.
+   * Throws a TypeError if the body has already been consumed.
+   */
+  arrayBuffer(): Promise<ArrayBuffer>;
+
+  /**
+   * Returns a promise that resolves with a Uint8Array representation of the response body.
+   */
+  bytes: Promise<Uint8Array<ArrayBuffer>>;
+
+  /**
+   * Returns a promise that resolves with a Blob representation of the response body.
+   */
+  blob(): Promise<Blob>;
+
+  /**
+   * Returns a promise that resolves with a FormData representation of the response body.
+   */
+  formData(): Promise<FormData>;
+
+  /**
+   * Returns a promise that resolves with the result of parsing the response body as JSON.
+   */
+  json(): Promise<any>;
+
+  /**
+   * Returns a promise that resolves with the result of parsing the response body as text.
+   */
+  text(): Promise<string>;
+
 }
 
 /**
