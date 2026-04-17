@@ -1,9 +1,17 @@
-[![NPM Downloads](https://img.shields.io/npm/dm/blazed.js.svg?style=round-square)](https://npm-stat.com/charts.html?package=blazed.js)
-[![NPM Version](http://img.shields.io/npm/v/blazed.js.svg?style=flat)](https://npmjs.com/package/blazed.js)
-[![install size](https://packagephobia.com/badge?p=blazed.js)](https://packagephobia.com/result?p=blazed.js)
-[![npm bundle size](https://img.shields.io/bundlephobia/minzip/blazed.js?style=round-square)](https://bundlephobia.com/package/blazed.js@latest)
-[![Gitpod Ready-to-code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod&style=round-square)](https://gitpod.io/#https://github.com/blazeinferno64/blazed.js)
+[![NPM Version](http://img.shields.io/npm/v/blazed.js.svg?style=flat-square)](https://npmjs.com/package/blazed.js)
+[![Dependencies](https://img.shields.io/badge/dependencies-0-success?style=flat-square)](https://www.npmjs.com/package/blazed.js?activeTab=dependencies)
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D%2016.0.0-brightgreen?style=flat-square&logo=node.js)](https://nodejs.org)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 
+[![NPM Downloads](https://img.shields.io/npm/dm/blazed.js.svg?style=flat-square)](https://npm-stat.com/charts.html?package=blazed.js)
+[![Install Size](https://packagephobia.com/badge?p=blazed.js&style=flat-square)](https://packagephobia.com/result?p=blazed.js)
+[![Bundle Size](https://img.shields.io/bundlephobia/minzip/blazed.js?style=flat-square)](https://bundlephobia.com/package/blazed.js@latest)
+
+![GitHub last commit](https://img.shields.io/github/last-commit/blazeinferno64/blazed.js?style=flat-square)
+![GitHub issues](https://img.shields.io/github/issues/blazeinferno64/blazed.js?style=flat-square)
+[![Gitpod Ready-to-code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod&style=flat-square)](https://gitpod.io/#https://github.com/blazeinferno64/blazed.js)
+[![Author](https://img.shields.io/badge/author-BlazeInferno64-orange?style=flat-square&logo=github)](https://github.com/blazeinferno64)
+![GitHub Repo stars](https://img.shields.io/github/stars/blazeinferno64/blazed.js?style=social)
 
 # blazed.js
 
@@ -13,25 +21,36 @@
 
 ## Features
 
-- **Fast and Efficient**: Optimized for minimal CPU usage while delivering rapid, well-formatted results.
-- **Promise-Based**: Leverages JavaScript promises for seamless asynchronous handling.
-- **Minimalistic Design**: Offers a straightforward API for effortless integration.
-- **User-Friendly**: Intuitive interface that simplifies the development process.
+- **⚡ Blazing Performance**: Engineered for near-zero overhead and minimal CPU cycles, providing high-speed requests without the bloat.
+
+- **📦 Dependency-Free**: A pure, lightweight footprint with zero external dependencies, eliminating "dependency hell" and ESM compatibility issues.
+
+- **💎 Minimalistic & Promise-Based**: A clean, modern API designed for seamless async/await integration and effortless developer experience.
+
+- **🛡️ Robust Reliability**:Advanced error handling and automatic timeout management to keep your applications stable and responsive.
+
+- **✨User-Friendly**: Intuitive interface that simplifies the development process.
 
 # Installation
 
 To get started with `blazed.js`, simply run the following command in your terminal:
 
-[npm](https://npmjs.com) installation command:
+Using [npm](https://npmjs.com) installation command:
 
 ```bash
 $ npm i blazed.js
 ```
 
-[yarn](https://yarnpkg.com) installation command:
+Using [yarn](https://yarnpkg.com) installation command:
 
 ```bash
 $ yarn add blazed.js
+```
+
+Using [bun](https://bun.sh) installation command:
+
+```bash
+$ bun add blazed.js
 ```
 
 # Info
@@ -509,6 +528,78 @@ blazed.trace_redirects("https://bit.ly/Wa-Dm", {
 
 ```
 
+# Handling data uri 
+`blazed.js` comes with a built-in, high-performance Data URI parser. 
+
+Unlike other libraries that rely on heavy external dependencies or broken ESM-only modules, `blazed.js` handles data: protocols natively using optimized Node.js Buffer logic.
+
+## Parsing data uri by normal HTTP methods 
+
+Example usage 👇
+
+### 1. plain text Data URI
+
+```js
+blazed.get('data:text/plain;charset=utf-8,Hello%20World')
+    .then(res => {
+        console.log(res.data.data.toString());// "Hello World"
+    })
+    .catch(err => {
+        console.error(err);
+    })
+```
+
+### 2. Base64 encoded image
+
+```js
+const imgUri = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==';
+
+
+blazed.get(imgUri)
+    .then(res => {
+        console.log(res.data);// Logginig the response data
+    })
+    .catch(err => {
+        console.error(err);
+    })
+```
+
+# registerGlobals() method
+
+You can inject `blazed.js` core functions directly into the global namespace. This allows you to use `request()` and `fetch()` anywhere in your project without needing to require the library in every file.
+
+Usage example 👇
+
+```js
+// Register globals once at the start of your project
+blazed.registerGlobals();
+
+// Now request() is defined globally
+request({
+    url: 'https://httpbin.org/anything',
+    method: 'GET'
+})
+.then(res => {
+    console.log(res.data);
+})
+.catch(err => {
+    console.error(err)
+})
+
+// Native fetch is replaced by blazed.js implementation
+fetch('https://httpbin.org/anything')
+    .then(res => res.json())
+    .then(res => {
+        console.log(res)
+    })
+    .catch(err => {
+        console.error(err);
+    })
+```
+
+> [!IMPORTANT]
+> Calling `registerGlobals()` will replace Node.js's native `fetch` (powered by [Undici](https://github.com/nodejs/undici)) with the `blazed.js` fetch implementation. This ensures consistent behavior, better performance, and native Data URI support across your entire project.
+
 # Creating Custom Instances
 
 `blazed.js` allows you to create **isolated instances** with their own default configuration.
@@ -705,6 +796,7 @@ blazed.request({
 
 // Will cancel the ongoing request
 blazed.cancel("Test reason for cancellation"); // Any reason
+// NOTE - This reason will be present in the reason property of the error object.
 console.log("The ongoing request has been cancelled."); // Logging a messsage
 ```
 

@@ -4,31 +4,30 @@
 // 1. BlazeInferno64 -> https://github.com/blazeinferno64
 // 2. Sudeep -> https://github.com/SudeepQ
 //
-// Last updated: 01/04/2026
+// Last updated: 17/04/2026
 
 "use strict";
 
 const http = require('node:http');
 const https = require('node:https');
 
-const { createRequire } = require("node:module");
-const require2 = createRequire(__filename);
 
-const { dataUriToBuffer } = require2("data-uri-to-buffer");
 const { Buffer } = require('node:buffer');
 const { EventEmitter } = require('node:events');
 const emitter = new EventEmitter();
 
+const { parseDataURI } = require('./utils/plugins/data-uris/data-uri');
+
 const urlParser = require("./utils/plugins/url");
-const headerParser = require("./utils/plugins/headers");
+const headerParser = require("./utils/plugins/http/headers");
 const utilErrors = require("./utils/errors/errors");
 const { lookupForIp, reverseLookupForIp } = require("./utils/dns/dns");
 
-const { speedoMeter } = require("./utils/plugins/speedometer");
-const { mapStatusCodes } = require("./utils/plugins/status-mapper");
+const { speedoMeter } = require("./utils/plugins/http/speedometer");
+const { mapStatusCodes } = require("./utils/plugins/http/status-mapper");
 const { formatBytes } = require("./utils/plugins/math");
-const { HTTP_METHODS, supportedSchemas, validateBooleanOption, compareNodeVersion, buildQueryString, autoDetectServerless } = require("./utils/plugins/base");
-const { BlazedCancelError } = require("./utils/plugins/classes");
+const { HTTP_METHODS, supportedSchemas, validateBooleanOption, compareNodeVersion, buildQueryString, autoDetectServerless } = require('./utils/plugins/http/base');
+const { BlazedCancelError } = require("./utils/plugins/http/classes");
 
 const { Request } = require("./utils/plugins/fetch/request");
 const { Response } = require("./utils/plugins/fetch/response");
@@ -106,9 +105,9 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
         // Handle 'data:' URLs directly
         if (parsedURL.protocol === 'data:') {
           const myData = parse_data_url(requestUrl);
-          
-          const contentType = myData.contentType || 'application/octet-stream'; // a generic binary data type
-          const dataSize = myData.byteLength || 0;
+
+          const contentType = myData.mimeType || 'application/octet-stream'; // a generic binary data type
+          const dataSize = myData.data.byteLength || 0;
 
           const responseObject = {
             data: myData.data,
@@ -125,9 +124,18 @@ const _makeRequest = (method, url, data, headers = {}, redirectCount = 5, timeou
           // How to decode it ?
           // Its easy just follow the steps below -
           //
-          // const parsed = new TextDecoder(response.data.buffer.ArrayBuffer);
+          // const decoder = new TextDecoder(response.data.charset || 'utf-8');
           //
-          // console.log(parsed);
+          // const decodedText = decoder.decode(response.data.data);
+          //
+          // console.log(decodedText);
+          //
+          // Alternatively you can use -
+          //
+          // const decodedText = response.data.data.toString()l
+          //
+          // console.log(decodedText);
+          //
           //
           return resolve(responseObject);
         }
@@ -757,6 +765,36 @@ const maxHeaderSize = Object.freeze({
   }
 }).value;
 
+/**
+ * Injects blazed.js into the global scope.
+ * Replaces global fetch and adds a global request() function.
+ */
+function registerGlobals() {
+  try {
+    const context = typeof globalThis !== 'undefined' ? globalThis :
+      typeof global !== 'undefined' ? global :
+        typeof window !== 'undefined' ? window : {};
+
+    // Replace global fetch by blazed.js fetch
+    context.fetch = this.fetch.bind(this);
+
+    // Add global request
+    context.request = this.request.bind(this);
+
+    // Other standard fetch components to global
+    context.Headers = this.Headers;
+    context.Request = this.Request;
+    context.Response = this.Response;
+    context.FormData = this.FormData;
+    context.Body = this.Body;
+    // Return true
+    return true;
+  } catch (error) {
+    return false;
+    throw error;
+  }
+}
+
 
 const createInstance = (defaultConfig = {}) => {
   const {
@@ -888,12 +926,12 @@ const createInstance = (defaultConfig = {}) => {
  */
 const parse_data_url = (uri) => {
   try {
-    const parsed = dataUriToBuffer(uri); // This is already a Buffer-like object
+    const parsed = parseDataURI(uri); // This is already a Buffer-like object
     return {
-      data: parsed, 
-      contentType: parsed.typeFull || 'application/octet-stream',
+      data: parsed,
+      contentType: parsed.mimeType || 'application/octet-stream',
       charset: parsed.charset || 'utf-8',
-      byteLength: parsed.length || 0
+      byteLength: parsed.data.length || 0
     };
   } catch (error) {
     throw error;
@@ -1118,6 +1156,7 @@ module.exports = {
   FormData,
   trace_redirects,
   reverse_dns,
+  registerGlobals,
   parse_data_url,
   /**
    * Attaches a listener to the on event

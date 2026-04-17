@@ -2,7 +2,7 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 06/04/2026
+// Last updated: 17/04/2026
 
 // Type definitions for 'blazed.js'
 
@@ -24,6 +24,10 @@ type HTTPMethod =
 
 // Define Headers type
 type _Headers = Record<string, string>;
+
+type _fetchModes =
+  | 'cors' | 'no-cors' | 'navigate' | 'same-origin';
+
 
 interface FetchRequestInit extends Request {
 
@@ -96,13 +100,13 @@ declare class Headers {
 
 declare class Request extends Body {
   constructor(input: RequestInfo | URL, init?: RequestInit);
-  readonly method?: string;
+  readonly method?: HTTPMethod;
   readonly url?: string;
   readonly headers?: Headers;
   readonly destination?: string;
   readonly referrer?: string;
   readonly referrerPolicy?: string;
-  readonly mode?: string;
+  readonly mode?: _fetchModes;
   readonly credentials?: string;
   readonly cache?: string;
   readonly redirect?: "follow" | "error" | "manual";
@@ -1211,6 +1215,15 @@ interface blazedStatic extends blazedEmitter {
   reverse_dns(ip: string): Promise<String[]>
 
   /**
+    * Injects blazed.js methods (request, fetch) into the global namespace.
+    * Ideal for scripts or environments where you may want to avoid repeated imports.
+    @example 
+    // Register globals once at the start of your project
+    blazed.registerGlobals();
+  */
+  registerGlobals(): void;
+
+  /**
    * Returns all the valid HTTP status codes as an object.
    * @returns {Object} A object containing all the valid HTTP status codes.
    * @example 
@@ -1302,6 +1315,44 @@ interface blazedStatic extends blazedEmitter {
     * }
    */
   validateHeaderValue(name: string, value: string): Promise<HeaderObject>
+}
+
+declare global {
+  /**
+* Provides a simplified way of performing HTTP requests similar to the native fetch api.
+* When a method is not specified, blazed.js defaults to a GET request
+* @param {Object} requestObj - The Object contaning the HTTP request info.
+* @param {string} requestObj.url - The URL you want to send request.
+* @param {string} requestObj.method - The HTTP method to use (e.g. GET, POST, PUT, DELETE, etc.).
+* @param {_Headers} requestObj.headers - Optional headers to include in the request.
+* @param {Object} request.body - Optional data to send in the request body.
+* @param {number} requestObj.limit - The limit for the number of redirects for the http request. By default it's set to 5.
+* @param {number} requestObj.timeout - Optional timeout parameter for the HTTP request (default: 5000 ms).
+* @param {AbortSignal} requestObj.signal - Optional AbortSignal to cancel the request.
+* @param {Object} requestObj.params - Optional params object to include in the url as query strings.
+* @returns {Promise<ResponseObject>} A promise that resolves with the response data.
+* @example 
+* // Starting the request
+* blazed.request({
+*   url: "https://httpbin.org/anything", // URL to send the HTTP request.
+*   method: "GET", // HTTP method.
+*   headers: {}, // Provide your custom headers here.
+*   body: null, // Optional data to include in the request body.
+*   timeout: 5000, // Adjust the request timeout as needed.
+*   signal: null, // Optional AbortSignal to cancel the request.
+*   limit: 5, // Optional limit for the number of redirects (default is 5).
+*   params: { q: "hello", tags: ["a","b"], meta: { x: 1 } } // Optional params object to include in the url as query strings. 
+*   // Note: This appends ?q=hello&tags=a&tags=b&meta=%7B%22x%22%3A1%7D to the URL.
+*   
+* }).then(res => {
+*   return console.log(res.data);
+* }).catch(err => {
+*   return console.error(err);
+* })
+* // Since this example is based on GET request therefore the data to
+* // be sent in the request body is set to null.
+*/
+  function request(requestObj: RequestObject): Promise<ResponseObject>;
 }
 
 declare namespace blazedJs {
