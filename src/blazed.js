@@ -4,7 +4,7 @@
 // 1. BlazeInferno64 -> https://github.com/blazeinferno64
 // 2. Sudeep -> https://github.com/SudeepQ
 //
-// Last updated: 17/04/2026
+// Last updated: 11/07/2026
 
 "use strict";
 
@@ -22,6 +22,7 @@ const urlParser = require("./utils/plugins/url");
 const headerParser = require("./utils/plugins/http/headers");
 const utilErrors = require("./utils/errors/errors");
 const { lookupForIp, reverseLookupForIp } = require("./utils/dns/dns");
+const { BlazedClient, RawConnection } = require("./utils/client/client");
 
 const { speedoMeter } = require("./utils/plugins/http/speedometer");
 const { mapStatusCodes } = require("./utils/plugins/http/status-mapper");
@@ -1154,6 +1155,8 @@ module.exports = {
   Headers,
   Body,
   FormData,
+  BlazedClient,
+  RawConnection,
   trace_redirects,
   reverse_dns,
   registerGlobals,

@@ -1,8 +1,8 @@
-// Copyright (c) 2025 BlazeInferno64 --> https://github.com/blazeinferno64.
+// Copyright (c) 2026 BlazeInferno64 --> https://github.com/blazeinferno64.
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 01/01/2025
+// Last updated: 11/07/2026
 
 // Note:- This is just a simple test file for 'blazed.js'
 //        You can run this file by doing 'npm test' in your terminal
@@ -10,6 +10,7 @@
 // Requiring the necessary libraries
 const blazed = require("../index");
 const { describe, test, expect } = require("@jest/globals");
+const { RawConnection } = require("../src/utils/client/client");
 
 /**
  * Benchmark test for blazed.fetch()
@@ -82,6 +83,15 @@ async function testFetch() {
 }
 
 describe('HTTP requests function', () => {
+    test("RawConnection surfaces ENOTFOUND for an unresolved hostname", async () => {
+        const connection = new RawConnection({ url: "http://this-domain-should-not-exist.invalid" });
+
+        await expect(connection._init({ url: "http://this-domain-should-not-exist.invalid" })).rejects.toMatchObject({
+            code: "ENOTFOUND",
+            name: "DNS_Resolution_Error"
+        });
+    });
+
     test("Makes an HTTP GET request to Google's homepage", async () => {
         const response = await blazed.get("https://www.google.com");
         expect(response.status).toBe(200);

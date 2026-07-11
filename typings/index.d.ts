@@ -8,6 +8,9 @@
 
 import type { RequestInit, HeadersInit, BodyInit } from "undici";
 import { Body } from "../src/utils/plugins/fetch/body";
+import type { Socket } from "node:net";
+import type { TLSSocket } from "node:tls";
+import type { EventEmitter } from "node:events";
 
 
 /// <reference types="node" />
@@ -222,6 +225,241 @@ declare class FormData {
 }
 
 type FormDataEntryValue = string | Blob | Buffer;
+
+/**
+ * Options accepted by `BlazedClient.connect()`.
+ */
+interface BlazedConnectOptions {
+  /**
+   * The url or bare hostname to connect to (e.g. `'https://www.google.com'` or `'127.0.0.1:8080'`).
+   * If no protocol/scheme is present, `'http://'` is assumed. `'https:'` urls open a TLS connection.
+   */
+  url: string;
+  /**
+   * Connection timeout in milliseconds. The connection is destroyed and a `'timeout'`
+   * event is emitted if the socket stays idle for longer than this.
+   * @default 10000
+   */
+  timeout?: number;
+  /**
+   * Whether to reject connections to servers presenting invalid or self-signed TLS certificates.
+   * Only applies to `'https:'` connections.
+   * @default true
+   */
+  rejectUnauthorized?: boolean;
+  /**
+   * Additional raw options forwarded directly to Node's underlying
+   * `net.connect()`/`tls.connect()` call (e.g. `family`, `localAddress`).
+   */
+  socketOptions?: Record<string, any>;
+}
+
+/**
+ * Connection info emitted with the `'success'` event once a `BlazedClient` connection
+ * has been established.
+ */
+interface BlazedConnectionInfo {
+  /** A human readable success message. */
+  message: string;
+  /** The protocol used for the connection. */
+  protocol: "http" | "https";
+  /** The original hostname which was connected to (pre-DNS resolution). */
+  hostname: string;
+  /** The IP address the hostname resolved to (or the raw IP, if one was given directly). */
+  resolvedAddress: string;
+  /** The remote port used for the connection. */
+  port: number;
+  /** Whether the connection is TLS encrypted. */
+  encrypted: boolean;
+  /** The local IP address used for the connection. */
+  localAddress: string;
+  /** The local port used for the connection. */
+  localPort: number;
+  /** The remote IP address of the connection (same as `resolvedAddress`). */
+  remoteAddress: string;
+  /** The remote port of the connection (same as `port`). */
+  remotePort: number;
+}
+
+/**
+ * Options accepted by `RawConnection.request()`.
+ */
+interface BlazedRawRequestOptions {
+  /**
+   * Headers to send with the request. `header` and `headers` are both accepted
+   * for convenience. `Host`, `Connection` and `Content-Length` are auto-filled if omitted.
+   */
+  header?: _Headers;
+  headers?: _Headers;
+  /**
+   * The request path, including query string (e.g. `/search?q=blazed`).
+   * Defaults to the connection url's pathname + search.
+   */
+  path?: string;
+  /**
+   * Optional request body to send after the headers.
+   */
+  body?: string | Buffer;
+}
+
+/**
+ * The raw, low level HTTP/1.1 response object delivered to `RawConnection.request()`'s callback.
+ * Unlike `ResponseObject`, none of this is parsed/normalized beyond splitting the status line,
+ * headers and body apart -- it's the closest representation to what the server actually sent.
+ */
+interface BlazedRawResponse {
+  /** The HTTP version reported by the server (e.g. `'1.1'`). */
+  httpVersion: string;
+  /** The numeric HTTP status code (e.g. `200`). */
+  statusCode: number;
+  /** The HTTP status message reported by the server (e.g. `'OK'`). */
+  statusMessage: string;
+  /** Raw response headers with lower-cased keys. Repeated headers become arrays. */
+  headers: Record<string, string | string[]>;
+  /** The raw, unparsed response body. */
+  body: Buffer;
+  /** The underlying raw socket used for the connection. */
+  socket: Socket | TLSSocket;
+}
+
+/**
+ * Represents a single low level, raw TCP/TLS connection opened by `BlazedClient.connect()`.
+ * Built directly on top of Node's native `net` and `tls` modules -- bypasses the `http`/`https`
+ * modules entirely and gives direct control over the raw socket and request/response bytes.
+ *
+ * **Experimental.** This is a low level counterpart to blazed.js's high level request API.
+ */
+declare class RawConnection extends EventEmitter {
+  constructor(options: BlazedConnectOptions);
+
+  /** The original url/hostname passed to `connect()`. */
+  readonly rawUrl: string;
+  /** The configured connection timeout, in milliseconds. */
+  readonly timeout: number;
+  /** The underlying raw `net.Socket` or `tls.TLSSocket`, once established. */
+  socket: Socket | TLSSocket | null;
+  /** Whether the socket has successfully connected. */
+  connected: boolean;
+  /** Whether the connection has been terminated via `terminate()` or a fatal socket error. */
+  destroyed: boolean;
+
+  /**
+   * Sends a raw HTTP/1.1 request over the already established socket and delivers the
+   * parsed status line, headers and body to `callback` once the full response has arrived.
+   * Supports `Content-Length` and chunked `Transfer-Encoding` response bodies.
+   *
+   * The underlying connection is kept alive by default, so multiple `request()` calls can
+   * be issued sequentially over the same `RawConnection`.
+   *
+   * @param method - The HTTP method to use (e.g. `'GET'`, `'POST'`).
+   * @param options - Request options (headers, path, body).
+   * @param callback - Called once with the raw, parsed response.
+   * @example
+   * connection.request('GET', { header: { 'User-Agent': 'blazed.js' } }, (res) => {
+   *   console.log(res.statusCode, res.headers);
+   *   console.log(res.body.toString());
+   * });
+   */
+  request(method: HTTPMethod | (string & {}), options: BlazedRawRequestOptions, callback: (res: BlazedRawResponse) => void): void;
+
+  /**
+   * Forcefully terminates the underlying socket connection and emits `'terminate'`.
+   */
+  terminate(): void;
+
+  /**
+   * Fires once the raw TCP/TLS socket has successfully connected.
+   * @example
+   * connection.on('success', (info) => console.log(info));
+   */
+  on(event: "success", callback: (info: BlazedConnectionInfo) => void): this;
+  /**
+   * Fires on any connection, DNS resolution, or socket error.
+   */
+  on(event: "error", callback: (err: Error) => void): this;
+  /**
+   * Fires if the socket stays idle for longer than the configured `timeout`.
+   */
+  on(event: "timeout", callback: () => void): this;
+  /**
+   * Fires when the underlying socket closes.
+   * @param hadError - Whether the socket closed due to a transmission error.
+   */
+  on(event: "close", callback: (hadError: boolean) => void): this;
+  /**
+   * Fires once `terminate()` has been called.
+   */
+  on(event: "terminate", callback: () => void): this;
+  /**
+   * Fires for every raw chunk of data received off the wire, before any parsing.
+   * This is the same feed of chunks consumed by the async iterator below.
+   */
+  on(event: "data", callback: (chunk: Buffer) => void): this;
+
+  /**
+   * Makes the connection async-iterable, so raw incoming socket bytes can be consumed
+   * directly with a `for await...of` loop.
+   *
+   * **Note:** this yields every raw byte received off the wire (status line, headers and
+   * body all included, un-parsed) -- it's a separate, parallel feed of the same `'data'`
+   * events that power `request()`'s parsing, not a replacement for it. If you only want a
+   * parsed response, use `request(method, options, callback)` instead.
+   *
+   * @example
+   * for await (const chunk of connection) {
+   *   console.log(chunk.toString());
+   * }
+   */
+  [Symbol.asyncIterator](): AsyncIterableIterator<Buffer>;
+}
+
+/**
+ * `BlazedClient` exposes a low level, **experimental** raw TCP/TLS connection API,
+ * built directly on top of Node's native `net` and `tls` modules.
+ *
+ * @example
+ * const client = new BlazedClient();
+ * const connection = client.connect({ url: "https://www.google.com" });
+ *
+ * connection.on("success", async (info) => {
+ *     console.log("[success]", info);
+ *
+ *     connection.request("GET", { header: { "User-Agent": "blazed.js-test" } }, (res) => {
+ *         console.log("[response] status:", res.statusCode, res.statusMessage);
+ *         console.log("[response] headers:", res.headers);
+ *         console.log("[response] body length:", res.body.length, "bytes");
+ *         connection.terminate();
+ *     });
+ *
+ *     try {
+ *         for await (const chunk of connection) {
+ *             console.log("[chunk]", chunk.toString("utf8"));
+ *         }
+ *     } catch (err) {
+ *         console.error("[iterator error]", err);
+ *     }
+ * });
+ *
+ * connection.on("error", (err) => {
+ *     console.error("[error]", err);
+ * });
+ *
+ * connection.on("timeout", () => {
+ *     console.error("[timeout] connection timed out");
+ * });
+ *
+ * connection.on("close", () => {
+ *     console.log("[close] connection closed");
+ * });
+ */
+declare class BlazedClient {
+  /**
+   * Opens a new low level, raw TCP/TLS connection to the given url/hostname.
+   * @param options - Connection options.
+   * @returns The connection object.
+   */
+  connect(options: BlazedConnectOptions): RawConnection;
+}
 
 
 interface InstanceConfig {
@@ -1361,7 +1599,9 @@ declare namespace blazedJs {
     Response,
     FormData,
     Headers,
-    Body
+    Body,
+    BlazedClient,
+    RawConnection
   };
 }
 

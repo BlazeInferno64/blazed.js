@@ -1,6 +1,6 @@
 {
   "name": "blazed.js",
-  "version": "3.3.5",
+  "version": "3.4.0",
   "main": "index.js",
   "types": "typings/index.d.ts",
   "scripts": {
@@ -82,8 +82,8 @@
   "description": "Blazing fast, light weight, high performance, promise based HTTP and DNS client for the Node",
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@jest/globals": "^30.3.0",
-    "eslint": "^10.2.0",
-    "jest": "^30.3.0"
+    "@jest/globals": "^30.4.1",
+    "eslint": "^10.7.0",
+    "jest": "^30.4.2"
   }
 }

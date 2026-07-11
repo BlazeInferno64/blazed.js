@@ -2,7 +2,7 @@
 //
 // Author(s) -> BlazeInferno64
 //
-// Last updated: 18/01/2025
+// Last updated: 06/07/2025
 
 "use strict";
 
@@ -10,6 +10,13 @@ const dns = require("dns");
 const net = require("net");
 
 const { processError } = require("../errors/errors");
+
+// For maximum reliability, we will use Cloudflare and Google DNS servers for resolving hostnames to IP addresses.
+
+dns.setServers([
+    '1.1.1.1', // Cloudflare DNS
+    '8.8.8.8'  // Google DNS
+])
 
 /**
  * 

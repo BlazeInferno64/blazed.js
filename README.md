@@ -15,7 +15,7 @@
 
 # blazed.js
 
-<img src="https://github.com/BlazeInferno64/blazed.js/releases/download/v1.9.0/IMG_20250318_212949.jpg">
+<img src="https://github.com/BlazeInferno64/blazed.js/releases/download/v3.4.0/blazed.js-logo-new.png">
 
 > Blazing fast, light weight, high performance, promise based [HTTP](https://nodejs.org/api/http.html) and [DNS](https://nodejs.org/api/dns.html) client for the [Node](https://nodejs.org)
 
@@ -503,6 +503,51 @@ console.log("Headers:", response.headers);
 const data = await response.json(); // or use .text()
 console.log("Data:", data);
 
+```
+
+# Low level connection api
+
+`blazed.js` exposes a low level, **experimental** raw TCP/TLS connection API,
+built directly on top of Node's native `net` and `tls` modules.
+
+Usage:
+
+```js
+const { BlazedClient } = require("blazed.js");
+
+const client = new BlazedClient();
+const connection = client.connect({ url: "https://www.google.com" });
+
+connection.on("success", async (info) => {
+    console.log("[success]", info);
+
+    connection.request("GET", { header: { "User-Agent": "blazed.js-test" } }, (res) => {
+        console.log("[response] status:", res.statusCode, res.statusMessage);
+        console.log("[response] headers:", res.headers);
+        console.log("[response] body length:", res.body.length, "bytes");
+        connection.terminate();
+    });
+
+    try {
+        for await (const chunk of connection) {
+            console.log("[chunk]", chunk.toString("utf8"));
+        }
+    } catch (err) {
+        console.error("[iterator error]", err);
+    }
+});
+
+connection.on("error", (err) => {
+    console.error("[error]", err);
+});
+
+connection.on("timeout", () => {
+    console.error("[timeout] connection timed out");
+});
+
+connection.on("close", () => {
+    console.log("[close] connection closed");
+});
 ```
 
 # Trace Redirects
